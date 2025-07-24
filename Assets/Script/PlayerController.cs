@@ -1,12 +1,17 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class PlayerController : MonoBehaviour
 {
     public float moveSpeed;
     public bool isMoving;
     private Vector2 input;
+    
+    [Header("Tilemap Reference")]
+    public Tilemap tilemap;
+    public TileBase muraTile;
 
     private Animator animator;
 
@@ -39,7 +44,8 @@ public class PlayerController : MonoBehaviour
                 targetPos.x += input.x;
                 targetPos.y += input.y;
 
-                StartCoroutine(Move(targetPos));
+                if (IsWalkable(targetPos))
+                    StartCoroutine(Move(targetPos));
             }
         }
 
@@ -58,5 +64,36 @@ public class PlayerController : MonoBehaviour
         transform.position = targetPos;
 
         isMoving = false;
+    }
+
+    // METODO 2: Detection diretta sulla Tilemap (più preciso per tile specifici)
+    public bool IsWalkable(Vector3 targetPos)
+    {
+        if (tilemap == null)
+        {
+            Debug.LogWarning("Tilemap non assegnata!");
+            return true; // Fallback: assume walkable
+        }
+        
+        // Converti posizione world a coordinate tilemap
+        Vector3Int cellPosition = tilemap.WorldToCell(targetPos);
+        
+        // Ottieni il tile nella posizione
+        TileBase tileAtPosition = tilemap.GetTile(cellPosition);
+        
+        // Controlla se è un tile muro
+        bool isWall = (muraTile != null && tileAtPosition == muraTile);
+        
+        // Metodo alternativo: controlla se il tile ha un collider
+        if (!isWall && tileAtPosition != null)
+        {
+            // Verifica il tipo di collider del tile
+            var colliderType = tilemap.GetColliderType(cellPosition);
+            isWall = (colliderType != Tile.ColliderType.None);
+        }
+        
+        bool isWalkable = !isWall;
+        
+        return isWalkable;
     }
 }

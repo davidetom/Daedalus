@@ -9851,6 +9851,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2076172024}
   - component: {fileID: 2076172023}
+  - component: {fileID: 2076172025}
   m_Layer: 0
   m_Name: MazeGenerator
   m_TagString: Untagged
@@ -9895,6 +9896,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2076172025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2076172022}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e6867ea0822c4c3e8cc968b3ee22745, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tilemap: {fileID: 0}
+  muraTile: {fileID: 11400000, guid: 71b947652f19a46c892c762282e0a8af, type: 2}
+  corridoioTile: {fileID: 11400000, guid: fc6f2fbdf1a3c4867a8933c2fc41f463, type: 2}
+  pratoTile: {fileID: 11400000, guid: 1bcd2404b14eb49238a4b72ff366ede1, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
