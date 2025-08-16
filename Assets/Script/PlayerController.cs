@@ -8,10 +8,12 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed;
     public bool isMoving;
     private Vector2 input;
-    
+
     [Header("Tilemap Reference")]
     public Tilemap tilemap;
     public TileBase muraTile;
+
+    public int coinCount;
 
     private Animator animator;
 
@@ -74,16 +76,16 @@ public class PlayerController : MonoBehaviour
             Debug.LogWarning("Tilemap non assegnata!");
             return true; // Fallback: assume walkable
         }
-        
+
         // Converti posizione world a coordinate tilemap
         Vector3Int cellPosition = tilemap.WorldToCell(targetPos);
-        
+
         // Ottieni il tile nella posizione
         TileBase tileAtPosition = tilemap.GetTile(cellPosition);
-        
+
         // Controlla se è un tile muro
         bool isWall = (muraTile != null && tileAtPosition == muraTile);
-        
+
         // Metodo alternativo: controlla se il tile ha un collider
         if (!isWall && tileAtPosition != null)
         {
@@ -91,9 +93,9 @@ public class PlayerController : MonoBehaviour
             var colliderType = tilemap.GetColliderType(cellPosition);
             isWall = (colliderType != Tile.ColliderType.None);
         }
-        
+
         bool isWalkable = !isWall;
-        
+
         return isWalkable;
     }
 }
