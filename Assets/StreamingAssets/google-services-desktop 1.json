@@ -1,0 +1,31 @@
+{
+  "project_info": {
+    "project_number": "290104546201",
+    "project_id": "daedalus-2e073",
+    "storage_bucket": "daedalus-2e073.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:290104546201:ios:cae14f62be5e1bc6863908",
+        "android_client_info": {
+          "package_name": "com.DefaultCompany.com.unity.template.mobile2D"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6z1X1wp4pdXG4HNlg9Saf6rl8eO2TYGo"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 0
+        },
+        "appinvite_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
