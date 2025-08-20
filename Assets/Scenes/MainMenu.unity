@@ -8437,8 +8437,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -145}
-  m_SizeDelta: {x: -1097.1328, y: 156.68048}
+  m_AnchoredPosition: {x: 0, y: -138.49}
+  m_SizeDelta: {x: -938.6844, y: 200.0462}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1844447175
 MonoBehaviour:
@@ -8460,7 +8460,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: LABYRINTH EXPLORER
+  m_text: 'DAEDALUS:
+
+    ESCAPE THE MAZE!'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f54487c76c163c84b8fef7ae3c38fee0, type: 2}
   m_sharedMaterial: {fileID: -9116426184656833220, guid: f54487c76c163c84b8fef7ae3c38fee0, type: 2}
@@ -8482,7 +8484,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: -1183493901
+  m_TextStyleHashCode: 97690656
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
