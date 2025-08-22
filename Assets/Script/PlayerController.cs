@@ -98,33 +98,33 @@ public class PlayerController : MonoBehaviour
         }
 
         // 🔹 NUOVO CONTROLLO: verifica se c'è una porta chiusa in quella cella
-    Collider2D doorCollider = Physics2D.OverlapPoint(targetPos);
-    if (doorCollider != null)
-    {
-        DoorController door = doorCollider.GetComponent<DoorController>();
-        if (door != null && !door.IsOpen())
+        Collider2D doorCollider = Physics2D.OverlapPoint(targetPos);
+        if (doorCollider != null)
         {
-            return false; // Porta chiusa → non camminabile
+            DoorController door = doorCollider.GetComponent<DoorController>();
+            if (door != null && !door.IsOpen())
+            {
+                return false; // Porta chiusa → non camminabile
+            }
         }
-    }
 
         return !isWall;
     }
 
-    // ----------------- NUOVA PARTE -----------------
-    void TryOpenNearbyDoor()
-{
-    DoorController[] doors = GameObject.FindObjectsByType<DoorController>(FindObjectsSortMode.None);
-
-    foreach (var door in doors)
+        // ----------------- NUOVA PARTE -----------------
+        void TryOpenNearbyDoor()
     {
-        float distance = Vector3.Distance(transform.position, door.transform.position);
-        if (distance <= interactRange)
+        DoorController[] doors = GameObject.FindObjectsByType<DoorController>(FindObjectsSortMode.None);
+
+        foreach (var door in doors)
         {
-            door.TryOpen(this); // <--- passo il Player stesso
-            break;
+            float distance = Vector3.Distance(transform.position, door.transform.position);
+            if (distance <= interactRange)
+            {
+                door.TryOpen(this); // <--- passo il Player stesso
+                break;
+            }
         }
     }
-}
 
 }
