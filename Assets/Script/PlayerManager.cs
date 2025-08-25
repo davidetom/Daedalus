@@ -17,7 +17,7 @@ public class PlayerManager : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject.CompareTag("Currency"))
+        if (other.gameObject.CompareTag("Coin"))
         {
             coinsPicked++;
             Destroy(other);

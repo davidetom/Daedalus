@@ -4,6 +4,7 @@ using UnityEngine;
 public class CameraMovement : MonoBehaviour
 {
     public GameObject player;
+    public float cameraOffSet;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -15,7 +16,7 @@ public class CameraMovement : MonoBehaviour
     void Update()
     {
         Vector3 pos = player.transform.position;
-        pos.z = -10f;
+        pos.z = - cameraOffSet;
         transform.position = pos;
     }
 }

@@ -1,579 +1,431 @@
 using UnityEngine;
-using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using System.Collections;
 
 public class DynamicCoinGenerator : MonoBehaviour
 {
-    [Header("Configurazione Monete")]
+    [Header("Coin Settings")]
     public GameObject coinPrefab;
-    public float coinDensity = 0.3f; // Probabilità che una tile valida abbia una moneta (0-1)
-    public int maxTotalCoins = 200; // Numero massimo di monete attive contemporaneamente
+    public int maxDistance = 10; // Distanza massima per generare monete
+    public float coinSpawnChance = 0.3f; // Probabilità di spawn (30%)
+    public float updateInterval = 1f; // Intervallo di aggiornamento in secondi
     
-    [Header("Tilemap Settings")]
-    public Tilemap tilemap;
-    public TileBase targetTile;
-    public Vector3 spawnOffset = new Vector3(0.5f, 0.5f, 0);
+    [Header("Visibility Settings")]
+    public Camera playerCamera; // Camera del player
+    public float visibilityBuffer = 2f; // Buffer extra per evitare pop-in ai bordi
+    public bool spawnInVisibleCorridors = true; // Spawna monete anche nei corridoi visibili ma non raggiungibili
     
-    [Header("Area Dinamica")]
-    public float generationRadius = 25f; // Raggio di generazione intorno al player
-    public float destructionRadius = 35f; // Raggio oltre il quale le monete vengono eliminate
-    public float visibilityBuffer = 5f; // Buffer extra per spawn fuori dal campo visivo
-    public float updateInterval = 1.5f; // Ogni quanto aggiornare (secondi)
-    public int maxCoinsPerUpdate = 8; // Limite monete generate per update
-    
-    [Header("Chunk System")]
-    public float chunkSize = 8f; // Dimensione di ogni chunk
-    
-    [Header("Camera Settings")]
-    public Camera playerCamera; // Camera del player per calcolare il campo visivo
-    public float cameraBufferMultiplier = 1.5f; // Moltiplicatore per il buffer della camera
-    
+    [Header("References")]
+    public MapManager mapManager;
+    public GameObject player;
     private Transform playerTransform;
-    private Dictionary<Vector2Int, ChunkData> chunks = new Dictionary<Vector2Int, ChunkData>();
-    private HashSet<Vector3Int> occupiedPositions = new HashSet<Vector3Int>();
-    private float nextUpdateTime;
-    private int currentCoinCount = 0;
     
-    // Per il controllo del campo visivo
-    private float cameraSize;
-    private float cameraAspect;
+    // Dictionary per tracciare le monete attive
+    private Dictionary<Vector2Int, GameObject> activeCoins = new Dictionary<Vector2Int, GameObject>();
     
-    [System.Serializable]
-    public class ChunkData
-    {
-        public List<GameObject> coins = new List<GameObject>();
-        public HashSet<Vector3Int> generatedPositions = new HashSet<Vector3Int>();
-        public bool isFullyGenerated = false;
-        
-        public void AddCoin(GameObject coin, Vector3Int position)
-        {
-            coins.Add(coin);
-            generatedPositions.Add(position);
-        }
-        
-        public bool RemoveCoin(GameObject coin, Vector3Int position)
-        {
-            generatedPositions.Remove(position);
-            return coins.Remove(coin);
-        }
-        
-        public void Clear()
-        {
-            foreach (GameObject coin in coins)
-            {
-                if (coin != null) DestroyImmediate(coin);
-            }
-            coins.Clear();
-            generatedPositions.Clear();
-            isFullyGenerated = false;
-        }
-    }
+    // HashSet per evitare di ricalcolare posizioni già controllate
+    private HashSet<Vector2Int> checkedPositions = new HashSet<Vector2Int>();
     
     void Start()
     {
-        // Trova il player
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
+        if (mapManager == null)
         {
-            playerTransform = player.transform;
-        }
-        else
-        {
-            Debug.LogError("Player non trovato! Assicurati che abbia il tag 'Player'");
-            return;
+            mapManager = Object.FindFirstObjectByType<MapManager>();
         }
         
-        // Trova la camera se non assegnata
+        if (player == null)
+        {
+            player = GameObject.FindGameObjectWithTag("Player");
+        }
+
+        playerTransform = player.transform;
+        
         if (playerCamera == null)
         {
             playerCamera = Camera.main;
-            if (playerCamera == null)
+            if (playerCamera == null && playerTransform != null)
             {
-                playerCamera = FindObjectOfType<Camera>();
+                playerCamera = playerTransform.GetComponentInChildren<Camera>();
             }
         }
         
-        SetupCamera();
-        
-        // Prima generazione con coroutine per evitare lag
-        StartCoroutine(InitialGeneration());
-        nextUpdateTime = Time.time + updateInterval;
+        // Avvia la coroutine per l'aggiornamento periodico
+        StartCoroutine(UpdateCoinsRoutine());
     }
     
-    void SetupCamera()
+    IEnumerator UpdateCoinsRoutine()
     {
-        if (playerCamera != null)
+        while (true)
         {
-            if (playerCamera.orthographic)
+            yield return new WaitForSeconds(updateInterval);
+            
+            if (mapManager != null && mapManager.wallCalculated && playerTransform != null)
             {
-                cameraSize = playerCamera.orthographicSize;
-                cameraAspect = playerCamera.aspect;
+                UpdateCoins();
             }
-            else
+        }
+    }
+    
+    void UpdateCoins()
+    {
+        // Ottieni la posizione del player in coordinate array
+        Vector2Int playerArrayPos = mapManager.WorldToArrayCoordinates(playerTransform.position);
+        
+        if (!mapManager.IsValidArrayCoordinate(playerArrayPos))
+            return;
+        
+        // Lista delle posizioni da rimuovere
+        List<Vector2Int> coinsToRemove = new List<Vector2Int>();
+        
+        // 1. Controlla le monete esistenti e rimuovi quelle troppo distanti
+        foreach (var coinPair in activeCoins)
+        {
+            Vector2Int coinPos = coinPair.Key;
+            int distance = mapManager.Distances[coinPos.x, coinPos.y];
+            
+            if (distance > maxDistance || distance <= 0) // distance <= 0 significa inaccessibile
             {
-                // Per camere perspective, approssima la size basandosi sulla distanza
-                float distance = Vector3.Distance(playerCamera.transform.position, playerTransform.position);
-                cameraSize = distance * Mathf.Tan(playerCamera.fieldOfView * 0.5f * Mathf.Deg2Rad);
-                cameraAspect = playerCamera.aspect;
+                coinsToRemove.Add(coinPos);
             }
+        }
+        
+        // Rimuovi le monete troppo distanti
+        foreach (var posToRemove in coinsToRemove)
+        {
+            if (activeCoins.TryGetValue(posToRemove, out GameObject coinToDestroy))
+            {
+                Destroy(coinToDestroy);
+                activeCoins.Remove(posToRemove);
+            }
+        }
+        
+        // 2. Genera nuove monete nelle posizioni valide
+        GenerateCoinsInRange(playerArrayPos);
+        
+        // 3. Se abilitato, genera monete anche nei corridoi visibili
+        if (spawnInVisibleCorridors)
+        {
+            GenerateCoinsInVisibleCorridors();
+        }
+    }
+    
+    void GenerateCoinsInRange(Vector2Int playerPos)
+    {
+        checkedPositions.Clear();
+        
+        // Controlla solo una regione quadrata attorno al player per ottimizzare
+        int searchRadius = maxDistance + 2; // Piccolo buffer per evitare pop-in
+        
+        int startX = Mathf.Max(0, playerPos.x - searchRadius);
+        int endX = Mathf.Min(mapManager.MapWidth - 1, playerPos.x + searchRadius);
+        int startY = Mathf.Max(0, playerPos.y - searchRadius);
+        int endY = Mathf.Min(mapManager.MapHeight - 1, playerPos.y + searchRadius);
+        
+        for (int x = startX; x <= endX; x++)
+        {
+            for (int y = startY; y <= endY; y++)
+            {
+                Vector2Int currentPos = new Vector2Int(x, y);
+                
+                // Salta se già c'è una moneta qui
+                if (activeCoins.ContainsKey(currentPos))
+                    continue;
+                
+                // Controlla se è una posizione valida per una moneta
+                if (IsValidCoinPosition(currentPos))
+                {
+                    // Genera moneta con probabilità
+                    if (Random.value < coinSpawnChance)
+                    {
+                        SpawnCoin(currentPos);
+                    }
+                }
+            }
+        }
+    }
+    
+    void GenerateCoinsInVisibleCorridors()
+    {
+        if (playerCamera == null)
+            return;
+        
+        // Calcola i bounds del campo visivo in coordinate world
+        Bounds cameraBounds = GetCameraWorldBounds();
+        
+        // Converti i bounds in coordinate array della tilemap
+        Vector2Int minArrayPos = mapManager.WorldToArrayCoordinates(cameraBounds.min);
+        Vector2Int maxArrayPos = mapManager.WorldToArrayCoordinates(cameraBounds.max);
+        
+        // Assicurati che siano dentro i bounds della mappa
+        minArrayPos.x = Mathf.Max(0, minArrayPos.x);
+        minArrayPos.y = Mathf.Max(0, minArrayPos.y);
+        maxArrayPos.x = Mathf.Min(mapManager.MapWidth - 1, maxArrayPos.x);
+        maxArrayPos.y = Mathf.Min(mapManager.MapHeight - 1, maxArrayPos.y);
+        
+        // Scansiona tutti i tile visibili
+        for (int x = minArrayPos.x; x <= maxArrayPos.x; x++)
+        {
+            for (int y = minArrayPos.y; y <= maxArrayPos.y; y++)
+            {
+                Vector2Int currentPos = new Vector2Int(x, y);
+                
+                // Salta se già c'è una moneta qui
+                if (activeCoins.ContainsKey(currentPos))
+                    continue;
+                
+                // Controlla se è un corridoio visibile (anche se non raggiungibile)
+                if (IsVisibleCorridor(currentPos))
+                {
+                    // Genera moneta con probabilità
+                    if (Random.value < coinSpawnChance)
+                    {
+                        SpawnCoin(currentPos);
+                    }
+                }
+            }
+        }
+    }
+    
+    bool IsValidCoinPosition(Vector2Int arrayPos)
+    {
+        // Deve essere dentro i bounds
+        if (!mapManager.IsValidArrayCoordinate(arrayPos))
+            return false;
+        
+        // Non deve essere un muro
+        if (mapManager.Walls[arrayPos.x, arrayPos.y])
+            return false;
+        
+        // Deve essere a distanza valida dal player (raggiungibile)
+        int distance = mapManager.Distances[arrayPos.x, arrayPos.y];
+        if (distance <= 0 || distance > maxDistance)
+            return false;
+        
+        // Non deve essere visibile dalla camera del player
+        if (IsPositionVisibleToPlayer(arrayPos))
+            return false;
+        
+        return true;
+    }
+    
+    bool IsVisibleCorridor(Vector2Int arrayPos)
+    {
+        // Deve essere dentro i bounds
+        if (!mapManager.IsValidArrayCoordinate(arrayPos))
+            return false;
+        
+        // Non deve essere un muro (deve essere un corridoio)
+        if (mapManager.Walls[arrayPos.x, arrayPos.y])
+            return false;
+        
+        // Deve essere vicino all'area visibile ma NON direttamente visibile
+        // (per evitare spawn davanti agli occhi del player)
+        if (IsPositionVisibleToPlayer(arrayPos))
+            return false;
+        
+        // Controlla se è abbastanza vicino all'area visibile
+        if (!IsNearVisibleArea(arrayPos))
+            return false;
+        
+        return true;
+    }
+    
+    bool IsPositionVisibleToPlayer(Vector2Int arrayPos)
+    {
+        if (playerCamera == null)
+            return false;
+        
+        // Converti coordinate array in posizione world
+        Vector3Int cellPos = new Vector3Int(
+            arrayPos.x + mapManager.MapOffset.x,
+            arrayPos.y + mapManager.MapOffset.y,
+            0
+        );
+        
+        Vector3 worldPos = mapManager.tilemap.CellToWorld(cellPos);
+        worldPos += new Vector3(0.5f, 0.5f, 0); // Centra nel tile
+        
+        // Ottieni i bounds della viewport con buffer
+        Vector3 viewportPos = playerCamera.WorldToViewportPoint(worldPos);
+        
+        // Aggiungi un buffer per evitare pop-in ai bordi dello schermo
+        float bufferNormalized = visibilityBuffer / Mathf.Min(Screen.width, Screen.height);
+        
+        // Controlla se è dentro i bounds della viewport (con buffer)
+        bool isVisible = viewportPos.x >= -bufferNormalized && 
+                        viewportPos.x <= 1f + bufferNormalized && 
+                        viewportPos.y >= -bufferNormalized && 
+                        viewportPos.y <= 1f + bufferNormalized &&
+                        viewportPos.z > 0; // Davanti alla camera
+        
+        return isVisible;
+    }
+    
+    bool IsNearVisibleArea(Vector2Int arrayPos)
+    {
+        if (playerCamera == null)
+            return false;
+        
+        // Converti coordinate array in posizione world
+        Vector3Int cellPos = new Vector3Int(
+            arrayPos.x + mapManager.MapOffset.x,
+            arrayPos.y + mapManager.MapOffset.y,
+            0
+        );
+        
+        Vector3 worldPos = mapManager.tilemap.CellToWorld(cellPos);
+        worldPos += new Vector3(0.5f, 0.5f, 0);
+        
+        // Calcola la distanza dal centro della camera
+        Vector3 cameraCenter = playerCamera.transform.position;
+        cameraCenter.z = 0;
+        
+        float distance = Vector3.Distance(worldPos, cameraCenter);
+        
+        // Considera "vicino" se è entro una certa distanza dall'area visibile
+        float maxVisibleDistance;
+        if (playerCamera.orthographic)
+        {
+            maxVisibleDistance = Mathf.Max(playerCamera.orthographicSize * 2f, 
+                                         playerCamera.orthographicSize * 2f * playerCamera.aspect);
         }
         else
         {
-            // Valori di default
-            cameraSize = 10f;
-            cameraAspect = 16f/9f;
+            float cameraDistance = Mathf.Abs(playerCamera.transform.position.z);
+            float height = 2.0f * cameraDistance * Mathf.Tan(playerCamera.fieldOfView * 0.5f * Mathf.Deg2Rad);
+            maxVisibleDistance = Mathf.Max(height, height * playerCamera.aspect);
         }
-    }
-    
-    IEnumerator InitialGeneration()
-    {
-        yield return new WaitForEndOfFrame();
-        UpdateCoinGeneration();
-    }
-    
-    void Update()
-    {
-        if (playerTransform == null) return;
         
-        if (Time.time >= nextUpdateTime)
+        // Aggiungi un range extra per includere corridoi appena fuori dall'inquadratura
+        return distance <= maxVisibleDistance * 1.5f;
+    }
+    
+    Bounds GetCameraWorldBounds()
+    {
+        if (playerCamera.orthographic)
         {
-            UpdateCoinGeneration();
-            nextUpdateTime = Time.time + updateInterval;
-        }
-    }
-    
-    void UpdateCoinGeneration()
-    {
-        Vector3 playerPos = playerTransform.position;
-        
-        // 1. Rimuovi monete troppo lontane
-        RemoveDistantCoins(playerPos);
-        
-        // 2. Genera monete nell'area vicina (ma fuori dal campo visivo)
-        GenerateNearbyCoins(playerPos);
-        
-        // 3. Aggiorna conteggio
-        UpdateCoinCount();
-        
-        // Debug info
-        Debug.Log($"Monete attive: {currentCoinCount}/{maxTotalCoins}, Chunks attivi: {chunks.Count}");
-    }
-    
-    void RemoveDistantCoins(Vector3 playerPos)
-    {
-        List<Vector2Int> chunksToRemove = new List<Vector2Int>();
-        
-        foreach (var kvp in chunks)
-        {
-            Vector2Int chunkCoord = kvp.Key;
-            ChunkData chunkData = kvp.Value;
+            float height = playerCamera.orthographicSize * 2f;
+            float width = height * playerCamera.aspect;
             
-            // Calcola centro del chunk
-            Vector3 chunkCenter = new Vector3(
-                chunkCoord.x * chunkSize + chunkSize * 0.5f,
-                chunkCoord.y * chunkSize + chunkSize * 0.5f,
-                playerPos.z
-            );
+            // Aggiungi il buffer
+            width += visibilityBuffer;
+            height += visibilityBuffer;
             
-            float distanceToChunk = Vector3.Distance(new Vector3(playerPos.x, playerPos.y, chunkCenter.z), chunkCenter);
+            Vector3 center = playerCamera.transform.position;
+            center.z = 0; // Proietta sul piano della tilemap
             
-            if (distanceToChunk > destructionRadius)
-            {
-                // Rimuovi tutte le monete in questo chunk
-                foreach (GameObject coin in chunkData.coins)
-                {
-                    if (coin != null)
-                    {
-                        Vector3Int tilePos = tilemap.WorldToCell(coin.transform.position);
-                        occupiedPositions.Remove(tilePos);
-                        Destroy(coin);
-                        currentCoinCount--;
-                    }
-                }
-                
-                chunksToRemove.Add(chunkCoord);
-            }
+            return new Bounds(center, new Vector3(width, height, 0));
         }
-        
-        // Rimuovi chunk vuoti
-        foreach (Vector2Int chunkToRemove in chunksToRemove)
+        else
         {
-            chunks.Remove(chunkToRemove);
+            // Per camera prospettica, calcola i bounds al livello z=0
+            float distance = Mathf.Abs(playerCamera.transform.position.z);
+            float height = 2.0f * distance * Mathf.Tan(playerCamera.fieldOfView * 0.5f * Mathf.Deg2Rad);
+            float width = height * playerCamera.aspect;
+            
+            // Aggiungi il buffer
+            width += visibilityBuffer;
+            height += visibilityBuffer;
+            
+            Vector3 center = playerCamera.transform.position;
+            center.z = 0;
+            
+            return new Bounds(center, new Vector3(width, height, 0));
         }
     }
     
-    void GenerateNearbyCoins(Vector3 playerPos)
+    void SpawnCoin(Vector2Int arrayPos)
     {
-        // Controlla se abbiamo già troppe monete
-        if (currentCoinCount >= maxTotalCoins)
+        if (coinPrefab == null)
         {
+            Debug.LogWarning("Coin prefab non assegnato!");
             return;
         }
         
-        // Calcola range di chunk da controllare
-        int minChunkX = Mathf.FloorToInt((playerPos.x - generationRadius) / chunkSize);
-        int maxChunkX = Mathf.FloorToInt((playerPos.x + generationRadius) / chunkSize);
-        int minChunkY = Mathf.FloorToInt((playerPos.y - generationRadius) / chunkSize);
-        int maxChunkY = Mathf.FloorToInt((playerPos.y + generationRadius) / chunkSize);
+        // Converti coordinate array in posizione world
+        Vector3Int cellPos = new Vector3Int(
+            arrayPos.x + mapManager.MapOffset.x,
+            arrayPos.y + mapManager.MapOffset.y,
+            0
+        );
         
-        int coinsGeneratedThisUpdate = 0;
+        Vector3 worldPos = mapManager.tilemap.CellToWorld(cellPos);
+        worldPos += new Vector3(0.5f, 0.5f, 0); // Centra nel tile
         
-        // Lista di chunk da processare, ordinata per distanza
-        List<Vector2Int> chunksToProcess = new List<Vector2Int>();
+        // Instanzia la moneta
+        GameObject newCoin = Instantiate(coinPrefab, worldPos, Quaternion.identity);
+        newCoin.transform.parent = transform; // Organizza nell'hierarchy
         
-        for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++)
-        {
-            for (int chunkY = minChunkY; chunkY <= maxChunkY; chunkY++)
-            {
-                Vector2Int chunkCoord = new Vector2Int(chunkX, chunkY);
-                
-                // Se il chunk non esiste ancora o non è completamente generato
-                if (!chunks.ContainsKey(chunkCoord) || !chunks[chunkCoord].isFullyGenerated)
-                {
-                    chunksToProcess.Add(chunkCoord);
-                }
-            }
-        }
-        
-        // Ordina per distanza dal player
-        chunksToProcess.Sort((a, b) => {
-            Vector3 posA = new Vector3(a.x * chunkSize, a.y * chunkSize, 0);
-            Vector3 posB = new Vector3(b.x * chunkSize, b.y * chunkSize, 0);
-            float distA = Vector3.Distance(playerPos, posA);
-            float distB = Vector3.Distance(playerPos, posB);
-            return distA.CompareTo(distB);
-        });
-        
-        // Processa chunk in ordine di distanza
-        foreach (Vector2Int chunkCoord in chunksToProcess)
-        {
-            coinsGeneratedThisUpdate += GenerateCoinsInChunk(chunkCoord, playerPos);
-            
-            // Limita generazione per update
-            if (coinsGeneratedThisUpdate >= maxCoinsPerUpdate || currentCoinCount >= maxTotalCoins)
-            {
-                break;
-            }
-        }
+        // Aggiungi alla dictionary
+        activeCoins[arrayPos] = newCoin;
     }
     
-    int GenerateCoinsInChunk(Vector2Int chunkCoord, Vector3 playerPos)
+    // Metodo pubblico per forzare un aggiornamento (utile per debug)
+    [ContextMenu("Force Update Coins")]
+    public void ForceUpdateCoins()
     {
-        // Calcola bounds del chunk
-        float chunkWorldX = chunkCoord.x * chunkSize;
-        float chunkWorldY = chunkCoord.y * chunkSize;
-        
-        Vector3Int minCell = tilemap.WorldToCell(new Vector3(chunkWorldX, chunkWorldY, 0));
-        Vector3Int maxCell = tilemap.WorldToCell(new Vector3(chunkWorldX + chunkSize, chunkWorldY + chunkSize, 0));
-        
-        // Ottieni o crea chunk data
-        if (!chunks.ContainsKey(chunkCoord))
+        if (mapManager != null && mapManager.wallCalculated && playerTransform != null)
         {
-            chunks[chunkCoord] = new ChunkData();
-        }
-        
-        ChunkData chunkData = chunks[chunkCoord];
-        List<Vector3Int> validPositions = GetValidPositionsInArea(minCell, maxCell);
-        int coinsGenerated = 0;
-        
-        foreach (Vector3Int position in validPositions)
-        {
-            // Controlla se abbiamo raggiunto il limite
-            if (currentCoinCount >= maxTotalCoins)
-            {
-                break;
-            }
-            
-            // Controlla se la posizione è già stata processata in questo chunk
-            if (chunkData.generatedPositions.Contains(position))
-                continue;
-                
-            // Marca come processata anche se non genera una moneta
-            chunkData.generatedPositions.Add(position);
-            
-            // Controlla se la posizione è già occupata globalmente
-            if (occupiedPositions.Contains(position))
-                continue;
-            
-            Vector3 worldPos = tilemap.CellToWorld(position) + spawnOffset;
-            
-            // Controlla se è nel raggio di generazione
-            if (Vector3.Distance(worldPos, playerPos) > generationRadius)
-                continue;
-            
-            // IMPORTANTE: Controlla se è nel campo visivo del player
-            if (IsInCameraView(worldPos, playerPos))
-                continue; // Skip se è visibile
-            
-            // Probabilità di spawn
-            if (Random.value <= coinDensity)
-            {
-                GameObject coin = Instantiate(coinPrefab, worldPos, Quaternion.identity);
-                coin.transform.SetParent(this.transform);
-                
-                SetupCoinOptimization(coin);
-                
-                chunkData.AddCoin(coin, position);
-                occupiedPositions.Add(position);
-                currentCoinCount++;
-                coinsGenerated++;
-            }
-        }
-        
-        // Marca il chunk come completamente generato
-        chunkData.isFullyGenerated = true;
-        
-        return coinsGenerated;
-    }
-    
-    bool IsInCameraView(Vector3 worldPos, Vector3 playerPos)
-    {
-        if (playerCamera == null) return false;
-        
-        // Calcola i bounds della camera con buffer
-        float bufferedCameraHeight = cameraSize * cameraBufferMultiplier + visibilityBuffer;
-        float bufferedCameraWidth = bufferedCameraHeight * cameraAspect;
-        
-        Vector3 cameraPos = playerCamera.transform.position;
-        
-        // Controlla se il punto è dentro i bounds della camera (con buffer)
-        bool inHorizontalBounds = Mathf.Abs(worldPos.x - cameraPos.x) <= bufferedCameraWidth;
-        bool inVerticalBounds = Mathf.Abs(worldPos.y - cameraPos.y) <= bufferedCameraHeight;
-        
-        return inHorizontalBounds && inVerticalBounds;
-    }
-    
-    List<Vector3Int> GetValidPositionsInArea(Vector3Int minCell, Vector3Int maxCell)
-    {
-        List<Vector3Int> validPositions = new List<Vector3Int>();
-        
-        for (int x = minCell.x; x <= maxCell.x; x++)
-        {
-            for (int y = minCell.y; y <= maxCell.y; y++)
-            {
-                Vector3Int position = new Vector3Int(x, y, 0);
-                TileBase tileAtPosition = tilemap.GetTile(position);
-                
-                if (tileAtPosition == targetTile)
-                {
-                    validPositions.Add(position);
-                }
-            }
-        }
-        
-        return validPositions;
-    }
-    
-    void UpdateCoinCount()
-    {
-        // Riconteggia le monete attive (per sicurezza)
-        int actualCount = 0;
-        foreach (var chunk in chunks.Values)
-        {
-            // Rimuovi monete null dalla lista
-            chunk.coins.RemoveAll(coin => coin == null);
-            actualCount += chunk.coins.Count;
-        }
-        currentCoinCount = actualCount;
-    }
-    
-    void SetupCoinOptimization(GameObject coin)
-    {
-        coin.tag = "Coin";
-        
-        // Animazione semplice
-        SimpleCoinAnimation animScript = coin.GetComponent<SimpleCoinAnimation>();
-        if (animScript == null)
-        {
-            animScript = coin.AddComponent<SimpleCoinAnimation>();
-        }
-        
-        // Collider
-        if (coin.GetComponent<Collider>() == null)
-        {
-            SphereCollider collider = coin.AddComponent<SphereCollider>();
-            collider.isTrigger = true;
-            collider.radius = 0.5f;
-        }
-        
-        // Collector
-        if (coin.GetComponent<DynamicCoinCollector>() == null)
-        {
-            coin.AddComponent<DynamicCoinCollector>();
+            UpdateCoins();
         }
     }
     
-    public void RemoveCoin(GameObject coin, Vector3Int tilePosition)
-    {
-        occupiedPositions.Remove(tilePosition);
-        currentCoinCount--;
-        
-        // Trova e rimuovi dai chunk
-        foreach (var chunk in chunks.Values)
-        {
-            if (chunk.RemoveCoin(coin, tilePosition))
-            {
-                break;
-            }
-        }
-    }
-    
-    [ContextMenu("Force Update")]
-    public void ForceUpdate()
-    {
-        if (playerTransform != null)
-        {
-            UpdateCoinGeneration();
-        }
-    }
-    
-    [ContextMenu("Clear All Coins")]
+    // Metodo per pulire tutte le monete (utile per reset)
     public void ClearAllCoins()
     {
-        foreach (var chunk in chunks.Values)
+        foreach (var coinPair in activeCoins)
         {
-            chunk.Clear();
+            if (coinPair.Value != null)
+            {
+                Destroy(coinPair.Value);
+            }
         }
-        
-        chunks.Clear();
-        occupiedPositions.Clear();
-        currentCoinCount = 0;
-    }
-    
-    [ContextMenu("Debug Info")]
-    public void DebugInfo()
-    {
-        Debug.Log($"Chunks attivi: {chunks.Count}");
-        Debug.Log($"Posizioni occupate: {occupiedPositions.Count}");
-        Debug.Log($"Monete contate: {currentCoinCount}");
-        
-        int actualCoins = 0;
-        foreach (var chunk in chunks.Values)
-        {
-            actualCoins += chunk.coins.Count;
-        }
-        Debug.Log($"Monete reali: {actualCoins}");
+        activeCoins.Clear();
     }
     
     void OnDrawGizmosSelected()
     {
-        if (playerTransform == null) return;
-        
-        Vector3 playerPos = playerTransform.position;
-        
-        // Area di generazione
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(playerPos, generationRadius);
-        
-        // Area di distruzione
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(playerPos, destructionRadius);
-        
-        // Campo visivo camera (con buffer)
-        if (playerCamera != null)
+        // Visualizza le monete attive nell'editor
+        if (activeCoins != null)
         {
-            Gizmos.color = Color.blue;
-            float bufferedHeight = cameraSize * cameraBufferMultiplier + visibilityBuffer;
-            float bufferedWidth = bufferedHeight * cameraAspect;
-            Vector3 cameraPos = playerCamera.transform.position;
-            Gizmos.DrawWireCube(cameraPos, new Vector3(bufferedWidth * 2, bufferedHeight * 2, 1));
-        }
-        
-        // Griglia chunk
-        Gizmos.color = Color.yellow;
-        int range = Mathf.CeilToInt(generationRadius / chunkSize) + 1;
-        
-        int playerChunkX = Mathf.FloorToInt(playerPos.x / chunkSize);
-        int playerChunkY = Mathf.FloorToInt(playerPos.y / chunkSize);
-        
-        for (int x = -range; x <= range; x++)
-        {
-            for (int y = -range; y <= range; y++)
+            Gizmos.color = Color.yellow;
+            foreach (var coinPos in activeCoins.Keys)
             {
-                Vector3 chunkCenter = new Vector3(
-                    (playerChunkX + x) * chunkSize + chunkSize * 0.5f,
-                    (playerChunkY + y) * chunkSize + chunkSize * 0.5f,
-                    playerPos.z
+                Vector3Int cellPos = new Vector3Int(
+                    coinPos.x + (mapManager?.MapOffset.x ?? 0),
+                    coinPos.y + (mapManager?.MapOffset.y ?? 0),
+                    0
                 );
                 
-                // Colora diversamente i chunk generati
-                Vector2Int chunkCoord = new Vector2Int(playerChunkX + x, playerChunkY + y);
-                if (chunks.ContainsKey(chunkCoord))
+                if (mapManager != null && mapManager.tilemap != null)
                 {
-                    Gizmos.color = chunks[chunkCoord].isFullyGenerated ? Color.green : Color.yellow;
+                    Vector3 worldPos = mapManager.tilemap.CellToWorld(cellPos);
+                    worldPos += new Vector3(0.5f, 0.5f, 0);
+                    Gizmos.DrawWireCube(worldPos, Vector3.one * 0.8f);
                 }
-                else
-                {
-                    Gizmos.color = Color.gray;
-                }
-                
-                Gizmos.DrawWireCube(chunkCenter, Vector3.one * chunkSize);
             }
         }
-    }
-}
-
-// Script di animazione invariato
-public class SimpleCoinAnimation : MonoBehaviour
-{
-    [Header("Animation")]
-    public float rotationSpeed = 180f;
-    public float bounceHeight = 0.2f;
-    public float bounceSpeed = 2f;
-    
-    private Vector3 startPosition;
-    private float randomOffset;
-    
-    void Start()
-    {
-        startPosition = transform.position;
-        randomOffset = Random.Range(0f, Mathf.PI * 2f);
-    }
-    
-    void Update()
-    {
-        transform.Rotate(0, rotationSpeed * Time.deltaTime, 0);
         
-        float bounce = Mathf.Sin(Time.time * bounceSpeed + randomOffset) * bounceHeight;
-        transform.position = startPosition + Vector3.up * bounce;
-    }
-}
-
-// Collector invariato
-public class DynamicCoinCollector : MonoBehaviour
-{
-    public int coinValue = 1;
-    public AudioClip collectSound;
-    public GameObject collectEffect;
-    
-    void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Player"))
+        // Visualizza il campo visivo della camera (se disponibile)
+        if (playerCamera != null && mapManager != null)
         {
-            CollectCoin();
+            Gizmos.color = Color.red;
+            
+            // Calcola i bounds del campo visivo a livello della tilemap
+            if (playerCamera.orthographic)
+            {
+                float height = playerCamera.orthographicSize * 2f;
+                float width = height * playerCamera.aspect;
+                
+                Vector3 cameraPos = playerCamera.transform.position;
+                cameraPos.z = 0;
+                
+                // Buffer visivo
+                width += visibilityBuffer;
+                height += visibilityBuffer;
+                
+                Gizmos.DrawWireCube(cameraPos, new Vector3(width, height, 0));
+            }
         }
-    }
-    
-    void CollectCoin()
-    {
-        if (collectSound != null)
-        {
-            AudioSource.PlayClipAtPoint(collectSound, transform.position);
-        }
-        
-        if (collectEffect != null)
-        {
-            Instantiate(collectEffect, transform.position, Quaternion.identity);
-        }
-        
-        DynamicCoinGenerator generator = FindObjectOfType<DynamicCoinGenerator>();
-        if (generator != null)
-        {
-            Vector3Int tilePos = generator.tilemap.WorldToCell(transform.position);
-            generator.RemoveCoin(gameObject, tilePos);
-        }
-        
-        Destroy(gameObject);
     }
 }

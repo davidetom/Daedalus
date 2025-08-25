@@ -12,30 +12,25 @@ public class EnemyLogic : MonoBehaviour
     public Vector2 targetDirection;
     private Vector2 input;
 
+    [Header("Map Reference")]
+    public MapManager mapManager; // Riferimento al MapManager per accedere alle distanze BFS
+
     [Header("Tilemap Reference")]
     public Tilemap tilemap;
     public TileBase muraTile;
     public TileBase corridoioTile; // Il tile su cui il nemico può camminare
 
-    [Header("Pathfinding")]
-    public int maxPathDistance = 50;
-    public bool enableDebug = false; // Spento di default per performance
-    private List<Vector3Int> currentPath;
-    private int currentPathIndex;
-    private float pathRecalculateTimer = 0f;
-    private const float PATH_RECALCULATE_INTERVAL = 2f; // Calcola percorso ogni 2 secondi
-    private Vector3Int lastKnownPlayerPosition;
-    private Vector3Int generalTargetDirection; // Direzione generale verso il player
-
-    [Header("Movement Behavior")]
-    public float directionChangeChance = 0.1f; // 10% chance di cambiare direzione casualmente
-    public int maxMovesWithoutRecalculation = 8; // Max mosse prima di ricalcolare forzatamente
-    public float maxChaseDistance = 15f; // Distanza massima per inseguire il player
-    private int movesSinceLastCalculation = 0;
+    [Header("AI Behavior")]
+    [Range(10, 350)]
+    public int intelligentChaseDistance = 100; // Distanza in tile per comportamento intelligente
+    public bool enableDebug = false; // Debug abilitato/disabilitato
     
     [Header("Random Patrol")]
+    public float directionChangeChance = 0.3f; // Probabilità di cambiare direzione durante il patrol
+    public float playerBias = 0.6f; // Bias verso il player durante il patrol (0-1)
     private Vector2 currentPatrolDirection = Vector2.zero;
-    private bool isPatrolling = false;
+    private int patrolStepsInDirection = 0;
+    private int maxPatrolStepsInDirection = 5; // Max passi nella stessa direzione durante patrol
 
     private Animator animator;
     private Transform player;
@@ -51,7 +46,6 @@ public class EnemyLogic : MonoBehaviour
 
     void Update()
     {
-        pathRecalculateTimer += Time.deltaTime;
         HandleMovement();
     }
 
@@ -60,369 +54,240 @@ public class EnemyLogic : MonoBehaviour
         if (player == null) 
         {
             if (enableDebug) Debug.Log("Player non trovato!");
-            return GetPatrolDirection();
+            return GetRandomPatrolDirection();
         }
 
-        Vector3Int enemyPos = tilemap.WorldToCell(transform.position);
-        Vector3Int playerPos = tilemap.WorldToCell(player.position);
-        float distanceToPlayer = GetDistance(enemyPos, playerPos);
-        
-        // Se il player è troppo lontano, entra in modalità pattugliamento
-        if (distanceToPlayer > maxChaseDistance)
+        if (mapManager == null || !mapManager.wallCalculated)
         {
-            if (!isPatrolling)
-            {
-                if (enableDebug) Debug.Log($"Player troppo lontano ({distanceToPlayer}), iniziando pattugliamento");
-                isPatrolling = true;
-                currentPath = null; // Cancella il percorso esistente
-            }
-            return GetPatrolDirection();
-        }
-        
-        // Se era in pattugliamento e ora il player è vicino, riprendi l'inseguimento
-        if (isPatrolling)
-        {
-            if (enableDebug) Debug.Log("Player vicino, riprendendo inseguimento");
-            isPatrolling = false;
-            currentPatrolDirection = Vector2.zero;
-        }
-        
-        // FASE 1: Ricalcola il percorso solo quando necessario
-        bool shouldRecalculate = pathRecalculateTimer >= PATH_RECALCULATE_INTERVAL || 
-                                currentPath == null || 
-                                movesSinceLastCalculation >= maxMovesWithoutRecalculation ||
-                                Vector3Int.Distance(playerPos, lastKnownPlayerPosition) > 3; // Player si è mosso molto
-
-        if (shouldRecalculate)
-        {
-            pathRecalculateTimer = 0f;
-            movesSinceLastCalculation = 0;
-            lastKnownPlayerPosition = playerPos;
-            
-            List<Vector3Int> path = FindPath(enemyPos, playerPos);
-            
-            if (path != null && path.Count > 1)
-            {
-                currentPath = path;
-                currentPathIndex = 1;
-                
-                // Calcola direzione generale per quando il pathfinding non è disponibile
-                generalTargetDirection = GetGeneralDirection(enemyPos, playerPos);
-                
-                if (enableDebug) Debug.Log($"Nuovo percorso calcolato: {path.Count} nodi");
-                
-                // Segui il percorso preciso
-                return GetDirectionFromPath(enemyPos);
-            }
-            else
-            {
-                // Nessun percorso trovato, usa direzione generale
-                generalTargetDirection = GetGeneralDirection(enemyPos, playerPos);
-                if (enableDebug) Debug.Log("Nessun percorso - uso direzione generale");
-            }
+            if (enableDebug) Debug.Log("MapManager non disponibile, usando movimento casuale");
+            return GetRandomPatrolDirection();
         }
 
-        // FASE 2: Tra i calcoli, usa strategie intelligenti
-        movesSinceLastCalculation++;
-        
-        // Se hai un percorso valido, seguilo
-        if (currentPath != null && currentPathIndex < currentPath.Count)
+        // Ottieni posizioni in coordinate array
+        Vector2Int enemyArrayPos = mapManager.WorldToArrayCoordinates(transform.position);
+        Vector2Int playerArrayPos = mapManager.WorldToArrayCoordinates(player.position);
+
+        // Verifica che entrambe le posizioni siano valide
+        if (!mapManager.IsValidArrayCoordinate(enemyArrayPos) || !mapManager.IsValidArrayCoordinate(playerArrayPos))
         {
-            Vector2 pathDirection = GetDirectionFromPath(enemyPos);
-            if (pathDirection != Vector2.zero)
-            {
-                return pathDirection;
-            }
+            return GetRandomPatrolDirection();
         }
 
-        // FASE 3: Movimento euristico intelligente
-        return GetSmartHeuristicDirection(enemyPos, playerPos);
-    }
-
-    Vector2 GetPatrolDirection()
-    {
-        Vector3 currentPos = transform.position;
-        Vector3Int enemyPos = tilemap.WorldToCell(currentPos);
+        // Ottieni la distanza BFS dalla matrice calcolata dal player
+        int distanceToPlayer = mapManager.Distances[enemyArrayPos.x, enemyArrayPos.y];
         
-        // Se non hai una direzione di pattugliamento o la strada è bloccata
-        if (currentPatrolDirection == Vector2.zero || !IsWalkable(currentPos + (Vector3)currentPatrolDirection))
+        // Decide il comportamento in base alla distanza
+        if (distanceToPlayer >= 0 && distanceToPlayer <= intelligentChaseDistance)
         {
-            // Scegli una nuova direzione, dando priorità a quelle che avvicinano al player
-            Vector2[] possibleDirections = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
-            List<Vector2> validDirections = new List<Vector2>();
-            List<Vector2> playerDirections = new List<Vector2>(); // Direzioni che avvicinano al player
-            
-            // Se il player esiste, calcola le direzioni che ci avvicinano
-            if (player != null)
-            {
-                Vector3Int playerPos = tilemap.WorldToCell(player.position);
-                Vector3Int diff = playerPos - enemyPos;
-                
-                // Direzioni che riducono la distanza dal player
-                if (diff.x > 0) playerDirections.Add(Vector2.right);
-                if (diff.x < 0) playerDirections.Add(Vector2.left);
-                if (diff.y > 0) playerDirections.Add(Vector2.up);
-                if (diff.y < 0) playerDirections.Add(Vector2.down);
-            }
-            
-            // Trova tutte le direzioni valide (non bloccate)
-            foreach (Vector2 dir in possibleDirections)
-            {
-                if (IsWalkable(currentPos + (Vector3)dir))
-                {
-                    validDirections.Add(dir);
-                }
-            }
-            
-            if (validDirections.Count > 0)
-            {
-                Vector2 chosenDirection = Vector2.zero;
-                
-                // PRIORITÀ 1: Direzioni che avvicinano al player E sono percorribili
-                List<Vector2> goodDirections = validDirections.Where(dir => playerDirections.Contains(dir)).ToList();
-                
-                if (goodDirections.Count > 0)
-                {
-                    // Scegli casualmente tra le direzioni "buone"
-                    chosenDirection = goodDirections[UnityEngine.Random.Range(0, goodDirections.Count)];
-                    if (enableDebug) Debug.Log($"Pattugliamento verso player: {chosenDirection}");
-                }
-                else
-                {
-                    // PRIORITÀ 2: Nessuna direzione "buona", scegli casualmente tra quelle valide
-                    chosenDirection = validDirections[UnityEngine.Random.Range(0, validDirections.Count)];
-                    if (enableDebug) Debug.Log($"Pattugliamento casuale: {chosenDirection}");
-                }
-                
-                currentPatrolDirection = chosenDirection;
-            }
-            else
-            {
-                // Se non ci sono direzioni valide, ferma il pattugliamento
-                currentPatrolDirection = Vector2.zero;
-                if (enableDebug) Debug.Log("Nessuna direzione valida per pattugliamento");
-            }
-        }
-        
-        return currentPatrolDirection;
-    }
-
-    Vector2 GetDirectionFromPath(Vector3Int enemyPos)
-    {
-        if (currentPath == null || currentPathIndex >= currentPath.Count) 
-            return Vector2.zero;
-
-        Vector3Int nextNode = currentPath[currentPathIndex];
-        
-        // Se abbiamo raggiunto il nodo corrente, passa al successivo
-        if (enemyPos == nextNode)
-        {
-            currentPathIndex++;
-            if (currentPathIndex >= currentPath.Count) return Vector2.zero;
-            nextNode = currentPath[currentPathIndex];
-        }
-        
-        return new Vector2(nextNode.x - enemyPos.x, nextNode.y - enemyPos.y);
-    }
-
-    Vector3Int GetGeneralDirection(Vector3Int from, Vector3Int to)
-    {
-        Vector3Int diff = to - from;
-        return new Vector3Int(
-            diff.x > 0 ? 1 : (diff.x < 0 ? -1 : 0),
-            diff.y > 0 ? 1 : (diff.y < 0 ? -1 : 0),
-            0
-        );
-    }
-
-    Vector2 GetSmartHeuristicDirection(Vector3Int enemyPos, Vector3Int playerPos)
-    {
-        // Lista delle direzioni possibili in ordine di preferenza
-        List<Vector2> preferredDirections = new List<Vector2>();
-        
-        // Direzione diretta verso il player (Manhattan)
-        Vector3Int diff = playerPos - enemyPos;
-        
-        // Aggiungi le direzioni in ordine di distanza
-        if (Mathf.Abs(diff.x) >= Mathf.Abs(diff.y))
-        {
-            // Movimento orizzontale prioritario
-            if (diff.x > 0) preferredDirections.Add(Vector2.right);
-            else if (diff.x < 0) preferredDirections.Add(Vector2.left);
-            
-            if (diff.y > 0) preferredDirections.Add(Vector2.up);
-            else if (diff.y < 0) preferredDirections.Add(Vector2.down);
+            // MODALITÀ INTELLIGENTE: Usa la matrice BFS per trovare il percorso ottimale
+            return GetIntelligentDirection(enemyArrayPos);
         }
         else
         {
-            // Movimento verticale prioritario
-            if (diff.y > 0) preferredDirections.Add(Vector2.up);
-            else if (diff.y < 0) preferredDirections.Add(Vector2.down);
+            // MODALITÀ PATROL: Movimento pseudo-casuale con bias verso il player
+            return GetPatrolDirection(enemyArrayPos, playerArrayPos);
+        }
+    }
+
+    Vector2 GetIntelligentDirection(Vector2Int enemyArrayPos)
+    {
+        Vector2[] directions = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
+        Vector2Int[] directionOffsets = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+
+        int currentDistance = mapManager.Distances[enemyArrayPos.x, enemyArrayPos.y];
+        
+        if (currentDistance <= 0)
+        {
+            if (enableDebug) Debug.Log("Già raggiunto il player o distanza non valida");
+            return Vector2.zero;
+        }
+
+        List<DirectionInfo> validDirections = new List<DirectionInfo>();
+
+        // Analizza tutte le 4 direzioni
+        for (int i = 0; i < directions.Length; i++)
+        {
+            Vector2Int nextArrayPos = enemyArrayPos + directionOffsets[i];
             
-            if (diff.x > 0) preferredDirections.Add(Vector2.right);
-            else if (diff.x < 0) preferredDirections.Add(Vector2.left);
-        }
-        
-        // Aggiungi le direzioni rimanenti per evitare di rimanere bloccati
-        Vector2[] allDirections = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
-        foreach (Vector2 dir in allDirections)
-        {
-            if (!preferredDirections.Contains(dir))
-                preferredDirections.Add(dir);
-        }
-        
-        // Piccola probabilità di esplorare casualmente (anti-loop)
-        if (UnityEngine.Random.Range(0f, 1f) < directionChangeChance)
-        {
-            preferredDirections = preferredDirections.OrderBy(x => UnityEngine.Random.Range(0f, 1f)).ToList();
-        }
-        
-        // Prova ogni direzione fino a trovarne una valida
-        foreach (Vector2 direction in preferredDirections)
-        {
-            Vector3 testPos = transform.position + (Vector3)direction;
-            if (IsWalkable(testPos))
+            // Verifica bounds
+            if (!mapManager.IsValidArrayCoordinate(nextArrayPos))
+                continue;
+
+            // Verifica se la cella è camminabile (non è un muro)
+            if (mapManager.Walls[nextArrayPos.x, nextArrayPos.y])
+                continue;
+
+            // Ottieni la distanza BFS della cella adiacente
+            int nextDistance = mapManager.Distances[nextArrayPos.x, nextArrayPos.y];
+            
+            // Se la distanza è valida (>= 0), significa che c'è un percorso verso il player
+            if (nextDistance >= 0)
             {
-                if (enableDebug) Debug.Log($"Direzione euristica: {direction}");
-                return direction;
+                validDirections.Add(new DirectionInfo
+                {
+                    direction = directions[i],
+                    distance = nextDistance
+                });
+
+                if (enableDebug)
+                {
+                    Debug.Log($"Direzione {directions[i]}: distanza {nextDistance}");
+                }
             }
         }
+
+        if (validDirections.Count == 0)
+        {
+            if (enableDebug) Debug.Log("Nessuna direzione valida trovata nell'inseguimento intelligente");
+            return Vector2.zero;
+        }
+
+        // Trova la direzione con la distanza minore (più vicina al player)
+        DirectionInfo bestDirection = validDirections.OrderBy(d => d.distance).First();
         
-        if (enableDebug) Debug.Log("Nessuna direzione valida trovata");
+        if (enableDebug)
+        {
+            Debug.Log($"Direzione scelta: {bestDirection.direction} (distanza: {bestDirection.distance})");
+        }
+
+        return bestDirection.direction;
+    }
+
+    Vector2 GetPatrolDirection(Vector2Int enemyArrayPos, Vector2Int playerArrayPos)
+    {
+        // Incrementa il contatore dei passi nella direzione corrente
+        if (currentPatrolDirection != Vector2.zero)
+        {
+            patrolStepsInDirection++;
+        }
+
+        // Cambia direzione se:
+        // 1. Non hai una direzione corrente
+        // 2. La direzione corrente è bloccata
+        // 3. Hai fatto troppi passi nella stessa direzione
+        // 4. Probabilità casuale di cambiare direzione
+        bool shouldChangeDirection = currentPatrolDirection == Vector2.zero ||
+                                   !IsDirectionWalkable(enemyArrayPos, currentPatrolDirection) ||
+                                   patrolStepsInDirection >= maxPatrolStepsInDirection ||
+                                   UnityEngine.Random.Range(0f, 1f) < directionChangeChance;
+
+        if (shouldChangeDirection)
+        {
+            Vector2 newDirection = ChooseNewPatrolDirection(enemyArrayPos, playerArrayPos);
+            if (newDirection != Vector2.zero)
+            {
+                currentPatrolDirection = newDirection;
+                patrolStepsInDirection = 0;
+                
+                if (enableDebug)
+                {
+                    Debug.Log($"Nuova direzione patrol: {currentPatrolDirection}");
+                }
+            }
+        }
+
+        return currentPatrolDirection;
+    }
+
+    Vector2 ChooseNewPatrolDirection(Vector2Int enemyArrayPos, Vector2Int playerArrayPos)
+    {
+        Vector2[] directions = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
+        Vector2Int[] directionOffsets = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+
+        List<DirectionInfo> validDirections = new List<DirectionInfo>();
+        List<DirectionInfo> playerDirections = new List<DirectionInfo>(); // Direzioni verso il player
+
+        // Calcola la differenza per il bias verso il player
+        Vector2Int playerDiff = playerArrayPos - enemyArrayPos;
+
+        for (int i = 0; i < directions.Length; i++)
+        {
+            if (IsDirectionWalkable(enemyArrayPos, directions[i]))
+            {
+                DirectionInfo dirInfo = new DirectionInfo
+                {
+                    direction = directions[i],
+                    distance = 0 // Non importante per il patrol
+                };
+
+                validDirections.Add(dirInfo);
+
+                // Verifica se questa direzione ci avvicina al player
+                Vector2Int dirOffset = directionOffsets[i];
+                if ((playerDiff.x > 0 && dirOffset.x > 0) || 
+                    (playerDiff.x < 0 && dirOffset.x < 0) ||
+                    (playerDiff.y > 0 && dirOffset.y > 0) || 
+                    (playerDiff.y < 0 && dirOffset.y < 0))
+                {
+                    playerDirections.Add(dirInfo);
+                }
+            }
+        }
+
+        if (validDirections.Count == 0)
+        {
+            if (enableDebug) Debug.Log("Nessuna direzione valida per patrol");
+            return Vector2.zero;
+        }
+
+        // Applica bias verso il player
+        if (playerDirections.Count > 0 && UnityEngine.Random.Range(0f, 1f) < playerBias)
+        {
+            // Scegli una direzione che si avvicina al player
+            DirectionInfo chosenDir = playerDirections[UnityEngine.Random.Range(0, playerDirections.Count)];
+            if (enableDebug) Debug.Log($"Patrol con bias verso player: {chosenDir.direction}");
+            return chosenDir.direction;
+        }
+        else
+        {
+            // Scegli una direzione casuale tra quelle valide
+            DirectionInfo chosenDir = validDirections[UnityEngine.Random.Range(0, validDirections.Count)];
+            if (enableDebug) Debug.Log($"Patrol casuale: {chosenDir.direction}");
+            return chosenDir.direction;
+        }
+    }
+
+    Vector2 GetRandomPatrolDirection()
+    {
+        Vector2[] directions = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
+        List<Vector2> validDirections = new List<Vector2>();
+
+        Vector3 currentPos = transform.position;
+        
+        foreach (Vector2 dir in directions)
+        {
+            if (IsWalkable(currentPos + (Vector3)dir))
+            {
+                validDirections.Add(dir);
+            }
+        }
+
+        if (validDirections.Count > 0)
+        {
+            return validDirections[UnityEngine.Random.Range(0, validDirections.Count)];
+        }
+
         return Vector2.zero;
     }
 
-    List<Vector3Int> FindPath(Vector3Int start, Vector3Int target)
+    bool IsDirectionWalkable(Vector2Int fromArrayPos, Vector2 direction)
     {
-        // Lista dei nodi da esplorare
-        List<Node> openList = new List<Node>();
-        // Lista dei nodi già esplorati
-        HashSet<Vector3Int> closedList = new HashSet<Vector3Int>();
+        Vector2Int directionOffset = Vector2Int.zero;
         
-        // Nodo iniziale
-        Node startNode = new Node(start, null, 0, GetDistance(start, target));
-        openList.Add(startNode);
-        
-        while (openList.Count > 0)
-        {
-            // Trova il nodo con il costo F più basso
-            Node currentNode = openList.OrderBy(n => n.FCost).First();
-            openList.Remove(currentNode);
-            closedList.Add(currentNode.position);
-            
-            // Se abbiamo raggiunto il target
-            if (currentNode.position == target)
-            {
-                return ReconstructPath(currentNode);
-            }
-            
-            // Esplora i nodi vicini (solo 4 direzioni: su, giù, sinistra, destra)
-            Vector3Int[] neighbors = new Vector3Int[]
-            {
-                currentNode.position + Vector3Int.up,
-                currentNode.position + Vector3Int.down,
-                currentNode.position + Vector3Int.left,
-                currentNode.position + Vector3Int.right
-            };
-            
-            foreach (Vector3Int neighborPos in neighbors)
-            {
-                // Salta se già esplorato
-                if (closedList.Contains(neighborPos))
-                    continue;
-                
-                // Salta se non è camminabile
-                if (!IsWalkableForPathfinding(neighborPos))
-                    continue;
-                
-                // Salta se troppo lontano (per evitare calcoli infiniti)
-                if (GetDistance(start, neighborPos) > maxPathDistance)
-                    continue;
-                
-                float newGCost = currentNode.gCost + 1;
-                
-                // Controlla se questo percorso verso il vicino è migliore
-                Node existingNeighbor = openList.FirstOrDefault(n => n.position == neighborPos);
-                
-                if (existingNeighbor == null)
-                {
-                    // Nuovo nodo
-                    Node newNeighbor = new Node(neighborPos, currentNode, newGCost, GetDistance(neighborPos, target));
-                    openList.Add(newNeighbor);
-                }
-                else if (newGCost < existingNeighbor.gCost)
-                {
-                    // Percorso migliore trovato
-                    existingNeighbor.parent = currentNode;
-                    existingNeighbor.gCost = newGCost;
-                }
-            }
-        }
-        
-        // Nessun percorso trovato
-        return null;
-    }
-    
-    List<Vector3Int> ReconstructPath(Node endNode)
-    {
-        List<Vector3Int> path = new List<Vector3Int>();
-        Node currentNode = endNode;
-        
-        while (currentNode != null)
-        {
-            path.Add(currentNode.position);
-            currentNode = currentNode.parent;
-        }
-        
-        path.Reverse();
-        return path;
-    }
-    
-    float GetDistance(Vector3Int a, Vector3Int b)
-    {
-        // Distanza Manhattan (solo movimenti orizzontali/verticali)
-        return Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
-    }
-    
-    bool IsWalkableForPathfinding(Vector3Int cellPosition)
-    {
-        if (tilemap == null) 
-        {
-            if (enableDebug) Debug.LogWarning("Tilemap non assegnata!");
+        if (direction == Vector2.up) directionOffset = Vector2Int.up;
+        else if (direction == Vector2.down) directionOffset = Vector2Int.down;
+        else if (direction == Vector2.left) directionOffset = Vector2Int.left;
+        else if (direction == Vector2.right) directionOffset = Vector2Int.right;
+        else return false;
+
+        Vector2Int targetArrayPos = fromArrayPos + directionOffset;
+
+        // Verifica bounds
+        if (!mapManager.IsValidArrayCoordinate(targetArrayPos))
             return false;
-        }
-        
-        TileBase tileAtPosition = tilemap.GetTile(cellPosition);
-        
-        // PRIORITA 1: Se hai definito corridoioTile, usa solo quello
-        if (corridoioTile != null)
-        {
-            bool isWalkable = tileAtPosition == corridoioTile;
-            if (enableDebug && !isWalkable) 
-                Debug.Log($"Posizione {cellPosition} non è corridoio. Tile: {tileAtPosition?.name ?? "null"}");
-            return isWalkable;
-        }
-        
-        // PRIORITA 2: Se non hai corridoioTile, evita solo i muri
-        if (tileAtPosition == null) 
-        {
-            if (enableDebug) Debug.Log($"Nessun tile alla posizione {cellPosition}");
-            return false; // Cambiato da true - probabilmente spazio vuoto non camminabile
-        }
-        
-        // Controlla se è un muro
-        bool isWall = muraTile != null && tileAtPosition == muraTile;
-        
-        if (!isWall)
-        {
-            var colliderType = tilemap.GetColliderType(cellPosition);
-            isWall = colliderType != Tile.ColliderType.None;
-        }
-        
-        if (enableDebug && isWall)
-            Debug.Log($"Posizione {cellPosition} è un muro. Tile: {tileAtPosition?.name}");
-        
-        return !isWall;
+
+        // Verifica se non è un muro
+        return !mapManager.Walls[targetArrayPos.x, targetArrayPos.y];
     }
 
     void HandleMovement()
@@ -458,6 +323,12 @@ public class EnemyLogic : MonoBehaviour
                 else
                 {
                     if (enableDebug) Debug.Log("Movimento bloccato - posizione non camminabile");
+                    // Reset della direzione patrol se è bloccata
+                    if (currentPatrolDirection == input)
+                    {
+                        currentPatrolDirection = Vector2.zero;
+                        patrolStepsInDirection = 0;
+                    }
                 }
             }
             else
@@ -485,31 +356,92 @@ public class EnemyLogic : MonoBehaviour
 
     public bool IsWalkable(Vector3 targetPos)
     {
-        if (tilemap == null)
+        if (mapManager != null && mapManager.wallCalculated)
         {
-            Debug.LogWarning("Tilemap non assegnata!");
-            return true;
+            // Usa il MapManager se disponibile (più efficiente e coerente)
+            return mapManager.IsWalkableAtWorldPosition(targetPos);
         }
+        else
+        {
+            // Fallback al sistema originale
+            if (tilemap == null)
+            {
+                Debug.LogWarning("Tilemap non assegnata!");
+                return true;
+            }
 
-        Vector3Int cellPosition = tilemap.WorldToCell(targetPos);
-        return IsWalkableForPathfinding(cellPosition);
+            Vector3Int cellPosition = tilemap.WorldToCell(targetPos);
+            TileBase tileAtPosition = tilemap.GetTile(cellPosition);
+
+            // Se hai definito corridoioTile, usa solo quello
+            if (corridoioTile != null)
+            {
+                return tileAtPosition == corridoioTile;
+            }
+
+            // Altrimenti evita solo i muri
+            if (tileAtPosition == null) return false;
+            
+            bool isWall = muraTile != null && tileAtPosition == muraTile;
+            
+            if (!isWall)
+            {
+                var colliderType = tilemap.GetColliderType(cellPosition);
+                isWall = colliderType != Tile.ColliderType.None;
+            }
+            
+            return !isWall;
+        }
+    }
+
+    // Metodi di debug per visualizzare informazioni
+    public int GetCurrentDistanceFromPlayer()
+    {
+        if (mapManager == null || !mapManager.wallCalculated) return -1;
+        
+        Vector2Int enemyArrayPos = mapManager.WorldToArrayCoordinates(transform.position);
+        if (!mapManager.IsValidArrayCoordinate(enemyArrayPos)) return -1;
+        
+        return mapManager.Distances[enemyArrayPos.x, enemyArrayPos.y];
+    }
+
+    public bool IsInIntelligentMode()
+    {
+        int distance = GetCurrentDistanceFromPlayer();
+        return distance >= 0 && distance <= intelligentChaseDistance;
+    }
+
+    // Visualizza informazioni nell'Inspector durante il gioco
+    void OnDrawGizmos()
+    {
+        if (!Application.isPlaying || !enableDebug) return;
+
+        // Disegna un cerchio colorato per indicare la modalità
+        if (IsInIntelligentMode())
+        {
+            Gizmos.color = Color.red; // Modalità inseguimento intelligente
+        }
+        else
+        {
+            Gizmos.color = Color.yellow; // Modalità patrol
+        }
+        
+        Gizmos.DrawWireSphere(transform.position, 0.3f);
+        
+        // Mostra la direzione del movimento
+        if (targetDirection != Vector2.zero)
+        {
+            Gizmos.color = Color.blue;
+            Vector3 targetPos = transform.position + (Vector3)targetDirection;
+            Gizmos.DrawLine(transform.position, targetPos);
+        }
     }
 }
 
-// Classe per rappresentare un nodo nell'algoritmo A*
-public class Node
+// Classe helper per informazioni sulle direzioni
+[System.Serializable]
+public class DirectionInfo
 {
-    public Vector3Int position;
-    public Node parent;
-    public float gCost; // Distanza dal nodo iniziale
-    public float hCost; // Distanza euristica dal target
-    public float FCost => gCost + hCost; // Costo totale
-    
-    public Node(Vector3Int pos, Node parentNode, float g, float h)
-    {
-        position = pos;
-        parent = parentNode;
-        gCost = g;
-        hCost = h;
-    }
+    public Vector2 direction;
+    public int distance;
 }
