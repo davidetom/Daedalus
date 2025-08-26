@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using UnityEngine.EventSystems; // serve per i pulsanti mobile
 
 public class PlayerController : MonoBehaviour
 {
@@ -25,6 +26,9 @@ public class PlayerController : MonoBehaviour
     public int coinCount;
 
     private Animator animator;
+
+    // 🔹 Nuova variabile per mobile input
+    private Vector2 mobileInput = Vector2.zero;
 
     private void Awake()
     {
@@ -68,12 +72,21 @@ public class PlayerController : MonoBehaviour
         return false;
     }
 
-    void HandleMovement()
+      void HandleMovement()
     {
         if (!isMoving)
         {
-            input.x = Input.GetAxisRaw("Horizontal");
-            input.y = Input.GetAxisRaw("Vertical");
+            // 🔹 Se sto usando pulsanti mobile → uso mobileInput
+            // altrimenti uso Input da tastiera
+            if (mobileInput != Vector2.zero)
+            {
+                input = mobileInput;
+            }
+            else
+            {
+                input.x = Input.GetAxisRaw("Horizontal");
+                input.y = Input.GetAxisRaw("Vertical");
+            }
 
             if (input.x != 0) input.y = 0;
 
@@ -84,7 +97,7 @@ public class PlayerController : MonoBehaviour
                 var targetPos = transform.position;
                 targetPos.x += input.x;
                 targetPos.y += input.y;
-
+                
                 if (IsWalkable(targetPos))
                     StartCoroutine(Move(targetPos));
             }
@@ -246,5 +259,22 @@ public class PlayerController : MonoBehaviour
     {
         if (mapManager == null) return -1;
         return mapManager.GetDistanceAtWorldPosition(worldPos);
+    }
+
+
+    // ----------------- Metodi per pulsanti mobile -----------------
+    public void MuoviSu() => mobileInput = Vector2.up;
+    public void MuoviGiu() => mobileInput = Vector2.down;
+    public void MuoviDestra() => mobileInput = Vector2.right;
+    public void MuoviSinistra() => mobileInput = Vector2.left;
+    public void StopMovimento() => mobileInput = Vector2.zero;
+
+    public void PulsanteAzione()
+    {
+        // Al momento solo porta
+        TryOpenNearbyDoor();
+
+        // FUTURO: attacco nemico
+        // if (nemicoVicino) AttaccaNemico();
     }
 }
