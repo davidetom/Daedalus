@@ -7,9 +7,7 @@ using UnityEngine.EventSystems; // serve per i pulsanti mobile
 
 public class PlayerController : MonoBehaviour
 {
-    public float moveSpeed;
-    public bool isMoving;
-    private Vector2 input;
+    private Animator animator;
 
     [Header("Tilemap Reference")]
     public Tilemap tilemap;
@@ -18,17 +16,35 @@ public class PlayerController : MonoBehaviour
     [Header("Map Reference")]
     public MapManager mapManager; // Riferimento al MapManager
 
+    [Header("Move Settings")]
+    public float moveSpeed;
+    public bool isMoving = false;
+
     [Header("Door Interaction")]
     public float interactRange = 1f; // distanza massima per interagire con la porta
     public KeyCode interactKey = KeyCode.E;
     public bool hasKey = false; //all'inizio non ha la chiave
 
-    public int coinCount;
+    [Header("Attack Settings")]
+    public float attackDamage = 5f;
+    public float attackRange = 2f;
+    public float recoil = 1f;
+    public float attackCooldown = 0.3f;
+    private bool attackAnimationFinished = false;
+    private Vector2 lastDirection = Vector2.down;
+    public bool isAttacking = false;
+    public bool canAttack = true;
+    public bool isNightTime = true; // il player può attaccare solo di notte
 
-    private Animator animator;
+    [Header("Enemy Detection")]
+    public LayerMask enemyLayerMask; // Layer dei nemici (opzionale, per ottimizzazione)
 
-    // 🔹 Nuova variabile per mobile input
-    private Vector2 mobileInput = Vector2.zero;
+    [Header("Coins and Gems")]
+    public int coinsPicked = 0;
+
+    // INPUT SETTINGS
+    private Vector2 input;
+    private Vector2 mobileInput = Vector2.zero; // Nuova variabile per mobile input
 
     private void Awake()
     {
@@ -57,7 +73,8 @@ public class PlayerController : MonoBehaviour
         // Controlla input per aprire la porta
         if (Input.GetKeyDown(interactKey))
         {
-            TryOpenNearbyDoor();
+            if (isNightTime) HandleAttack();
+            else TryOpenNearbyDoor();
         }
     }
 
@@ -74,7 +91,7 @@ public class PlayerController : MonoBehaviour
 
       void HandleMovement()
     {
-        if (!isMoving)
+        if (!isMoving && !isAttacking)
         {
             // 🔹 Se sto usando pulsanti mobile → uso mobileInput
             // altrimenti uso Input da tastiera
@@ -92,6 +109,8 @@ public class PlayerController : MonoBehaviour
 
             if (input != Vector2.zero)
             {
+                lastDirection = input;
+
                 animator.SetFloat("moveX", input.x);
                 animator.SetFloat("moveY", input.y);
                 var targetPos = transform.position;
@@ -145,12 +164,12 @@ public class PlayerController : MonoBehaviour
             Vector3Int cellPosition = tilemap.WorldToCell(targetPos);
             TileBase tileAtPosition = tilemap.GetTile(cellPosition);
 
-            bool isWall = (muraTile != null && tileAtPosition == muraTile);
+            bool isWall = muraTile != null && tileAtPosition == muraTile;
 
             if (!isWall && tileAtPosition != null)
             {
                 var colliderType = tilemap.GetColliderType(cellPosition);
-                isWall = (colliderType != Tile.ColliderType.None);
+                isWall = colliderType != Tile.ColliderType.None;
             }
 
             if (isWall) return false;
@@ -170,6 +189,114 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
+    public void HandleAttack()
+    {
+        if (!isMoving && !isAttacking && canAttack)
+        {
+            animator.SetFloat("attackX", lastDirection.x);
+            animator.SetFloat("attackY", lastDirection.y);
+
+            // Rileva nemici prima di iniziare l'attacco
+            List<GameObject> enemiesInRange = DetectEnemiesTileByTile(lastDirection);
+            
+            StartCoroutine(Attack(enemiesInRange));
+        }
+
+        animator.SetBool("isAttacking", isAttacking);
+    }
+
+    IEnumerator Attack(List<GameObject> enemiesToHit)
+    {
+        isAttacking = true;
+        canAttack = false;
+        attackAnimationFinished = false;
+
+        yield return null;
+        yield return new WaitUntil(() => animator.GetCurrentAnimatorStateInfo(0).IsName("Attack"));
+        
+        // Aspetta che l'Animation Event segnali la fine
+        while (!attackAnimationFinished)
+        {
+            yield return null;
+        }
+
+        // Applica danno ai nemici quando l'animazione finisce
+        foreach (var enemy in enemiesToHit)
+        {
+            if (enemy != null) // Controlla se il nemico esiste ancora
+            {
+                ApplyDamageToEnemy(enemy);
+            }
+        }
+
+        isAttacking = false;
+        animator.SetBool("isAttacking", false);
+
+        yield return new WaitForSeconds(attackCooldown);
+        canAttack = true;
+    }
+
+    public void OnAttackAnimationEnd()
+    {
+        attackAnimationFinished = true;
+    }
+
+    private List<GameObject> DetectEnemiesTileByTile(Vector2 attackDirection)
+    {
+        List<GameObject> enemiesHit = new List<GameObject>();
+        Vector3 startPos = transform.position;
+        
+        // Per ogni tile nel range
+        for (int distance = 1; distance <= attackRange; distance++)
+        {
+            Vector3 tilePos = startPos + new Vector3(
+                attackDirection.x * distance, 
+                attackDirection.y * distance, 
+                0
+            );
+            
+            // Controlla nemici in questa tile
+            Collider2D[] colliders = Physics2D.OverlapPointAll(tilePos, enemyLayerMask);
+            
+            foreach (var collider in colliders)
+            {
+                if (collider.CompareTag("Enemy"))
+                {
+                    if (!enemiesHit.Contains(collider.gameObject))
+                    {
+                        enemiesHit.Add(collider.gameObject);
+                    }
+                }
+            }
+            
+            // OPZIONALE: Fermati se incontri un muro
+            if (mapManager != null && mapManager.IsWallAtWorldPosition(tilePos))
+            {
+                break; // L'attacco non passa attraverso i muri
+            }
+        }
+        
+        return enemiesHit;
+    }
+
+    // Metodo per applicare danno al nemico
+    private void ApplyDamageToEnemy(GameObject enemy)
+    {
+        /* Cerca un componente "Health" o simile
+        var healthComponent = enemy.GetComponent<EnemyHealth>();
+        if (healthComponent != null)
+        {
+            healthComponent.TakeDamage(attackDamage);
+        }
+
+        // Aggiungi effetti visivi/audio
+        Debug.Log($"Attaccato {enemy.name} per {attackDamage} danni!");
+
+        // OPZIONALE: Aggiungi knockback/recoil
+        ApplyKnockback(enemy);
+        */
+    }
+
     void TryOpenNearbyDoor()
     {
         DoorController[] doors = GameObject.FindObjectsByType<DoorController>(FindObjectsSortMode.None);
@@ -185,6 +312,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // CALCOLO DISTANZE PER I NEMICI
     void CalcoloDistanze()
     {
         if (mapManager == null || !mapManager.wallCalculated)
@@ -260,7 +388,6 @@ public class PlayerController : MonoBehaviour
         if (mapManager == null) return -1;
         return mapManager.GetDistanceAtWorldPosition(worldPos);
     }
-
 
     // ----------------- Metodi per pulsanti mobile -----------------
     public void MuoviSu() => mobileInput = Vector2.up;

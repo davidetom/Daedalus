@@ -25,7 +25,7 @@ public class CoinUIManager : MonoBehaviour
     {
         if (coinText != null && player != null)
         {
-            coinText.text = coinPrefix + player.coinCount.ToString();
+            coinText.text = coinPrefix + player.coinsPicked.ToString();
         }
     }
 }

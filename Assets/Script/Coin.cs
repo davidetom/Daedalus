@@ -7,7 +7,7 @@ public class Coin : MonoBehaviour
         PlayerController player = other.GetComponent<PlayerController>();
         if (player != null)
         {
-            player.coinCount++;
+            player.coinsPicked++;
             Destroy(gameObject);
         }
     }
