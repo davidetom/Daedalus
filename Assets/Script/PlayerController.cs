@@ -35,6 +35,7 @@ public class PlayerController : MonoBehaviour
     public bool isAttacking = false;
     public bool canAttack = true;
     public bool isNightTime = true; // il player può attaccare solo di notte
+    public bool canAttackWhileMoving = true; // Permette di attaccare mentre si muove
 
     [Header("Enemy Attack Settings")]
     public float enemyKnockbackForce = 2f; // Forza del rinculo applicato ai nemici
@@ -97,7 +98,8 @@ public class PlayerController : MonoBehaviour
 
     void HandleMovement()
     {
-        if (!isMoving && !isAttacking)
+        // Ora può muoversi anche durante l'attacco se canAttackWhileMoving è true
+        if (!isMoving && (!isAttacking || canAttackWhileMoving))
         {
             // 🔹 Se sto usando pulsanti mobile → uso mobileInput
             // altrimenti uso Input da tastiera
@@ -117,8 +119,10 @@ public class PlayerController : MonoBehaviour
             {
                 lastDirection = input;
 
+                // 🔧 Aggiorna sempre i parametri di movimento per permettere la transizione corretta
                 animator.SetFloat("moveX", input.x);
                 animator.SetFloat("moveY", input.y);
+
                 var targetPos = transform.position;
                 targetPos.x += input.x;
                 targetPos.y += input.y;
@@ -128,6 +132,7 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+        // Aggiorna l'animazione di movimento - durante l'attacco sarà sovrascritta dall'animazione di attacco
         animator.SetBool("isMoving", isMoving);
     }
 
@@ -200,7 +205,8 @@ public class PlayerController : MonoBehaviour
 
     public void HandleAttack()
     {
-        if (!isMoving && !isAttacking && canAttack)
+        // Ora può attaccare anche mentre si muove se canAttackWhileMoving è true
+        if ((!isMoving || canAttackWhileMoving) && !isAttacking && canAttack)
         {
             animator.SetFloat("attackX", lastDirection.x);
             animator.SetFloat("attackY", lastDirection.y);
@@ -230,6 +236,10 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+        // 🔧 Durante l'attacco, forza la transizione all'animazione di attacco
+        // sovrascrivendo temporaneamente l'animazione di movimento
+        animator.SetBool("isMoving", false);
+
         yield return null;
         yield return new WaitUntil(() => animator.GetCurrentAnimatorStateInfo(0).IsName("Attack"));
         
@@ -251,6 +261,10 @@ public class PlayerController : MonoBehaviour
         isAttacking = false;
         animator.SetBool("isAttacking", false);
 
+        // 🔧 Dopo l'attacco, ripristina immediatamente l'animazione di movimento se necessario
+        // L'HandleMovement() si occuperà di mantenere aggiornati i parametri
+        animator.SetBool("isMoving", isMoving);
+
         yield return new WaitForSeconds(attackCooldown);
         canAttack = true;
     }
@@ -265,7 +279,22 @@ public class PlayerController : MonoBehaviour
         List<GameObject> enemiesHit = new List<GameObject>();
         Vector3 startPos = transform.position;
         
-        // Per ogni tile nel range
+        // PRIMA: Controlla nemici sulla stessa tile del player (distanza 0)
+        Collider2D[] collidersOnPlayer = Physics2D.OverlapPointAll(startPos, enemyLayerMask);
+        
+        foreach (var collider in collidersOnPlayer)
+        {
+            if (collider.CompareTag("Enemy"))
+            {
+                if (!enemiesHit.Contains(collider.gameObject))
+                {
+                    enemiesHit.Add(collider.gameObject);
+                    Debug.Log($"Nemico trovato sulla stessa tile del player: {collider.gameObject.name}");
+                }
+            }
+        }
+        
+        // POI: Per ogni tile nel range (dalla distanza 1 in poi)
         for (int distance = 1; distance <= attackRange; distance++)
         {
             Vector3 tilePos = startPos + new Vector3(

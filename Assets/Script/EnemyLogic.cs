@@ -44,7 +44,6 @@ public class EnemyLogic : MonoBehaviour
     public float knockbackDuration = 0.5f;
     private bool isKnockedBack = false;
     private Vector2 knockbackDirection = Vector2.zero;
-    private float knockbackTimer = 0f;
     
     [Header("Death Effects")]
     public GameObject deathEffect; // Particelle o effetti alla morte (opzionale)
@@ -57,6 +56,7 @@ public class EnemyLogic : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
     private bool takingDamage = false;
+    private Coroutine currentDamageFeedbackCoroutine = null; // NUOVO: riferimento alla coroutine attiva
 
     private Animator animator;
     private Transform player;
@@ -94,40 +94,33 @@ public class EnemyLogic : MonoBehaviour
 
     void HandleKnockback()
     {
-        if (isKnockedBack)
+        // Il rinculo ora viene gestito dalla coroutine KnockbackMovement()
+        // Questo metodo serve solo per debug/stato
+        if (enableDebug && isKnockedBack)
         {
-            knockbackTimer -= Time.deltaTime;
-            
-            // Applica il movimento del rinculo
-            if (knockbackTimer > 0)
-            {
-                Vector3 knockbackMovement = (Vector3)knockbackDirection * knockbackForce * Time.deltaTime;
-                Vector3 targetPos = transform.position + knockbackMovement;
-                
-                // Verifica che la posizione di rinculo sia camminabile
-                if (IsWalkable(targetPos))
-                {
-                    transform.position = targetPos;
-                }
-            }
-            else
-            {
-                // Fine del rinculo
-                isKnockedBack = false;
-                knockbackDirection = Vector2.zero;
-                
-                if (enableDebug)
-                {
-                    Debug.Log($"{gameObject.name}: Fine rinculo");
-                }
-            }
+            Debug.Log($"{gameObject.name}: In stato di rinculo verso {knockbackDirection}");
         }
     }
 
-    // Metodo pubblico per ricevere danni
+    // Metodo pubblico per ricevere danni - VERSIONE CORRETTA
     public void TakeDamage(float damage, Vector2 attackDirection = default)
     {
-        if (isDead || isKnockedBack) return; // Non prendere danni se già morto o in rinculo
+        if (isDead || isKnockedBack) return; // Protezione base
+        
+        // NUOVO: Controllo preliminare per rinculo e protezione extra
+        bool willBeKnockedBack = false;
+        if (attackDirection != Vector2.zero)
+        {
+            Vector2 orthogonalDirection = GetOrthogonalDirection(attackDirection);
+            Vector3 targetPosition = transform.position + (Vector3)orthogonalDirection;
+            
+            if (IsWalkable(targetPosition))
+            {
+                // Imposta immediatamente lo stato di rinculo per protezione extra
+                isKnockedBack = true;
+                willBeKnockedBack = true;
+            }
+        }
         
         currentHealthPoints -= damage;
         currentHealthPoints = Mathf.Max(0, currentHealthPoints);
@@ -137,13 +130,18 @@ public class EnemyLogic : MonoBehaviour
             Debug.Log($"{gameObject.name} ha ricevuto {damage} danni. Vita rimanente: {currentHealthPoints}");
         }
         
-        // Feedback visivo del danno
-        StartCoroutine(DamageFeedback());
+        // Feedback visivo del danno con gestione corretta
+        StartDamageFeedback();
         
-        // Applica rinculo se c'è una direzione di attacco
-        if (attackDirection != Vector2.zero)
+        // Applica rinculo se è possibile
+        if (willBeKnockedBack)
         {
             ApplyKnockback(attackDirection);
+        }
+        else if (attackDirection != Vector2.zero)
+        {
+            // Reset dello stato se il rinculo non è possibile
+            isKnockedBack = false;
         }
         
         // Controlla se è morto
@@ -153,19 +151,75 @@ public class EnemyLogic : MonoBehaviour
         }
     }
     
-    // Applica il rinculo
+    // NUOVO METODO: Gestione corretta del feedback del danno
+    void StartDamageFeedback()
+    {
+        // Ferma il feedback precedente solo se esiste
+        if (currentDamageFeedbackCoroutine != null)
+        {
+            StopCoroutine(currentDamageFeedbackCoroutine);
+            currentDamageFeedbackCoroutine = null;
+        }
+        
+        // Avvia il nuovo feedback
+        currentDamageFeedbackCoroutine = StartCoroutine(DamageFeedbackCoroutine());
+    }
+    
+    // VERSIONE CORRETTA della coroutine di feedback
+    IEnumerator DamageFeedbackCoroutine()
+    {
+        if (spriteRenderer == null || isDead) 
+        {
+            currentDamageFeedbackCoroutine = null;
+            yield break;
+        }
+        
+        takingDamage = true;
+        spriteRenderer.color = damageColor;
+        
+        yield return new WaitForSeconds(damageFeedbackDuration);
+        
+        // Ripristina il colore solo se non è morto
+        if (!isDead && spriteRenderer != null)
+        {
+            spriteRenderer.color = originalColor;
+        }
+        
+        takingDamage = false;
+        currentDamageFeedbackCoroutine = null; // Reset del riferimento
+    }
+    
+    // Applica il rinculo - VERSIONE MIGLIORATA
     void ApplyKnockback(Vector2 direction)
     {
-        if (isDead) return;
+        if (isDead) return; // Solo controllo necessario ora
         
-        isKnockedBack = true;
-        knockbackDirection = direction.normalized;
-        knockbackTimer = knockbackDuration;
+        // Converte la direzione in movimento ortogonale tile-based
+        Vector2 orthogonalDirection = GetOrthogonalDirection(direction);
+        
+        // Calcola la posizione target (esattamente 1 tile di distanza)
+        Vector3 targetPosition = transform.position + (Vector3)orthogonalDirection;
+        
+        // Verifica che la posizione target sia camminabile
+        if (!IsWalkable(targetPosition))
+        {
+            if (enableDebug)
+            {
+                Debug.Log($"{gameObject.name}: Posizione di rinculo non camminabile, rinculo annullato");
+            }
+            isKnockedBack = false; // Reset dello stato se il rinculo fallisce
+            return;
+        }
         
         // Ferma il movimento corrente
         if (isMoving)
         {
-            StopAllCoroutines(); // Ferma il movimento in corso
+            StopAllCoroutines(); // Questo ferma anche il movimento ma non il feedback
+            // Riavvia il feedback del danno se era attivo
+            if (takingDamage)
+            {
+                StartDamageFeedback();
+            }
             isMoving = false;
         }
         
@@ -173,35 +227,70 @@ public class EnemyLogic : MonoBehaviour
         currentPatrolDirection = Vector2.zero;
         patrolStepsInDirection = 0;
         
+        // Avvia la coroutine del movimento di rinculo
+        StartCoroutine(KnockbackMovement(targetPosition));
+        
         if (enableDebug)
         {
-            Debug.Log($"{gameObject.name}: Rinculo applicato in direzione {knockbackDirection}");
+            Debug.Log($"{gameObject.name}: Avviato rinculo fluido verso {targetPosition}");
         }
     }
     
-    // Feedback visivo del danno
-    IEnumerator DamageFeedback()
+    // Coroutine per movimento di rinculo fluido
+    IEnumerator KnockbackMovement(Vector3 targetPosition)
     {
-        if (spriteRenderer == null) yield break;
-        
-        takingDamage = true;
-        spriteRenderer.color = damageColor;
-        
-        yield return new WaitForSeconds(damageFeedbackDuration);
-        
-        if (!isDead) // Solo se non è morto nel frattempo
+        // Movimento fluido come quello del player
+        while ((targetPosition - transform.position).sqrMagnitude > Mathf.Epsilon)
         {
-            spriteRenderer.color = originalColor;
+            transform.position = Vector3.MoveTowards(transform.position, targetPosition, knockbackForce * Time.deltaTime);
+            yield return null;
         }
-        takingDamage = false;
+        
+        // Assicura posizione finale esatta
+        transform.position = targetPosition;
+        
+        // Fine del rinculo
+        isKnockedBack = false;
+        
+        if (enableDebug)
+        {
+            Debug.Log($"{gameObject.name}: Rinculo completato a posizione {transform.position}");
+        }
     }
     
-    // Gestisce la morte del nemico
+    // Converte una direzione qualsiasi in direzione ortogonale (su/giù/sinistra/destra)
+    Vector2 GetOrthogonalDirection(Vector2 inputDirection)
+    {
+        // Normalizza la direzione
+        Vector2 normalizedDir = inputDirection.normalized;
+        
+        // Trova la componente più forte
+        if (Mathf.Abs(normalizedDir.x) > Mathf.Abs(normalizedDir.y))
+        {
+            // Movimento orizzontale
+            return normalizedDir.x > 0 ? Vector2.right : Vector2.left;
+        }
+        else
+        {
+            // Movimento verticale
+            return normalizedDir.y > 0 ? Vector2.up : Vector2.down;
+        }
+    }
+    
+    // Gestisce la morte del nemico - VERSIONE CORRETTA
     void Die()
     {
         if (isDead) return; // Previeni chiamate multiple
         
         isDead = true;
+        
+        // Ferma correttamente il feedback del danno
+        if (currentDamageFeedbackCoroutine != null)
+        {
+            StopCoroutine(currentDamageFeedbackCoroutine);
+            currentDamageFeedbackCoroutine = null;
+        }
+        takingDamage = false;
         
         if (enableDebug)
         {
@@ -234,11 +323,11 @@ public class EnemyLogic : MonoBehaviour
             GetComponent<AudioSource>().PlayOneShot(deathSound);
         }
         
-        // Animazione di morte (se presente)
-        if (animator != null)
+        // Animazione di morte commentata per evitare errori parametro mancante
+        /*if (animator != null)
         {
             animator.SetBool("isDead", true);
-        }
+        }*/
         
         // Fade out del colore
         if (spriteRenderer != null)
