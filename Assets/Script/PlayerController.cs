@@ -89,7 +89,7 @@ public class PlayerController : MonoBehaviour
         return false;
     }
 
-      void HandleMovement()
+    void HandleMovement()
     {
         if (!isMoving && !isAttacking)
         {
@@ -144,23 +144,26 @@ public class PlayerController : MonoBehaviour
 
     public bool IsWalkable(Vector3 targetPos)
     {
-        if (tilemap == null)
-        {
-            Debug.LogWarning("Tilemap non assegnata!");
-            return true;
-        }
-
-        // Prima verifica usando il MapManager se disponibile
         if (mapManager != null && mapManager.wallCalculated)
         {
-            if (mapManager.IsWallAtWorldPosition(targetPos))
-            {
+            // Usa il nuovo sistema del MapManager
+            Vector2Int arrayPos = mapManager.WorldToArrayCoordinates(targetPos);
+            if (!mapManager.IsValidArrayCoordinate(arrayPos))
                 return false;
-            }
+                
+            // Il player può camminare su corridoi e porte
+            if (!mapManager.IsWalkableForPlayer(arrayPos))
+                return false;
         }
         else
         {
             // Fallback al sistema originale se MapManager non è disponibile
+            if (tilemap == null)
+            {
+                Debug.LogWarning("Tilemap non assegnata!");
+                return true;
+            }
+
             Vector3Int cellPosition = tilemap.WorldToCell(targetPos);
             TileBase tileAtPosition = tilemap.GetTile(cellPosition);
 
@@ -270,7 +273,7 @@ public class PlayerController : MonoBehaviour
             }
             
             // OPZIONALE: Fermati se incontri un muro
-            if (mapManager != null && mapManager.IsWallAtWorldPosition(tilePos))
+            if (mapManager != null && mapManager.GetTileTypeAtWorldPos(tilePos) == TileType.Wall)
             {
                 break; // L'attacco non passa attraverso i muri
             }
@@ -312,7 +315,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // CALCOLO DISTANZE PER I NEMICI
+    // CALCOLO DISTANZE PER I NEMICI - MODIFICATO PER USARE SOLO CORRIDOI
     void CalcoloDistanze()
     {
         if (mapManager == null || !mapManager.wallCalculated)
@@ -329,10 +332,12 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        BFS(playerArrayPos, mapManager.Distances, mapManager.Walls);
+        // IMPORTANTE: Usa il nuovo BFS che considera solo i corridoi
+        BFS_CorridorsOnly(playerArrayPos, mapManager.Distances, mapManager.TileTypes);
     }
     
-    void BFS(Vector2Int start, int[,] dist, bool[,] walls)
+    // Nuovo metodo BFS che considera solo i corridoi per l'AI
+    void BFS_CorridorsOnly(Vector2Int start, int[,] dist, TileType[,] tileTypes)
     {
         int width = dist.GetLength(0);
         int height = dist.GetLength(1);
@@ -362,8 +367,9 @@ public class PlayerController : MonoBehaviour
                 if (next.x < 0 || next.y < 0 || next.x >= width || next.y >= height)
                     continue;
                 
-                // Controllo muri
-                if (walls[next.x, next.y])
+                // IMPORTANTE: Considera solo i corridoi per l'AI pathfinding
+                // I nemici possono raggiungere solo tile corridoio
+                if (tileTypes[next.x, next.y] != TileType.Corridor)
                     continue;
 
                 // Se non visitato, aggiorna distanza e aggiungi alla coda
@@ -374,6 +380,8 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
+        
+        //Debug.Log($"BFS completata da posizione player: {start}");
     }
 
     // Metodi di utilità per accedere alle distanze
@@ -399,7 +407,8 @@ public class PlayerController : MonoBehaviour
     public void PulsanteAzione()
     {
         // Al momento solo porta
-        TryOpenNearbyDoor();
+        if (isNightTime) HandleAttack();
+        else TryOpenNearbyDoor();
 
         // FUTURO: attacco nemico
         // if (nemicoVicino) AttaccaNemico();

@@ -7,7 +7,7 @@ public class DynamicCoinGenerator : MonoBehaviour
     [Header("Coin Settings")]
     public GameObject coinPrefab;
     public int maxDistance = 10; // Distanza massima per generare monete
-    public float coinSpawnChance = 0.3f; // Probabilità di spawn (30%)
+    public float coinSpawnChance = 0.05f; // Probabilità di spawn (5%)
     public float updateInterval = 1f; // Intervallo di aggiornamento in secondi
     
     [Header("Visibility Settings")]
@@ -192,11 +192,11 @@ public class DynamicCoinGenerator : MonoBehaviour
         if (!mapManager.IsValidArrayCoordinate(arrayPos))
             return false;
         
-        // Non deve essere un muro
-        if (mapManager.Walls[arrayPos.x, arrayPos.y])
+        // IMPORTANTE: Deve essere un tile valido per spawn monete (solo corridoi)
+        if (!mapManager.IsValidForCoinSpawn(arrayPos))
             return false;
         
-        // Deve essere a distanza valida dal player (raggiungibile)
+        // Deve essere a distanza valida dal player (raggiungibile tramite corridoi)
         int distance = mapManager.Distances[arrayPos.x, arrayPos.y];
         if (distance <= 0 || distance > maxDistance)
             return false;
@@ -214,8 +214,8 @@ public class DynamicCoinGenerator : MonoBehaviour
         if (!mapManager.IsValidArrayCoordinate(arrayPos))
             return false;
         
-        // Non deve essere un muro (deve essere un corridoio)
-        if (mapManager.Walls[arrayPos.x, arrayPos.y])
+        // IMPORTANTE: Deve essere un corridoio (non prato o muro)
+        if (!mapManager.IsValidForCoinSpawn(arrayPos))
             return false;
         
         // Deve essere vicino all'area visibile ma NON direttamente visibile
@@ -383,25 +383,69 @@ public class DynamicCoinGenerator : MonoBehaviour
         activeCoins.Clear();
     }
     
+    // Metodi di debug/statistiche
+    public int GetActiveCoinCount()
+    {
+        return activeCoins.Count;
+    }
+    
+    public int GetCoinsInCorridors()
+    {
+        int count = 0;
+        foreach (var coinPos in activeCoins.Keys)
+        {
+            if (mapManager.GetTileTypeAtArrayPos(coinPos) == TileType.Corridor)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+    
     void OnDrawGizmosSelected()
     {
         // Visualizza le monete attive nell'editor
-        if (activeCoins != null)
+        if (activeCoins != null && mapManager != null)
         {
-            Gizmos.color = Color.yellow;
-            foreach (var coinPos in activeCoins.Keys)
+            foreach (var coinPair in activeCoins)
             {
+                Vector2Int coinPos = coinPair.Key;
+                TileType tileType = mapManager.GetTileTypeAtArrayPos(coinPos);
+                
+                // Colore diverso in base al tipo di tile
+                switch (tileType)
+                {
+                    case TileType.Corridor:
+                        Gizmos.color = Color.yellow; // Monete su corridoi - OK
+                        break;
+                    case TileType.Grass:
+                        Gizmos.color = Color.red; // Monete su prato - ERRORE!
+                        break;
+                    default:
+                        Gizmos.color = Color.magenta; // Altri tipi - da verificare
+                        break;
+                }
+                
                 Vector3Int cellPos = new Vector3Int(
-                    coinPos.x + (mapManager?.MapOffset.x ?? 0),
-                    coinPos.y + (mapManager?.MapOffset.y ?? 0),
+                    coinPos.x + mapManager.MapOffset.x,
+                    coinPos.y + mapManager.MapOffset.y,
                     0
                 );
                 
-                if (mapManager != null && mapManager.tilemap != null)
+                if (mapManager.tilemap != null)
                 {
                     Vector3 worldPos = mapManager.tilemap.CellToWorld(cellPos);
                     worldPos += new Vector3(0.5f, 0.5f, 0);
                     Gizmos.DrawWireCube(worldPos, Vector3.one * 0.8f);
+                    
+                    // Mostra anche la distanza dal player
+                    int distance = mapManager.Distances[coinPos.x, coinPos.y];
+                    if (distance > 0)
+                    {
+                        // Disegna una linea che indica la distanza
+                        Gizmos.color = Color.white;
+                        Gizmos.DrawWireSphere(worldPos, distance * 0.1f);
+                    }
                 }
             }
         }
@@ -409,7 +453,7 @@ public class DynamicCoinGenerator : MonoBehaviour
         // Visualizza il campo visivo della camera (se disponibile)
         if (playerCamera != null && mapManager != null)
         {
-            Gizmos.color = Color.red;
+            Gizmos.color = Color.blue;
             
             // Calcola i bounds del campo visivo a livello della tilemap
             if (playerCamera.orthographic)
@@ -426,6 +470,14 @@ public class DynamicCoinGenerator : MonoBehaviour
                 
                 Gizmos.DrawWireCube(cameraPos, new Vector3(width, height, 0));
             }
+        }
+        
+        // Visualizza statistiche nell'editor
+        if (Application.isPlaying)
+        {
+            int totalCoins = GetActiveCoinCount();
+            int corridorCoins = GetCoinsInCorridors();
+            Debug.Log($"[CoinGenerator] Monete totali: {totalCoins}, Su corridoi: {corridorCoins}, Su altri tile: {totalCoins - corridorCoins}");
         }
     }
 }

@@ -32,6 +32,9 @@ public class EnemyLogic : MonoBehaviour
     private int patrolStepsInDirection = 0;
     private int maxPatrolStepsInDirection = 5; // Max passi nella stessa direzione durante patrol
 
+    [Header("Health Settings")]
+    public float healthPoints = 10f;
+
     private Animator animator;
     private Transform player;
 
@@ -46,6 +49,8 @@ public class EnemyLogic : MonoBehaviour
 
     void Update()
     {
+        HandleHealth();
+        
         HandleMovement();
     }
 
@@ -113,8 +118,8 @@ public class EnemyLogic : MonoBehaviour
             if (!mapManager.IsValidArrayCoordinate(nextArrayPos))
                 continue;
 
-            // Verifica se la cella è camminabile (non è un muro)
-            if (mapManager.Walls[nextArrayPos.x, nextArrayPos.y])
+            // IMPORTANTE: Verifica se la cella è camminabile per AI (solo corridoi)
+            if (!mapManager.IsWalkableForAI(nextArrayPos))
                 continue;
 
             // Ottieni la distanza BFS della cella adiacente
@@ -167,7 +172,7 @@ public class EnemyLogic : MonoBehaviour
         // 3. Hai fatto troppi passi nella stessa direzione
         // 4. Probabilità casuale di cambiare direzione
         bool shouldChangeDirection = currentPatrolDirection == Vector2.zero ||
-                                   !IsDirectionWalkable(enemyArrayPos, currentPatrolDirection) ||
+                                   !IsDirectionWalkableForAI(enemyArrayPos, currentPatrolDirection) ||
                                    patrolStepsInDirection >= maxPatrolStepsInDirection ||
                                    UnityEngine.Random.Range(0f, 1f) < directionChangeChance;
 
@@ -202,7 +207,7 @@ public class EnemyLogic : MonoBehaviour
 
         for (int i = 0; i < directions.Length; i++)
         {
-            if (IsDirectionWalkable(enemyArrayPos, directions[i]))
+            if (IsDirectionWalkableForAI(enemyArrayPos, directions[i]))
             {
                 DirectionInfo dirInfo = new DirectionInfo
                 {
@@ -270,7 +275,8 @@ public class EnemyLogic : MonoBehaviour
         return Vector2.zero;
     }
 
-    bool IsDirectionWalkable(Vector2Int fromArrayPos, Vector2 direction)
+    // IMPORTANTE: Nuovo metodo che usa il MapManager per controllare se l'AI può camminare
+    bool IsDirectionWalkableForAI(Vector2Int fromArrayPos, Vector2 direction)
     {
         Vector2Int directionOffset = Vector2Int.zero;
         
@@ -286,8 +292,8 @@ public class EnemyLogic : MonoBehaviour
         if (!mapManager.IsValidArrayCoordinate(targetArrayPos))
             return false;
 
-        // Verifica se non è un muro
-        return !mapManager.Walls[targetArrayPos.x, targetArrayPos.y];
+        // IMPORTANTE: Usa il nuovo metodo specifico per AI (solo corridoi)
+        return mapManager.IsWalkableForAI(targetArrayPos);
     }
 
     void HandleMovement()
@@ -354,16 +360,22 @@ public class EnemyLogic : MonoBehaviour
         isMoving = false;
     }
 
+    // IMPORTANTE: Aggiornato per usare il nuovo sistema MapManager
     public bool IsWalkable(Vector3 targetPos)
     {
         if (mapManager != null && mapManager.wallCalculated)
         {
-            // Usa il MapManager se disponibile (più efficiente e coerente)
-            return mapManager.IsWalkableAtWorldPosition(targetPos);
+            // Usa il nuovo sistema del MapManager specifico per AI
+            Vector2Int arrayPos = mapManager.WorldToArrayCoordinates(targetPos);
+            if (!mapManager.IsValidArrayCoordinate(arrayPos))
+                return false;
+                
+            // I nemici possono camminare solo sui corridoi
+            return mapManager.IsWalkableForAI(arrayPos);
         }
         else
         {
-            // Fallback al sistema originale
+            // Fallback al sistema originale se MapManager non è disponibile
             if (tilemap == null)
             {
                 Debug.LogWarning("Tilemap non assegnata!");
@@ -409,6 +421,12 @@ public class EnemyLogic : MonoBehaviour
     {
         int distance = GetCurrentDistanceFromPlayer();
         return distance >= 0 && distance <= intelligentChaseDistance;
+    }
+
+
+    private void HandleHealth()
+    {
+        throw new NotImplementedException();
     }
 
     // Visualizza informazioni nell'Inspector durante il gioco
