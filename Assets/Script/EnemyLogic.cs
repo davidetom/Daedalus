@@ -23,6 +23,8 @@ public class EnemyLogic : MonoBehaviour
     [Header("AI Behavior")]
     [Range(10, 350)]
     public int intelligentChaseDistance = 100; // Distanza in tile per comportamento intelligente
+    [Range(1, 5)]
+    public int stopDistance = 2; // Distanza minima dal player (in tile BFS) - 2 significa 1 tile fisico di separazione
     public bool enableDebug = false; // Debug abilitato/disabilitato
     
     [Header("Random Patrol")]
@@ -33,7 +35,28 @@ public class EnemyLogic : MonoBehaviour
     private int maxPatrolStepsInDirection = 5; // Max passi nella stessa direzione durante patrol
 
     [Header("Health Settings")]
-    public float healthPoints = 10f;
+    public float maxHealthPoints = 10f;
+    [SerializeField] private float currentHealthPoints;
+    public bool isDead = false;
+    
+    [Header("Knockback Settings")]
+    public float knockbackForce = 2f;
+    public float knockbackDuration = 0.5f;
+    private bool isKnockedBack = false;
+    private Vector2 knockbackDirection = Vector2.zero;
+    private float knockbackTimer = 0f;
+    
+    [Header("Death Effects")]
+    public GameObject deathEffect; // Particelle o effetti alla morte (opzionale)
+    public AudioClip deathSound; // Suono alla morte (opzionale)
+    public float deathDelay = 0.1f; // Delay prima di distruggere il GameObject
+
+    [Header("Damage Feedback")]
+    public float damageFeedbackDuration = 0.2f;
+    public Color damageColor = Color.red;
+    private SpriteRenderer spriteRenderer;
+    private Color originalColor;
+    private bool takingDamage = false;
 
     private Animator animator;
     private Transform player;
@@ -41,21 +64,218 @@ public class EnemyLogic : MonoBehaviour
     private void Awake()
     {
         animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        
         // Trova il player nella scena
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
             player = playerObj.transform;
     }
 
+    void Start()
+    {
+        // Inizializza la vita
+        currentHealthPoints = maxHealthPoints;
+        
+        // Salva il colore originale per il feedback del danno
+        if (spriteRenderer != null)
+        {
+            originalColor = spriteRenderer.color;
+        }
+    }
+
     void Update()
     {
-        HandleHealth();
-        
+        if (isDead) return; // Non fare nulla se è morto
+
+        HandleKnockback();
         HandleMovement();
     }
 
+    void HandleKnockback()
+    {
+        if (isKnockedBack)
+        {
+            knockbackTimer -= Time.deltaTime;
+            
+            // Applica il movimento del rinculo
+            if (knockbackTimer > 0)
+            {
+                Vector3 knockbackMovement = (Vector3)knockbackDirection * knockbackForce * Time.deltaTime;
+                Vector3 targetPos = transform.position + knockbackMovement;
+                
+                // Verifica che la posizione di rinculo sia camminabile
+                if (IsWalkable(targetPos))
+                {
+                    transform.position = targetPos;
+                }
+            }
+            else
+            {
+                // Fine del rinculo
+                isKnockedBack = false;
+                knockbackDirection = Vector2.zero;
+                
+                if (enableDebug)
+                {
+                    Debug.Log($"{gameObject.name}: Fine rinculo");
+                }
+            }
+        }
+    }
+
+    // Metodo pubblico per ricevere danni
+    public void TakeDamage(float damage, Vector2 attackDirection = default)
+    {
+        if (isDead || isKnockedBack) return; // Non prendere danni se già morto o in rinculo
+        
+        currentHealthPoints -= damage;
+        currentHealthPoints = Mathf.Max(0, currentHealthPoints);
+        
+        if (enableDebug)
+        {
+            Debug.Log($"{gameObject.name} ha ricevuto {damage} danni. Vita rimanente: {currentHealthPoints}");
+        }
+        
+        // Feedback visivo del danno
+        StartCoroutine(DamageFeedback());
+        
+        // Applica rinculo se c'è una direzione di attacco
+        if (attackDirection != Vector2.zero)
+        {
+            ApplyKnockback(attackDirection);
+        }
+        
+        // Controlla se è morto
+        if (currentHealthPoints <= 0)
+        {
+            Die();
+        }
+    }
+    
+    // Applica il rinculo
+    void ApplyKnockback(Vector2 direction)
+    {
+        if (isDead) return;
+        
+        isKnockedBack = true;
+        knockbackDirection = direction.normalized;
+        knockbackTimer = knockbackDuration;
+        
+        // Ferma il movimento corrente
+        if (isMoving)
+        {
+            StopAllCoroutines(); // Ferma il movimento in corso
+            isMoving = false;
+        }
+        
+        // Reset della direzione patrol
+        currentPatrolDirection = Vector2.zero;
+        patrolStepsInDirection = 0;
+        
+        if (enableDebug)
+        {
+            Debug.Log($"{gameObject.name}: Rinculo applicato in direzione {knockbackDirection}");
+        }
+    }
+    
+    // Feedback visivo del danno
+    IEnumerator DamageFeedback()
+    {
+        if (spriteRenderer == null) yield break;
+        
+        takingDamage = true;
+        spriteRenderer.color = damageColor;
+        
+        yield return new WaitForSeconds(damageFeedbackDuration);
+        
+        if (!isDead) // Solo se non è morto nel frattempo
+        {
+            spriteRenderer.color = originalColor;
+        }
+        takingDamage = false;
+    }
+    
+    // Gestisce la morte del nemico
+    void Die()
+    {
+        if (isDead) return; // Previeni chiamate multiple
+        
+        isDead = true;
+        
+        if (enableDebug)
+        {
+            Debug.Log($"{gameObject.name} è morto!");
+        }
+        
+        // Ferma tutti i movimenti
+        StopAllCoroutines();
+        isMoving = false;
+        isKnockedBack = false;
+        
+        // Disabilita il collider per evitare ulteriori interazioni
+        Collider2D col = GetComponent<Collider2D>();
+        if (col != null) col.enabled = false;
+        
+        // Effetti di morte
+        StartCoroutine(DeathSequence());
+    }
+    
+    IEnumerator DeathSequence()
+    {
+        // Effetti visivi/audio (opzionali)
+        if (deathEffect != null)
+        {
+            Instantiate(deathEffect, transform.position, Quaternion.identity);
+        }
+        
+        if (deathSound != null && GetComponent<AudioSource>() != null)
+        {
+            GetComponent<AudioSource>().PlayOneShot(deathSound);
+        }
+        
+        // Animazione di morte (se presente)
+        if (animator != null)
+        {
+            animator.SetBool("isDead", true);
+        }
+        
+        // Fade out del colore
+        if (spriteRenderer != null)
+        {
+            Color startColor = spriteRenderer.color;
+            Color targetColor = new Color(startColor.r, startColor.g, startColor.b, 0);
+            
+            float fadeTime = deathDelay * 0.8f; // Usa l'80% del tempo per il fade
+            float timer = 0;
+            
+            while (timer < fadeTime)
+            {
+                timer += Time.deltaTime;
+                float progress = timer / fadeTime;
+                spriteRenderer.color = Color.Lerp(startColor, targetColor, progress);
+                yield return null;
+            }
+        }
+        
+        yield return new WaitForSeconds(deathDelay);
+        
+        // Distruggi il GameObject
+        Destroy(gameObject);
+    }
+
+    // Proprietà pubbliche per accesso esterno
+    public float GetCurrentHealth() => currentHealthPoints;
+    public float GetMaxHealth() => maxHealthPoints;
+    public float GetHealthPercentage() => currentHealthPoints / maxHealthPoints;
+    public bool IsAlive() => !isDead;
+    public bool IsKnockedBack() => isKnockedBack;
+
     Vector2 FindPlayer()
     {
+        // Se è in rinculo, non muoversi attivamente
+        if (isKnockedBack) return Vector2.zero;
+        
         if (player == null) 
         {
             if (enableDebug) Debug.Log("Player non trovato!");
@@ -107,6 +327,13 @@ public class EnemyLogic : MonoBehaviour
             return Vector2.zero;
         }
 
+        // IMPORTANTE: Se siamo già alla distanza di stop dal player, non muoversi
+        if (currentDistance <= stopDistance)
+        {
+            if (enableDebug) Debug.Log($"Nemico già a distanza ottimale dal player (distanza: {currentDistance}, stop: {stopDistance}). Stop movimento.");
+            return Vector2.zero;
+        }
+
         List<DirectionInfo> validDirections = new List<DirectionInfo>();
 
         // Analizza tutte le 4 direzioni
@@ -149,6 +376,13 @@ public class EnemyLogic : MonoBehaviour
 
         // Trova la direzione con la distanza minore (più vicina al player)
         DirectionInfo bestDirection = validDirections.OrderBy(d => d.distance).First();
+        
+        // CONTROLLO AGGIUNTIVO: Non muoversi se la prossima mossa ci porterebbe alla distanza di stop o meno
+        if (bestDirection.distance < stopDistance)
+        {
+            if (enableDebug) Debug.Log($"Prossima mossa troppo vicina al player (distanza: {bestDirection.distance}, stop: {stopDistance}). Stop movimento.");
+            return Vector2.zero;
+        }
         
         if (enableDebug)
         {
@@ -298,6 +532,13 @@ public class EnemyLogic : MonoBehaviour
 
     void HandleMovement()
     {
+        // Non muoversi se è in rinculo o morto
+        if (isKnockedBack || isDead) 
+        {
+            animator.SetBool("isMoving", false);
+            return;
+        }
+
         if (!isMoving)
         {
             targetDirection = FindPlayer();
@@ -352,6 +593,13 @@ public class EnemyLogic : MonoBehaviour
 
         while ((targetPos - transform.position).sqrMagnitude > Mathf.Epsilon)
         {
+            // Se viene applicato un rinculo durante il movimento, ferma il movimento
+            if (isKnockedBack)
+            {
+                isMoving = false;
+                yield break;
+            }
+            
             transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
             yield return null;
         }
@@ -423,19 +671,21 @@ public class EnemyLogic : MonoBehaviour
         return distance >= 0 && distance <= intelligentChaseDistance;
     }
 
-
-    private void HandleHealth()
-    {
-        throw new NotImplementedException();
-    }
-
     // Visualizza informazioni nell'Inspector durante il gioco
     void OnDrawGizmos()
     {
         if (!Application.isPlaying || !enableDebug) return;
 
-        // Disegna un cerchio colorato per indicare la modalità
-        if (IsInIntelligentMode())
+        // Disegna un cerchio colorato per indicare la modalità 
+        if (isDead)
+        {
+            Gizmos.color = Color.black; // Morto
+        }
+        else if (isKnockedBack)
+        {
+            Gizmos.color = Color.magenta; // In rinculo
+        }
+        else if (IsInIntelligentMode())
         {
             Gizmos.color = Color.red; // Modalità inseguimento intelligente
         }
@@ -447,11 +697,19 @@ public class EnemyLogic : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, 0.3f);
         
         // Mostra la direzione del movimento
-        if (targetDirection != Vector2.zero)
+        if (targetDirection != Vector2.zero && !isDead)
         {
             Gizmos.color = Color.blue;
             Vector3 targetPos = transform.position + (Vector3)targetDirection;
             Gizmos.DrawLine(transform.position, targetPos);
+        }
+        
+        // Mostra la direzione del rinculo
+        if (isKnockedBack)
+        {
+            Gizmos.color = Color.cyan;
+            Vector3 knockbackPos = transform.position + (Vector3)knockbackDirection;
+            Gizmos.DrawLine(transform.position, knockbackPos);
         }
     }
 }

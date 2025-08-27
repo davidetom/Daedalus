@@ -36,6 +36,12 @@ public class PlayerController : MonoBehaviour
     public bool canAttack = true;
     public bool isNightTime = true; // il player può attaccare solo di notte
 
+    [Header("Enemy Attack Settings")]
+    public float enemyKnockbackForce = 2f; // Forza del rinculo applicato ai nemici
+    public bool enableAttackEffects = true; // Abilita effetti visivi/sonori
+    public AudioClip attackSound; // Suono dell'attacco (opzionale)
+    public GameObject attackEffect; // Effetto visivo dell'attacco (opzionale)
+
     [Header("Enemy Detection")]
     public LayerMask enemyLayerMask; // Layer dei nemici (opzionale, per ottimizzazione)
 
@@ -214,6 +220,16 @@ public class PlayerController : MonoBehaviour
         canAttack = false;
         attackAnimationFinished = false;
 
+        // Effetti sonori dell'attacco
+        if (enableAttackEffects && attackSound != null)
+        {
+            AudioSource audioSource = GetComponent<AudioSource>();
+            if (audioSource != null)
+            {
+                audioSource.PlayOneShot(attackSound);
+            }
+        }
+
         yield return null;
         yield return new WaitUntil(() => animator.GetCurrentAnimatorStateInfo(0).IsName("Attack"));
         
@@ -282,22 +298,39 @@ public class PlayerController : MonoBehaviour
         return enemiesHit;
     }
 
-    // Metodo per applicare danno al nemico
+    // Metodo per applicare danno al nemico - IMPLEMENTATO COMPLETAMENTE
     private void ApplyDamageToEnemy(GameObject enemy)
     {
-        /* Cerca un componente "Health" o simile
-        var healthComponent = enemy.GetComponent<EnemyHealth>();
-        if (healthComponent != null)
+        // Cerca il componente EnemyLogic
+        EnemyLogic enemyLogic = enemy.GetComponent<EnemyLogic>();
+        if (enemyLogic != null && enemyLogic.IsAlive())
         {
-            healthComponent.TakeDamage(attackDamage);
+            // Calcola la direzione del rinculo (dal player verso il nemico)
+            Vector2 knockbackDirection = (enemy.transform.position - transform.position).normalized;
+            
+            // Applica il danno con la direzione del rinculo
+            enemyLogic.TakeDamage(attackDamage, knockbackDirection);
+            
+            Debug.Log($"Attaccato {enemy.name} per {attackDamage} danni! Vita rimanente: {enemyLogic.GetCurrentHealth()}");
+            
+            // Effetti visivi dell'attacco
+            if (enableAttackEffects && attackEffect != null)
+            {
+                // Spawna l'effetto a metà strada tra player e nemico
+                Vector3 effectPosition = Vector3.Lerp(transform.position, enemy.transform.position, 0.5f);
+                GameObject effect = Instantiate(attackEffect, effectPosition, Quaternion.identity);
+                
+                // Distruggi l'effetto dopo un po' (se non ha un sistema di autodistruzione)
+                if (effect.GetComponent<ParticleSystem>() == null)
+                {
+                    Destroy(effect, 2f);
+                }
+            }
         }
-
-        // Aggiungi effetti visivi/audio
-        Debug.Log($"Attaccato {enemy.name} per {attackDamage} danni!");
-
-        // OPZIONALE: Aggiungi knockback/recoil
-        ApplyKnockback(enemy);
-        */
+        else
+        {
+            Debug.LogWarning($"Il nemico {enemy.name} non ha il componente EnemyLogic o è già morto!");
+        }
     }
 
     void TryOpenNearbyDoor()
