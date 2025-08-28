@@ -56,10 +56,21 @@ public class EnemyLogic : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
     private bool takingDamage = false;
-    private Coroutine currentDamageFeedbackCoroutine = null; // NUOVO: riferimento alla coroutine attiva
+    private Coroutine currentDamageFeedbackCoroutine = null;
+
+    [Header("Attack Settings")]
+    public bool closeToPlayer = false;
+    public float attackDamage = 2f;
+    public float attackDuration = 0.3f;
+    public float attackCooldown = 1f;
+    public bool isAttacking = false;
+    private bool canAttack = true;
 
     private Animator animator;
-    private Transform player;
+    private Transform playerTransform;
+    private Vector3 lastPlayerPosition = Vector3.zero; // NUOVO: per tracciare la posizione del player
+    private float playerPositionCheckInterval = 0.1f; // Controlla ogni 0.1 secondi
+    private float lastPlayerPositionCheckTime = 0f;
 
     private void Awake()
     {
@@ -69,7 +80,9 @@ public class EnemyLogic : MonoBehaviour
         // Trova il player nella scena
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
-            player = playerObj.transform;
+        {
+            playerTransform = playerObj.transform;
+        }
     }
 
     void Start()
@@ -88,8 +101,167 @@ public class EnemyLogic : MonoBehaviour
     {
         if (isDead) return; // Non fare nulla se è morto
 
+        // NUOVO: Monitora la posizione del player per rilevare respawn o teletrasporti
+        CheckPlayerPositionChange();
+
         HandleKnockback();
         HandleMovement();
+        HandleAttack();
+    }
+
+    void CheckPlayerPositionChange()
+    {
+        if (playerTransform == null || Time.time < lastPlayerPositionCheckTime + playerPositionCheckInterval) 
+            return;
+            
+        lastPlayerPositionCheckTime = Time.time;
+        
+        // Se è la prima volta, inizializza
+        if (lastPlayerPosition == Vector3.zero)
+        {
+            lastPlayerPosition = playerTransform.position;
+            return;
+        }
+        
+        // Calcola la distanza dal controllo precedente
+        float distanceMoved = Vector3.Distance(playerTransform.position, lastPlayerPosition);
+        
+        // Controlla anche se il player è morto/respawnato
+        PlayerController pc = playerTransform.GetComponent<PlayerController>();
+        bool playerJustRespawned = pc != null && !pc.IsAlive();
+        
+        // NUOVO: Controlla se la matrice BFS è in uno stato inconsistente
+        bool bfsInconsistent = IsBFSInconsistent();
+        
+        // Condizioni per forzare ricalcolo BFS:
+        bool shouldRecalculate = false;
+        string reason = "";
+        
+        // 1. Movimento drastico (teletrasporto/respawn)
+        if (distanceMoved > 2f)
+        {
+            shouldRecalculate = true;
+            reason = $"movimento drastico ({distanceMoved:F1} unità)";
+        }
+        
+        // 2. Player respawnato
+        if (playerJustRespawned)
+        {
+            shouldRecalculate = true;
+            reason = "player respawnato";
+        }
+        
+        // 3. BFS inconsistente
+        if (bfsInconsistent)
+        {
+            shouldRecalculate = true;
+            reason = "BFS inconsistente";
+        }
+        
+        // 4. NUOVO: Controllo se siamo "bloccati" in modalità closeToPlayer ma il player è lontano
+        if (closeToPlayer && mapManager != null && mapManager.wallCalculated)
+        {
+            Vector2Int playerArrayPos = mapManager.WorldToArrayCoordinates(playerTransform.position);
+            Vector2Int enemyArrayPos = mapManager.WorldToArrayCoordinates(transform.position);
+            
+            if (mapManager.IsValidArrayCoordinate(playerArrayPos) && mapManager.IsValidArrayCoordinate(enemyArrayPos))
+            {
+                // Calcola distanza fisica effettiva
+                float physicalDistance = Vector3.Distance(transform.position, playerTransform.position);
+                
+                // Se siamo in modalità closeToPlayer ma fisicamente siamo lontani, c'è un problema
+                if (physicalDistance > stopDistance * 1.5f) // Margine di tolleranza
+                {
+                    shouldRecalculate = true;
+                    reason = $"nemico bloccato in closeToPlayer ma distanza fisica è {physicalDistance:F1}";
+                    
+                    // Reset immediato dello stato
+                    closeToPlayer = false;
+                    isAttacking = false;
+                }
+            }
+        }
+        
+        if (shouldRecalculate)
+        {
+            if (enableDebug)
+            {
+                Debug.Log($"{gameObject.name}: Ricalcolo BFS per: {reason}");
+            }
+            
+            ForcePlayerBFSRecalculation();
+            
+            // Reset dello stato del nemico per sicurezza
+            closeToPlayer = false;
+            currentPatrolDirection = Vector2.zero;
+            patrolStepsInDirection = 0;
+        }
+        
+        lastPlayerPosition = playerTransform.position;
+    }
+
+    // NUOVO METODO: Verifica se la BFS è in uno stato inconsistente
+    bool IsBFSInconsistent()
+    {
+        if (mapManager == null || !mapManager.wallCalculated) return true;
+        
+        Vector2Int playerArrayPos = mapManager.WorldToArrayCoordinates(playerTransform.position);
+        Vector2Int enemyArrayPos = mapManager.WorldToArrayCoordinates(transform.position);
+        
+        if (!mapManager.IsValidArrayCoordinate(playerArrayPos) || !mapManager.IsValidArrayCoordinate(enemyArrayPos))
+            return true;
+        
+        // Il player deve sempre essere a distanza 0 da se stesso
+        int playerDistance = mapManager.Distances[playerArrayPos.x, playerArrayPos.y];
+        if (playerDistance != 0)
+        {
+            if (enableDebug)
+            {
+                Debug.Log($"BFS inconsistente: player a distanza {playerDistance} da se stesso");
+            }
+            return true;
+        }
+        
+        // Se siamo in closeToPlayer, dovremmo avere una distanza BFS valida e piccola
+        if (closeToPlayer)
+        {
+            int enemyDistance = mapManager.Distances[enemyArrayPos.x, enemyArrayPos.y];
+            if (enemyDistance < 0 || enemyDistance > intelligentChaseDistance)
+            {
+                if (enableDebug)
+                {
+                    Debug.Log($"BFS inconsistente: nemico closeToPlayer ma distanza BFS = {enemyDistance}");
+                }
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    // NUOVO: Forza il ricalcolo delle distanze BFS tramite il PlayerController
+    void ForcePlayerBFSRecalculation()
+    {
+        if (playerTransform != null)
+        {
+            PlayerController pc = playerTransform.GetComponent<PlayerController>();
+            if (pc != null)
+            {
+                // Usa reflection per chiamare il metodo privato CalcoloDistanze
+                var calcoloDistanzeMethod = typeof(PlayerController).GetMethod("CalcoloDistanze", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                
+                if (calcoloDistanzeMethod != null)
+                {
+                    calcoloDistanzeMethod.Invoke(pc, null);
+                    
+                    if (enableDebug)
+                    {
+                        Debug.Log($"{gameObject.name}: BFS ricalcolata con successo.");
+                    }
+                }
+            }
+        }
     }
 
     void HandleKnockback()
@@ -102,25 +274,10 @@ public class EnemyLogic : MonoBehaviour
         }
     }
 
-    // Metodo pubblico per ricevere danni - VERSIONE CORRETTA
+    // FIXED: Metodo pubblico per ricevere danni - VERSIONE SEMPLIFICATA
     public void TakeDamage(float damage, Vector2 attackDirection = default)
     {
-        if (isDead || isKnockedBack) return; // Protezione base
-        
-        // NUOVO: Controllo preliminare per rinculo e protezione extra
-        bool willBeKnockedBack = false;
-        if (attackDirection != Vector2.zero)
-        {
-            Vector2 orthogonalDirection = GetOrthogonalDirection(attackDirection);
-            Vector3 targetPosition = transform.position + (Vector3)orthogonalDirection;
-            
-            if (IsWalkable(targetPosition))
-            {
-                // Imposta immediatamente lo stato di rinculo per protezione extra
-                isKnockedBack = true;
-                willBeKnockedBack = true;
-            }
-        }
+        if (isDead) return; // Protezione base
         
         currentHealthPoints -= damage;
         currentHealthPoints = Mathf.Max(0, currentHealthPoints);
@@ -130,18 +287,13 @@ public class EnemyLogic : MonoBehaviour
             Debug.Log($"{gameObject.name} ha ricevuto {damage} danni. Vita rimanente: {currentHealthPoints}");
         }
         
-        // Feedback visivo del danno con gestione corretta
+        // Feedback visivo del danno
         StartDamageFeedback();
         
-        // Applica rinculo se è possibile
-        if (willBeKnockedBack)
+        // Applica rinculo se possibile e se non è già in rinculo
+        if (attackDirection != Vector2.zero && !isKnockedBack)
         {
             ApplyKnockback(attackDirection);
-        }
-        else if (attackDirection != Vector2.zero)
-        {
-            // Reset dello stato se il rinculo non è possibile
-            isKnockedBack = false;
         }
         
         // Controlla se è morto
@@ -151,21 +303,24 @@ public class EnemyLogic : MonoBehaviour
         }
     }
     
-    // NUOVO METODO: Gestione corretta del feedback del danno
+    // FIXED: Gestione corretta del feedback del danno
     void StartDamageFeedback()
     {
-        // Ferma il feedback precedente solo se esiste
+        // Ferma il feedback precedente se esiste
         if (currentDamageFeedbackCoroutine != null)
         {
             StopCoroutine(currentDamageFeedbackCoroutine);
             currentDamageFeedbackCoroutine = null;
         }
         
-        // Avvia il nuovo feedback
-        currentDamageFeedbackCoroutine = StartCoroutine(DamageFeedbackCoroutine());
+        // Avvia il nuovo feedback solo se non è morto
+        if (!isDead)
+        {
+            currentDamageFeedbackCoroutine = StartCoroutine(DamageFeedbackCoroutine());
+        }
     }
     
-    // VERSIONE CORRETTA della coroutine di feedback
+    // FIXED: Versione corretta della coroutine di feedback
     IEnumerator DamageFeedbackCoroutine()
     {
         if (spriteRenderer == null || isDead) 
@@ -186,13 +341,13 @@ public class EnemyLogic : MonoBehaviour
         }
         
         takingDamage = false;
-        currentDamageFeedbackCoroutine = null; // Reset del riferimento
+        currentDamageFeedbackCoroutine = null;
     }
     
-    // Applica il rinculo - VERSIONE MIGLIORATA
+    // FIXED: Applica il rinculo - VERSIONE SEMPLIFICATA
     void ApplyKnockback(Vector2 direction)
     {
-        if (isDead) return; // Solo controllo necessario ora
+        if (isDead || isKnockedBack) return;
         
         // Converte la direzione in movimento ortogonale tile-based
         Vector2 orthogonalDirection = GetOrthogonalDirection(direction);
@@ -207,14 +362,16 @@ public class EnemyLogic : MonoBehaviour
             {
                 Debug.Log($"{gameObject.name}: Posizione di rinculo non camminabile, rinculo annullato");
             }
-            isKnockedBack = false; // Reset dello stato se il rinculo fallisce
             return;
         }
+        
+        // Imposta lo stato di rinculo
+        isKnockedBack = true;
         
         // Ferma il movimento corrente
         if (isMoving)
         {
-            StopAllCoroutines(); // Questo ferma anche il movimento ma non il feedback
+            StopAllCoroutines();
             // Riavvia il feedback del danno se era attivo
             if (takingDamage)
             {
@@ -277,7 +434,7 @@ public class EnemyLogic : MonoBehaviour
         }
     }
     
-    // Gestisce la morte del nemico - VERSIONE CORRETTA
+    // FIXED: Gestisce la morte del nemico
     void Die()
     {
         if (isDead) return; // Previeni chiamate multiple
@@ -301,6 +458,8 @@ public class EnemyLogic : MonoBehaviour
         StopAllCoroutines();
         isMoving = false;
         isKnockedBack = false;
+        isAttacking = false;
+        closeToPlayer = false;
         
         // Disabilita il collider per evitare ulteriori interazioni
         Collider2D col = GetComponent<Collider2D>();
@@ -322,12 +481,6 @@ public class EnemyLogic : MonoBehaviour
         {
             GetComponent<AudioSource>().PlayOneShot(deathSound);
         }
-        
-        // Animazione di morte commentata per evitare errori parametro mancante
-        /*if (animator != null)
-        {
-            animator.SetBool("isDead", true);
-        }*/
         
         // Fade out del colore
         if (spriteRenderer != null)
@@ -365,7 +518,7 @@ public class EnemyLogic : MonoBehaviour
         // Se è in rinculo, non muoversi attivamente
         if (isKnockedBack) return Vector2.zero;
         
-        if (player == null) 
+        if (playerTransform == null) 
         {
             if (enableDebug) Debug.Log("Player non trovato!");
             return GetRandomPatrolDirection();
@@ -379,7 +532,7 @@ public class EnemyLogic : MonoBehaviour
 
         // Ottieni posizioni in coordinate array
         Vector2Int enemyArrayPos = mapManager.WorldToArrayCoordinates(transform.position);
-        Vector2Int playerArrayPos = mapManager.WorldToArrayCoordinates(player.position);
+        Vector2Int playerArrayPos = mapManager.WorldToArrayCoordinates(playerTransform.position);
 
         // Verifica che entrambe le posizioni siano valide
         if (!mapManager.IsValidArrayCoordinate(enemyArrayPos) || !mapManager.IsValidArrayCoordinate(playerArrayPos))
@@ -416,11 +569,30 @@ public class EnemyLogic : MonoBehaviour
             return Vector2.zero;
         }
 
-        // IMPORTANTE: Se siamo già alla distanza di stop dal player, non muoversi
+        // FIXED: Controlla se può attaccare (stessa tile o adiacente)
         if (currentDistance <= stopDistance)
         {
-            if (enableDebug) Debug.Log($"Nemico già a distanza ottimale dal player (distanza: {currentDistance}, stop: {stopDistance}). Stop movimento.");
-            return Vector2.zero;
+            closeToPlayer = true;
+            if (enableDebug) Debug.Log($"Nemico a distanza di attacco dal player (distanza: {currentDistance}).");
+            
+            // Se è sulla stessa tile (distanza 0), non muoversi
+            if (currentDistance == 0)
+            {
+                return Vector2.zero;
+            }
+            // Se è a distanza 1, può scegliere di muoversi o fermarsi per attaccare
+            else if (currentDistance == 1)
+            {
+                // 50% possibilità di fermarsi per attaccare
+                if (UnityEngine.Random.Range(0f, 1f) < 0.5f)
+                {
+                    return Vector2.zero;
+                }
+            }
+        }
+        else
+        {
+            closeToPlayer = false;
         }
 
         List<DirectionInfo> validDirections = new List<DirectionInfo>();
@@ -628,7 +800,7 @@ public class EnemyLogic : MonoBehaviour
             return;
         }
 
-        if (!isMoving)
+        if (!isMoving && !isAttacking)
         {
             targetDirection = FindPlayer();
             input.x = targetDirection.x;
@@ -760,6 +932,45 @@ public class EnemyLogic : MonoBehaviour
         return distance >= 0 && distance <= intelligentChaseDistance;
     }
 
+    void HandleAttack()
+    {
+        if (isKnockedBack || isDead)
+        {
+            return;
+        }
+
+        if (closeToPlayer && canAttack && !isAttacking)
+        {
+            StartCoroutine(DamagePlayer());
+        }
+    }
+
+    // FIXED: Corretto il bug del cooldown dell'attacco
+    IEnumerator DamagePlayer()
+    {
+        isAttacking = true;
+        canAttack = false;
+        isMoving = false;
+
+        // Trova il player e applica danno
+        PlayerController pc = playerTransform.gameObject.GetComponent<PlayerController>();
+        if (pc != null && pc.IsAlive())
+        {
+            pc.TakeDamage(attackDamage);
+            
+            if (enableDebug)
+            {
+                Debug.Log($"{gameObject.name} ha attaccato il player per {attackDamage} danni!");
+            }
+        }
+
+        yield return new WaitForSeconds(attackDuration);
+        isAttacking = false;
+
+        yield return new WaitForSeconds(attackCooldown);
+        canAttack = true; // FIXED: Era impostato su false
+    }
+
     // Visualizza informazioni nell'Inspector durante il gioco
     void OnDrawGizmos()
     {
@@ -799,6 +1010,13 @@ public class EnemyLogic : MonoBehaviour
             Gizmos.color = Color.cyan;
             Vector3 knockbackPos = transform.position + (Vector3)knockbackDirection;
             Gizmos.DrawLine(transform.position, knockbackPos);
+        }
+        
+        // Mostra se può attaccare
+        if (closeToPlayer && canAttack)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position, 0.5f);
         }
     }
 }

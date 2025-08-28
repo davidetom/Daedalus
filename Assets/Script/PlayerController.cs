@@ -15,6 +15,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Map Reference")]
     public MapManager mapManager; // Riferimento al MapManager
+    public Vector3 startPos;
 
     [Header("Move Settings")]
     public float moveSpeed;
@@ -37,7 +38,7 @@ public class PlayerController : MonoBehaviour
     public bool isNightTime = true; // il player può attaccare solo di notte
     public bool canAttackWhileMoving = true; // Permette di attaccare mentre si muove
 
-    [Header("Enemy Attack Settings")]
+    [Header("Attack Settings")]
     public float enemyKnockbackForce = 2f; // Forza del rinculo applicato ai nemici
     public bool enableAttackEffects = true; // Abilita effetti visivi/sonori
     public AudioClip attackSound; // Suono dell'attacco (opzionale)
@@ -45,6 +46,18 @@ public class PlayerController : MonoBehaviour
 
     [Header("Enemy Detection")]
     public LayerMask enemyLayerMask; // Layer dei nemici (opzionale, per ottimizzazione)
+
+    [Header("Damage Feedback")]
+    public float damageFeedbackDuration = 0.2f;
+    private SpriteRenderer spriteRenderer;
+    private Color originalColor;
+    private bool takingDamage = false;
+    private Coroutine currentDamageFeedbackCoroutine = null; // NUOVO: per gestire correttamente il feedback
+    
+    [Header("Health Settings")]
+    public float maxHealthPoints = 10f;
+    [SerializeField] private float currentHealthPoints;
+    public bool isDead = false;
 
     [Header("Coins and Gems")]
     public int coinsPicked = 0;
@@ -56,10 +69,19 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>(); // AGGIUNTO: inizializzazione
     }
 
     void Start()
     {
+        currentHealthPoints = maxHealthPoints;
+        
+        // AGGIUNTO: Salva il colore originale per il feedback del danno
+        if (spriteRenderer != null)
+        {
+            originalColor = spriteRenderer.color;
+        }
+
         // Aspetta che il MapManager sia inizializzato, poi calcola le distanze iniziali
         if (mapManager != null && mapManager.wallCalculated)
         {
@@ -98,8 +120,8 @@ public class PlayerController : MonoBehaviour
 
     void HandleMovement()
     {
-        // Ora può muoversi anche durante l'attacco se canAttackWhileMoving è true
-        if (!isMoving && (!isAttacking || canAttackWhileMoving))
+        // MODIFICA: Non può muoversi durante il danno o se è morto
+        if (!isMoving && (!isAttacking || canAttackWhileMoving) && !takingDamage && !isDead)
         {
             // 🔹 Se sto usando pulsanti mobile → uso mobileInput
             // altrimenti uso Input da tastiera
@@ -142,6 +164,14 @@ public class PlayerController : MonoBehaviour
 
         while ((targetPos - transform.position).sqrMagnitude > Mathf.Epsilon)
         {
+            // MODIFICA: Ferma il movimento se il player prende danno o muore
+            if (takingDamage || isDead)
+            {
+                SnapToNearestGridPosition();
+                isMoving = false;
+                yield break;
+            }
+            
             transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
             yield return null;
         }
@@ -152,6 +182,22 @@ public class PlayerController : MonoBehaviour
 
         isMoving = false;
     }
+    
+    void SnapToNearestGridPosition()
+    {
+        Vector3 currentPos = transform.position;
+        
+        // Calcola la posizione della griglia più vicina (assumendo griglia 1x1 con centro a 0.5, 0.5)
+        float snappedX = Mathf.Round(currentPos.x - 0.5f) + 0.5f;
+        float snappedY = Mathf.Round(currentPos.y - 0.7f) + 0.7f;
+        
+        Vector3 snappedPosition = new Vector3(snappedX, snappedY, currentPos.z);
+        
+        // Applica la correzione
+        transform.position = snappedPosition;
+        
+        Debug.Log($"Player disallineato corretto da {currentPos} a {snappedPosition}");
+    }
 
     public bool IsWalkable(Vector3 targetPos)
     {
@@ -161,7 +207,7 @@ public class PlayerController : MonoBehaviour
             Vector2Int arrayPos = mapManager.WorldToArrayCoordinates(targetPos);
             if (!mapManager.IsValidArrayCoordinate(arrayPos))
                 return false;
-                
+
             // Il player può camminare su corridoi e porte
             if (!mapManager.IsWalkableForPlayer(arrayPos))
                 return false;
@@ -205,8 +251,8 @@ public class PlayerController : MonoBehaviour
 
     public void HandleAttack()
     {
-        // Ora può attaccare anche mentre si muove se canAttackWhileMoving è true
-        if ((!isMoving || canAttackWhileMoving) && !isAttacking && canAttack)
+        // MODIFICA: Non può attaccare se prende danno o è morto
+        if ((!isMoving || canAttackWhileMoving) && !isAttacking && canAttack && !takingDamage && !isDead)
         {
             animator.SetFloat("attackX", lastDirection.x);
             animator.SetFloat("attackY", lastDirection.y);
@@ -362,6 +408,241 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // METODO CORRETTO: Gestione del danno ricevuto dal player
+    public void TakeDamage(float damage)
+    {
+        if (isDead)
+        {
+            Debug.Log("Player già morto, danno ignorato");
+            return;
+        }
+
+        Debug.Log($"Player riceve {damage} danni. Vita prima: {currentHealthPoints}");
+        
+        currentHealthPoints -= damage;
+        currentHealthPoints = Mathf.Max(0, currentHealthPoints);
+
+        Debug.Log($"Vita dopo danno: {currentHealthPoints}");
+
+        // AGGIUNTO: Se il player si stava muovendo, fermalo e correggi la posizione
+        if (isMoving)
+        {
+            StopAllCoroutines(); // Ferma il movimento
+            SnapToNearestGridPosition(); // Correggi la posizione
+            isMoving = false; // Reset dello stato
+            
+            // Ricalcola le distanze dalla nuova posizione corretta
+            CalcoloDistanze();
+        }
+
+        // Avvia feedback visivo del danno
+        StartDamageFeedback();
+
+        if (currentHealthPoints <= 0)
+        {
+            Die();
+        }
+    }
+    
+    // NUOVO METODO: Gestione del feedback visivo del danno
+    void StartDamageFeedback()
+    {
+        // Ferma il feedback precedente se esiste
+        if (currentDamageFeedbackCoroutine != null)
+        {
+            StopCoroutine(currentDamageFeedbackCoroutine);
+            currentDamageFeedbackCoroutine = null;
+        }
+        
+        // Avvia il nuovo feedback
+        currentDamageFeedbackCoroutine = StartCoroutine(DamageFeedbackCoroutine());
+    }
+    
+    // NUOVO METODO: Coroutine per il lampeggiamento del player
+    IEnumerator DamageFeedbackCoroutine()
+    {
+        if (spriteRenderer == null || isDead) 
+        {
+            currentDamageFeedbackCoroutine = null;
+            yield break;
+        }
+        
+        takingDamage = true;
+        
+        // Lampeggiamento con modifica dell'alpha
+        float flashDuration = damageFeedbackDuration / 6f; // 6 flash totali
+        
+        for (int i = 0; i < 3; i++) // 3 cicli di lampeggiamento
+        {
+            if (isDead) break; // Interrompi se il player muore durante il feedback
+            
+            // Imposta alpha a 0.3 (quasi trasparente)
+            Color flashColor = originalColor;
+            flashColor.a = 0.3f;
+            spriteRenderer.color = flashColor;
+            
+            yield return new WaitForSeconds(flashDuration);
+            
+            if (isDead) break;
+            
+            // Ripristina alpha originale
+            spriteRenderer.color = originalColor;
+            
+            yield return new WaitForSeconds(flashDuration);
+        }
+        
+        // Assicura che il colore sia completamente ripristinato
+        if (!isDead && spriteRenderer != null)
+        {
+            spriteRenderer.color = originalColor;
+        }
+        
+        takingDamage = false;
+        currentDamageFeedbackCoroutine = null;
+    }
+
+    void Die()
+    {
+        if (isDead) return;
+
+        Debug.Log("Player morto!");
+        isDead = true;
+        
+        // Ferma il feedback del danno se attivo
+        if (currentDamageFeedbackCoroutine != null)
+        {
+            StopCoroutine(currentDamageFeedbackCoroutine);
+            currentDamageFeedbackCoroutine = null;
+        }
+        takingDamage = false;
+        
+        StopAllCoroutines();
+        StartCoroutine(DeathSequence());
+    }
+
+    IEnumerator DeathSequence()
+    {
+        // Ferma tutti i movimenti e azioni
+        isMoving = false;
+        isAttacking = false;
+        canAttack = false;
+        animator.SetBool("isMoving", false);
+        animator.SetBool("isAttacking", false);
+
+        yield return new WaitForSeconds(1f);
+
+        // Logica per un death screen
+
+        yield return new WaitForSeconds(1.5f);
+
+        // Logica per rimuovere il death screen
+
+        yield return new WaitForSeconds(0.2f);
+        
+        // Reinizializza il player
+        InizializeSettings();
+    }
+
+    void InizializeSettings()
+    {
+        Debug.Log("Reinizializzazione player...");
+
+        isDead = false;
+        currentHealthPoints = maxHealthPoints;
+        isMoving = false;
+        isAttacking = false;
+        canAttack = true;
+        takingDamage = false;
+
+        // Ripristina il colore originale
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = originalColor;
+        }
+
+        // Reset delle coroutine
+        if (currentDamageFeedbackCoroutine != null)
+        {
+            StopCoroutine(currentDamageFeedbackCoroutine);
+            currentDamageFeedbackCoroutine = null;
+        }
+
+        animator.SetBool("isAttacking", false);
+        animator.SetBool("isMoving", false);
+        transform.position = startPos;
+
+        // coinsPicked = 0; oppure coinsPicked = coinsPicked / 2; DA DECIDERE
+
+        ResetAllEnemiesState();
+
+        InvalidateDistances();
+        StartCoroutine(RecalculateDistancesNextFrame());
+
+    }
+
+    void ResetAllEnemiesState()
+    {
+        EnemyLogic[] allEnemies = GameObject.FindObjectsByType<EnemyLogic>(FindObjectsSortMode.None);
+        
+        foreach (var enemy in allEnemies)
+        {
+            if (enemy != null && enemy.IsAlive())
+            {
+                // Reset dello stato di attacco e vicinanza
+                enemy.closeToPlayer = false;
+                enemy.isAttacking = false;
+                
+                // Forza il reset della direzione patrol
+                if (enemy.enableDebug)
+                {
+                    Debug.Log($"Reset stato nemico: {enemy.name}");
+                }
+                
+                // Usa reflection per resettare le variabili private se necessario
+                var patrolDirectionField = typeof(EnemyLogic).GetField("currentPatrolDirection", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (patrolDirectionField != null)
+                {
+                    patrolDirectionField.SetValue(enemy, Vector2.zero);
+                }
+                
+                var patrolStepsField = typeof(EnemyLogic).GetField("patrolStepsInDirection", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (patrolStepsField != null)
+                {
+                    patrolStepsField.SetValue(enemy, 0);
+                }
+            }
+        }
+        
+        Debug.Log($"Reset effettuato su {allEnemies.Length} nemici");
+    }
+
+    void InvalidateDistances()
+    {
+        if (mapManager == null || !mapManager.wallCalculated) return;
+        
+        int width = mapManager.Distances.GetLength(0);
+        int height = mapManager.Distances.GetLength(1);
+        
+        // Imposta tutte le distanze a -1 (non raggiungibile)
+        for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
+                mapManager.Distances[x, y] = -1;
+        
+        Debug.Log("Distanze BFS invalidate - i nemici dovranno attendere il ricalcolo");
+    }
+
+    IEnumerator RecalculateDistancesNextFrame()
+    {
+        yield return null; // Aspetta un frame
+        
+        // Ricalcola le distanze dalla nuova posizione
+        CalcoloDistanze();
+        
+        Debug.Log($"Distanze BFS ricalcolate dopo respawn a posizione: {transform.position}");
+    }
+
     void TryOpenNearbyDoor()
     {
         DoorController[] doors = GameObject.FindObjectsByType<DoorController>(FindObjectsSortMode.None);
@@ -458,6 +739,13 @@ public class PlayerController : MonoBehaviour
         if (mapManager == null) return -1;
         return mapManager.GetDistanceAtWorldPosition(worldPos);
     }
+    
+    // Metodi pubblici per accesso esterno allo stato del player
+    public float GetCurrentHealth() => currentHealthPoints;
+    public float GetMaxHealth() => maxHealthPoints;
+    public float GetHealthPercentage() => currentHealthPoints / maxHealthPoints;
+    public bool IsAlive() => !isDead;
+    public bool IsTakingDamage() => takingDamage;
 
     // ----------------- Metodi per pulsanti mobile -----------------
     public void MuoviSu() => mobileInput = Vector2.up;
