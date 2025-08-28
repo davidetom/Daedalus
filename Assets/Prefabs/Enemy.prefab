@@ -198,7 +198,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2d9c785942b44b8db7f1963fa3f9e01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 7
+  moveSpeed: 2
   isMoving: 0
   targetDirection: {x: 0, y: 0}
   mapManager: {fileID: 0}
@@ -206,6 +206,22 @@ MonoBehaviour:
   muraTile: {fileID: 11400000, guid: 71b947652f19a46c892c762282e0a8af, type: 2}
   corridoioTile: {fileID: 11400000, guid: fc6f2fbdf1a3c4867a8933c2fc41f463, type: 2}
   intelligentChaseDistance: 350
+  stopDistance: 1
   enableDebug: 0
   directionChangeChance: 0.1
   playerBias: 0.6
+  maxHealthPoints: 20
+  currentHealthPoints: 0
+  isDead: 0
+  knockbackForce: 2
+  knockbackDuration: 0.5
+  deathEffect: {fileID: 0}
+  deathSound: {fileID: 0}
+  deathDelay: 0.1
+  damageFeedbackDuration: 0.2
+  damageColor: {r: 1, g: 0, b: 0, a: 1}
+  closeToPlayer: 0
+  attackDamage: 2
+  attackDuration: 0.3
+  attackCooldown: 1
+  isAttacking: 0
