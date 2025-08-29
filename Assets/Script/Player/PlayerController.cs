@@ -27,7 +27,7 @@ public class PlayerController : MonoBehaviour
     public bool hasKey = false; //all'inizio non ha la chiave
 
     [Header("Attack Settings")]
-    public float attackDamage = 5f;
+    public float attackDamage = 25f;
     public float attackRange = 2f;
     public float recoil = 1f;
     public float attackCooldown = 0.3f;
@@ -55,7 +55,7 @@ public class PlayerController : MonoBehaviour
     private Coroutine currentDamageFeedbackCoroutine = null; // NUOVO: per gestire correttamente il feedback
     
     [Header("Health Settings")]
-    public float maxHealthPoints = 10f;
+    public float maxHealthPoints = 100f;
     [SerializeField] private float currentHealthPoints;
     public bool isDead = false;
 
@@ -408,7 +408,8 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // METODO CORRETTO: Gestione del danno ricevuto dal player
+    // In PlayerController.cs, modifica il metodo TakeDamage
+
     public void TakeDamage(float damage)
     {
         if (isDead)
@@ -424,7 +425,11 @@ public class PlayerController : MonoBehaviour
 
         Debug.Log($"Vita dopo danno: {currentHealthPoints}");
 
-        // AGGIUNTO: Se il player si stava muovendo, fermalo e correggi la posizione
+        // FIXED: Gestione migliorata dello stato durante il danno
+        bool wasAttacking = isAttacking;
+        bool wasMoving = isMoving;
+
+        // Ferma tutti i movimenti e correggi posizione se necessario
         if (isMoving)
         {
             StopAllCoroutines(); // Ferma il movimento
@@ -433,6 +438,26 @@ public class PlayerController : MonoBehaviour
             
             // Ricalcola le distanze dalla nuova posizione corretta
             CalcoloDistanze();
+        }
+
+        // FIXED: Se era in attacco, resetta completamente lo stato dell'attacco
+        if (wasAttacking)
+        {
+            // Reset dello stato di attacco
+            isAttacking = false;
+            canAttack = true;
+            attackAnimationFinished = false;
+            
+            // FIXED: Forza il reset delle animazioni
+            animator.SetBool("isAttacking", false);
+            animator.SetBool("isMoving", false);
+            
+            // FIXED: Assicura che l'animator sia in uno stato coerente
+            // Forza la transizione verso Idle
+            animator.SetFloat("moveX", 0);
+            animator.SetFloat("moveY", 0);
+            animator.SetFloat("attackX", 0);
+            animator.SetFloat("attackY", 0);
         }
 
         // Avvia feedback visivo del danno
@@ -641,6 +666,37 @@ public class PlayerController : MonoBehaviour
         CalcoloDistanze();
         
         Debug.Log($"Distanze BFS ricalcolate dopo respawn a posizione: {transform.position}");
+    }
+
+    public float Heal(float healAmount)
+    {
+        if (isDead)
+        {
+            Debug.Log("Non si può curare un player morto");
+            return 0f;
+        }
+
+        float previousHealth = currentHealthPoints;
+        currentHealthPoints += healAmount;
+        currentHealthPoints = Mathf.Min(currentHealthPoints, maxHealthPoints);
+        
+        float actualHealAmount = currentHealthPoints - previousHealth;
+        
+        Debug.Log($"Player curato di {actualHealAmount} HP. Vita attuale: {currentHealthPoints}/{maxHealthPoints}");
+        
+        return actualHealAmount;
+    }
+
+    public void FullHeal()
+    {
+        if (isDead)
+        {
+            Debug.Log("Non si può curare un player morto");
+            return;
+        }
+
+        currentHealthPoints = maxHealthPoints;
+        Debug.Log("Player completamente curato!");
     }
 
     void TryOpenNearbyDoor()

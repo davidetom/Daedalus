@@ -18,7 +18,7 @@ public class EnemyLogic : MonoBehaviour
     [Header("Tilemap Reference")]
     public Tilemap tilemap;
     public TileBase muraTile;
-    public TileBase corridoioTile; // Il tile su cui il nemico può camminare
+    public TileBase corridoioTile; // Il tile su cui il nemico puÃ² camminare
 
     [Header("AI Behavior")]
     [Range(10, 350)]
@@ -28,14 +28,14 @@ public class EnemyLogic : MonoBehaviour
     public bool enableDebug = false; // Debug abilitato/disabilitato
     
     [Header("Random Patrol")]
-    public float directionChangeChance = 0.3f; // Probabilità di cambiare direzione durante il patrol
+    public float directionChangeChance = 0.3f; // ProbabilitÃ  di cambiare direzione durante il patrol
     public float playerBias = 0.6f; // Bias verso il player durante il patrol (0-1)
     private Vector2 currentPatrolDirection = Vector2.zero;
     private int patrolStepsInDirection = 0;
     private int maxPatrolStepsInDirection = 5; // Max passi nella stessa direzione durante patrol
 
     [Header("Health Settings")]
-    public float maxHealthPoints = 10f;
+    public float maxHealthPoints = 100f;
     [SerializeField] private float currentHealthPoints;
     public bool isDead = false;
     
@@ -60,7 +60,7 @@ public class EnemyLogic : MonoBehaviour
 
     [Header("Attack Settings")]
     public bool closeToPlayer = false;
-    public float attackDamage = 2f;
+    public float attackDamage = 20f;
     public float attackDuration = 0.3f;
     public float attackCooldown = 1f;
     public bool isAttacking = false;
@@ -99,7 +99,7 @@ public class EnemyLogic : MonoBehaviour
 
     void Update()
     {
-        if (isDead) return; // Non fare nulla se è morto
+        if (isDead) return; // Non fare nulla se Ã¨ morto
 
         // NUOVO: Monitora la posizione del player per rilevare respawn o teletrasporti
         CheckPlayerPositionChange();
@@ -116,7 +116,7 @@ public class EnemyLogic : MonoBehaviour
             
         lastPlayerPositionCheckTime = Time.time;
         
-        // Se è la prima volta, inizializza
+        // Se Ã¨ la prima volta, inizializza
         if (lastPlayerPosition == Vector3.zero)
         {
             lastPlayerPosition = playerTransform.position;
@@ -126,11 +126,11 @@ public class EnemyLogic : MonoBehaviour
         // Calcola la distanza dal controllo precedente
         float distanceMoved = Vector3.Distance(playerTransform.position, lastPlayerPosition);
         
-        // Controlla anche se il player è morto/respawnato
+        // Controlla anche se il player Ã¨ morto/respawnato
         PlayerController pc = playerTransform.GetComponent<PlayerController>();
         bool playerJustRespawned = pc != null && !pc.IsAlive();
         
-        // NUOVO: Controlla se la matrice BFS è in uno stato inconsistente
+        // NUOVO: Controlla se la matrice BFS Ã¨ in uno stato inconsistente
         bool bfsInconsistent = IsBFSInconsistent();
         
         // Condizioni per forzare ricalcolo BFS:
@@ -141,7 +141,7 @@ public class EnemyLogic : MonoBehaviour
         if (distanceMoved > 2f)
         {
             shouldRecalculate = true;
-            reason = $"movimento drastico ({distanceMoved:F1} unità)";
+            reason = $"movimento drastico ({distanceMoved:F1} unitÃ )";
         }
         
         // 2. Player respawnato
@@ -158,7 +158,7 @@ public class EnemyLogic : MonoBehaviour
             reason = "BFS inconsistente";
         }
         
-        // 4. NUOVO: Controllo se siamo "bloccati" in modalità closeToPlayer ma il player è lontano
+        // 4. NUOVO: Controllo se siamo "bloccati" in modalitÃ  closeToPlayer ma il player Ã¨ lontano
         if (closeToPlayer && mapManager != null && mapManager.wallCalculated)
         {
             Vector2Int playerArrayPos = mapManager.WorldToArrayCoordinates(playerTransform.position);
@@ -169,11 +169,11 @@ public class EnemyLogic : MonoBehaviour
                 // Calcola distanza fisica effettiva
                 float physicalDistance = Vector3.Distance(transform.position, playerTransform.position);
                 
-                // Se siamo in modalità closeToPlayer ma fisicamente siamo lontani, c'è un problema
+                // Se siamo in modalitÃ  closeToPlayer ma fisicamente siamo lontani, c'Ã¨ un problema
                 if (physicalDistance > stopDistance * 1.5f) // Margine di tolleranza
                 {
                     shouldRecalculate = true;
-                    reason = $"nemico bloccato in closeToPlayer ma distanza fisica è {physicalDistance:F1}";
+                    reason = $"nemico bloccato in closeToPlayer ma distanza fisica Ã¨ {physicalDistance:F1}";
                     
                     // Reset immediato dello stato
                     closeToPlayer = false;
@@ -200,7 +200,7 @@ public class EnemyLogic : MonoBehaviour
         lastPlayerPosition = playerTransform.position;
     }
 
-    // NUOVO METODO: Verifica se la BFS è in uno stato inconsistente
+    // NUOVO METODO: Verifica se la BFS Ã¨ in uno stato inconsistente
     bool IsBFSInconsistent()
     {
         if (mapManager == null || !mapManager.wallCalculated) return true;
@@ -290,13 +290,13 @@ public class EnemyLogic : MonoBehaviour
         // Feedback visivo del danno
         StartDamageFeedback();
         
-        // Applica rinculo se possibile e se non è già in rinculo
+        // Applica rinculo se possibile e se non Ã¨ giÃ  in rinculo
         if (attackDirection != Vector2.zero && !isKnockedBack)
         {
             ApplyKnockback(attackDirection);
         }
         
-        // Controlla se è morto
+        // Controlla se Ã¨ morto
         if (currentHealthPoints <= 0)
         {
             Die();
@@ -313,7 +313,7 @@ public class EnemyLogic : MonoBehaviour
             currentDamageFeedbackCoroutine = null;
         }
         
-        // Avvia il nuovo feedback solo se non è morto
+        // Avvia il nuovo feedback solo se non Ã¨ morto
         if (!isDead)
         {
             currentDamageFeedbackCoroutine = StartCoroutine(DamageFeedbackCoroutine());
@@ -334,7 +334,7 @@ public class EnemyLogic : MonoBehaviour
         
         yield return new WaitForSeconds(damageFeedbackDuration);
         
-        // Ripristina il colore solo se non è morto
+        // Ripristina il colore solo se non Ã¨ morto
         if (!isDead && spriteRenderer != null)
         {
             spriteRenderer.color = originalColor;
@@ -415,13 +415,13 @@ public class EnemyLogic : MonoBehaviour
         }
     }
     
-    // Converte una direzione qualsiasi in direzione ortogonale (su/giù/sinistra/destra)
+    // Converte una direzione qualsiasi in direzione ortogonale (su/giÃ¹/sinistra/destra)
     Vector2 GetOrthogonalDirection(Vector2 inputDirection)
     {
         // Normalizza la direzione
         Vector2 normalizedDir = inputDirection.normalized;
         
-        // Trova la componente più forte
+        // Trova la componente piÃ¹ forte
         if (Mathf.Abs(normalizedDir.x) > Mathf.Abs(normalizedDir.y))
         {
             // Movimento orizzontale
@@ -451,7 +451,7 @@ public class EnemyLogic : MonoBehaviour
         
         if (enableDebug)
         {
-            Debug.Log($"{gameObject.name} è morto!");
+            Debug.Log($"{gameObject.name} Ã¨ morto!");
         }
         
         // Ferma tutti i movimenti
@@ -506,7 +506,7 @@ public class EnemyLogic : MonoBehaviour
         Destroy(gameObject);
     }
 
-    // Proprietà pubbliche per accesso esterno
+    // ProprietÃ  pubbliche per accesso esterno
     public float GetCurrentHealth() => currentHealthPoints;
     public float GetMaxHealth() => maxHealthPoints;
     public float GetHealthPercentage() => currentHealthPoints / maxHealthPoints;
@@ -515,7 +515,7 @@ public class EnemyLogic : MonoBehaviour
 
     Vector2 FindPlayer()
     {
-        // Se è in rinculo, non muoversi attivamente
+        // Se Ã¨ in rinculo, non muoversi attivamente
         if (isKnockedBack) return Vector2.zero;
         
         if (playerTransform == null) 
@@ -546,12 +546,12 @@ public class EnemyLogic : MonoBehaviour
         // Decide il comportamento in base alla distanza
         if (distanceToPlayer >= 0 && distanceToPlayer <= intelligentChaseDistance)
         {
-            // MODALITÀ INTELLIGENTE: Usa la matrice BFS per trovare il percorso ottimale
+            // MODALITÃ€ INTELLIGENTE: Usa la matrice BFS per trovare il percorso ottimale
             return GetIntelligentDirection(enemyArrayPos);
         }
         else
         {
-            // MODALITÀ PATROL: Movimento pseudo-casuale con bias verso il player
+            // MODALITÃ€ PATROL: Movimento pseudo-casuale con bias verso il player
             return GetPatrolDirection(enemyArrayPos, playerArrayPos);
         }
     }
@@ -565,25 +565,25 @@ public class EnemyLogic : MonoBehaviour
         
         if (currentDistance <= 0)
         {
-            if (enableDebug) Debug.Log("Già raggiunto il player o distanza non valida");
+            if (enableDebug) Debug.Log("GiÃ  raggiunto il player o distanza non valida");
             return Vector2.zero;
         }
 
-        // FIXED: Controlla se può attaccare (stessa tile o adiacente)
+        // FIXED: Controlla se puÃ² attaccare (stessa tile o adiacente)
         if (currentDistance <= stopDistance)
         {
             closeToPlayer = true;
             if (enableDebug) Debug.Log($"Nemico a distanza di attacco dal player (distanza: {currentDistance}).");
             
-            // Se è sulla stessa tile (distanza 0), non muoversi
+            // Se Ã¨ sulla stessa tile (distanza 0), non muoversi
             if (currentDistance == 0)
             {
                 return Vector2.zero;
             }
-            // Se è a distanza 1, può scegliere di muoversi o fermarsi per attaccare
+            // Se Ã¨ a distanza 1, puÃ² scegliere di muoversi o fermarsi per attaccare
             else if (currentDistance == 1)
             {
-                // 50% possibilità di fermarsi per attaccare
+                // 50% possibilitÃ  di fermarsi per attaccare
                 if (UnityEngine.Random.Range(0f, 1f) < 0.5f)
                 {
                     return Vector2.zero;
@@ -606,14 +606,14 @@ public class EnemyLogic : MonoBehaviour
             if (!mapManager.IsValidArrayCoordinate(nextArrayPos))
                 continue;
 
-            // IMPORTANTE: Verifica se la cella è camminabile per AI (solo corridoi)
+            // IMPORTANTE: Verifica se la cella Ã¨ camminabile per AI (solo corridoi)
             if (!mapManager.IsWalkableForAI(nextArrayPos))
                 continue;
 
             // Ottieni la distanza BFS della cella adiacente
             int nextDistance = mapManager.Distances[nextArrayPos.x, nextArrayPos.y];
             
-            // Se la distanza è valida (>= 0), significa che c'è un percorso verso il player
+            // Se la distanza Ã¨ valida (>= 0), significa che c'Ã¨ un percorso verso il player
             if (nextDistance >= 0)
             {
                 validDirections.Add(new DirectionInfo
@@ -635,7 +635,7 @@ public class EnemyLogic : MonoBehaviour
             return Vector2.zero;
         }
 
-        // Trova la direzione con la distanza minore (più vicina al player)
+        // Trova la direzione con la distanza minore (piÃ¹ vicina al player)
         DirectionInfo bestDirection = validDirections.OrderBy(d => d.distance).First();
         
         // CONTROLLO AGGIUNTIVO: Non muoversi se la prossima mossa ci porterebbe alla distanza di stop o meno
@@ -663,9 +663,9 @@ public class EnemyLogic : MonoBehaviour
 
         // Cambia direzione se:
         // 1. Non hai una direzione corrente
-        // 2. La direzione corrente è bloccata
+        // 2. La direzione corrente Ã¨ bloccata
         // 3. Hai fatto troppi passi nella stessa direzione
-        // 4. Probabilità casuale di cambiare direzione
+        // 4. ProbabilitÃ  casuale di cambiare direzione
         bool shouldChangeDirection = currentPatrolDirection == Vector2.zero ||
                                    !IsDirectionWalkableForAI(enemyArrayPos, currentPatrolDirection) ||
                                    patrolStepsInDirection >= maxPatrolStepsInDirection ||
@@ -770,7 +770,7 @@ public class EnemyLogic : MonoBehaviour
         return Vector2.zero;
     }
 
-    // IMPORTANTE: Nuovo metodo che usa il MapManager per controllare se l'AI può camminare
+    // IMPORTANTE: Nuovo metodo che usa il MapManager per controllare se l'AI puÃ² camminare
     bool IsDirectionWalkableForAI(Vector2Int fromArrayPos, Vector2 direction)
     {
         Vector2Int directionOffset = Vector2Int.zero;
@@ -793,7 +793,7 @@ public class EnemyLogic : MonoBehaviour
 
     void HandleMovement()
     {
-        // Non muoversi se è in rinculo o morto
+        // Non muoversi se Ã¨ in rinculo o morto
         if (isKnockedBack || isDead) 
         {
             animator.SetBool("isMoving", false);
@@ -831,7 +831,7 @@ public class EnemyLogic : MonoBehaviour
                 else
                 {
                     if (enableDebug) Debug.Log("Movimento bloccato - posizione non camminabile");
-                    // Reset della direzione patrol se è bloccata
+                    // Reset della direzione patrol se Ã¨ bloccata
                     if (currentPatrolDirection == input)
                     {
                         currentPatrolDirection = Vector2.zero;
@@ -884,7 +884,7 @@ public class EnemyLogic : MonoBehaviour
         }
         else
         {
-            // Fallback al sistema originale se MapManager non è disponibile
+            // Fallback al sistema originale se MapManager non Ã¨ disponibile
             if (tilemap == null)
             {
                 Debug.LogWarning("Tilemap non assegnata!");
@@ -976,7 +976,7 @@ public class EnemyLogic : MonoBehaviour
     {
         if (!Application.isPlaying || !enableDebug) return;
 
-        // Disegna un cerchio colorato per indicare la modalità 
+        // Disegna un cerchio colorato per indicare la modalitÃ  
         if (isDead)
         {
             Gizmos.color = Color.black; // Morto
@@ -987,11 +987,11 @@ public class EnemyLogic : MonoBehaviour
         }
         else if (IsInIntelligentMode())
         {
-            Gizmos.color = Color.red; // Modalità inseguimento intelligente
+            Gizmos.color = Color.red; // ModalitÃ  inseguimento intelligente
         }
         else
         {
-            Gizmos.color = Color.yellow; // Modalità patrol
+            Gizmos.color = Color.yellow; // ModalitÃ  patrol
         }
         
         Gizmos.DrawWireSphere(transform.position, 0.3f);
@@ -1012,7 +1012,7 @@ public class EnemyLogic : MonoBehaviour
             Gizmos.DrawLine(transform.position, knockbackPos);
         }
         
-        // Mostra se può attaccare
+        // Mostra se puÃ² attaccare
         if (closeToPlayer && canAttack)
         {
             Gizmos.color = Color.red;
