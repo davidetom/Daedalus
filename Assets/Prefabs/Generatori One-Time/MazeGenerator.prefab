@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2238041274098081608
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 465905645157051213}
+  - component: {fileID: 6481515768510566697}
+  - component: {fileID: 267813103541371041}
+  m_Layer: 0
+  m_Name: MazeGenerator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &465905645157051213
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2238041274098081608}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.85031474, y: 0.39458337, z: -7.0060577}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6481515768510566697
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2238041274098081608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fbc25d662cb74e0d865a56e52b854f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tilemapPrefab: {fileID: 0}
+  muraTile: {fileID: 11400000, guid: 71b947652f19a46c892c762282e0a8af, type: 2}
+  corridoioTile: {fileID: 11400000, guid: fc6f2fbdf1a3c4867a8933c2fc41f463, type: 2}
+  pratoTile: {fileID: 11400000, guid: 1bcd2404b14eb49238a4b72ff366ede1, type: 2}
+  generaAllAvvio: 0
+  cartellaScene: Assets/Scenes/Labirinti/
+  cartellaPrefab: Assets/Prefabs/Labirinti/
+  playerPrefab: {fileID: 0}
+  lightPrefab: {fileID: 0}
+  cameraPrefab: {fileID: 0}
+--- !u!114 &267813103541371041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2238041274098081608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e6867ea0822c4c3e8cc968b3ee22745, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tilemap: {fileID: 0}
+  muraTile: {fileID: 11400000, guid: 71b947652f19a46c892c762282e0a8af, type: 2}
+  corridoioTile: {fileID: 11400000, guid: fc6f2fbdf1a3c4867a8933c2fc41f463, type: 2}
+  pratoTile: {fileID: 11400000, guid: 1bcd2404b14eb49238a4b72ff366ede1, type: 2}

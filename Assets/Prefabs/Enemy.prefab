@@ -207,10 +207,10 @@ MonoBehaviour:
   corridoioTile: {fileID: 11400000, guid: fc6f2fbdf1a3c4867a8933c2fc41f463, type: 2}
   intelligentChaseDistance: 350
   stopDistance: 1
-  enableDebug: 0
+  enableDebug: 1
   directionChangeChance: 0.1
   playerBias: 0.6
-  maxHealthPoints: 20
+  maxHealthPoints: 100
   currentHealthPoints: 0
   isDead: 0
   knockbackForce: 2
@@ -221,7 +221,7 @@ MonoBehaviour:
   damageFeedbackDuration: 0.2
   damageColor: {r: 1, g: 0, b: 0, a: 1}
   closeToPlayer: 0
-  attackDamage: 2
+  attackDamage: 20
   attackDuration: 0.3
   attackCooldown: 1
   isAttacking: 0

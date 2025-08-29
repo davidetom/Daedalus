@@ -7,8 +7,8 @@ using System.Linq;
 
 public class EnemyLogic : MonoBehaviour
 {
-    public float moveSpeed;
-    public bool isMoving;
+    public float moveSpeed = 2;
+    public bool isMoving = false;
     public Vector2 targetDirection;
     private Vector2 input;
 
@@ -18,7 +18,7 @@ public class EnemyLogic : MonoBehaviour
     [Header("Tilemap Reference")]
     public Tilemap tilemap;
     public TileBase muraTile;
-    public TileBase corridoioTile; // Il tile su cui il nemico puÃ² camminare
+    public TileBase corridoioTile;
 
     [Header("AI Behavior")]
     [Range(10, 350)]
@@ -28,7 +28,7 @@ public class EnemyLogic : MonoBehaviour
     public bool enableDebug = false; // Debug abilitato/disabilitato
     
     [Header("Random Patrol")]
-    public float directionChangeChance = 0.3f; // ProbabilitÃ  di cambiare direzione durante il patrol
+    public float directionChangeChance = 0.3f; // Probabilità  di cambiare direzione durante il patrol
     public float playerBias = 0.6f; // Bias verso il player durante il patrol (0-1)
     private Vector2 currentPatrolDirection = Vector2.zero;
     private int patrolStepsInDirection = 0;
@@ -76,19 +76,32 @@ public class EnemyLogic : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        
+    }
+
+    void Start()
+    {
         // Trova il player nella scena
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
             playerTransform = playerObj.transform;
         }
-    }
 
-    void Start()
-    {
+        // Trova la tilemap nella scena
+        Tilemap tilemapobj = Tilemap.FindFirstObjectByType<Tilemap>();
+        if (tilemapobj != null)
+        {
+            tilemap = tilemapobj;
+        }
+
+        MapManager mm = MapManager.FindFirstObjectByType<MapManager>();
+        if (mm != null)
+        {
+            mapManager = mm;
+        }
+
         // Inizializza la vita
-        currentHealthPoints = maxHealthPoints;
+            currentHealthPoints = maxHealthPoints;
         
         // Salva il colore originale per il feedback del danno
         if (spriteRenderer != null)
