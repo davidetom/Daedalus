@@ -1058,6 +1058,7 @@ MonoBehaviour:
   hubCenter: {fileID: 699886253}
   mazeDoors: []
   enemySpawner: {fileID: 1723160730}
+  mapManager: {fileID: 2120444318}
   warningPanel: {fileID: 1745792816}
   warningText: {fileID: 1745792815}
   returnToHubButton: {fileID: 1745792814}
@@ -1065,7 +1066,8 @@ MonoBehaviour:
   dawnWarningPanel: {fileID: 1530011229}
   dawnWarningText: {fileID: 1530011228}
   hubZone: {fileID: 699886252}
-  maxMazeCount: 4
+  labirintoObject: {fileID: 1641542950}
+  maxMazeCount: 8
   mazeChangeDelay: 3
   hubSpawnPosition: {x: 155.5, y: 151.7}
 --- !u!4 &576610990

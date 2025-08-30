@@ -196,7 +196,7 @@ public class PlayerController : MonoBehaviour
         // Applica la correzione
         transform.position = snappedPosition;
         
-        Debug.Log($"Player disallineato corretto da {currentPos} a {snappedPosition}");
+        //Debug.Log($"Player disallineato corretto da {currentPos} a {snappedPosition}");
     }
 
     public bool IsWalkable(Vector3 targetPos)
@@ -217,7 +217,7 @@ public class PlayerController : MonoBehaviour
             // Fallback al sistema originale se MapManager non è disponibile
             if (tilemap == null)
             {
-                Debug.LogWarning("Tilemap non assegnata!");
+                //Debug.LogWarning("Tilemap non assegnata!");
                 return true;
             }
 
@@ -335,7 +335,7 @@ public class PlayerController : MonoBehaviour
                 if (!enemiesHit.Contains(collider.gameObject))
                 {
                     enemiesHit.Add(collider.gameObject);
-                    Debug.Log($"Nemico trovato sulla stessa tile del player: {collider.gameObject.name}");
+                    //Debug.Log($"Nemico trovato sulla stessa tile del player: {collider.gameObject.name}");
                 }
             }
         }
@@ -386,7 +386,7 @@ public class PlayerController : MonoBehaviour
             // Applica il danno con la direzione del rinculo
             enemyLogic.TakeDamage(attackDamage, knockbackDirection);
             
-            Debug.Log($"Attaccato {enemy.name} per {attackDamage} danni! Vita rimanente: {enemyLogic.GetCurrentHealth()}");
+            //Debug.Log($"Attaccato {enemy.name} per {attackDamage} danni! Vita rimanente: {enemyLogic.GetCurrentHealth()}");
             
             // Effetti visivi dell'attacco
             if (enableAttackEffects && attackEffect != null)
@@ -404,7 +404,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"Il nemico {enemy.name} non ha il componente EnemyLogic o è già morto!");
+            //Debug.LogWarning($"Il nemico {enemy.name} non ha il componente EnemyLogic o è già morto!");
         }
     }
 
@@ -414,16 +414,16 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead)
         {
-            Debug.Log("Player già morto, danno ignorato");
+            //Debug.Log("Player già morto, danno ignorato");
             return;
         }
 
-        Debug.Log($"Player riceve {damage} danni. Vita prima: {currentHealthPoints}");
+        //Debug.Log($"Player riceve {damage} danni. Vita prima: {currentHealthPoints}");
         
         currentHealthPoints -= damage;
         currentHealthPoints = Mathf.Max(0, currentHealthPoints);
 
-        Debug.Log($"Vita dopo danno: {currentHealthPoints}");
+        //Debug.Log($"Vita dopo danno: {currentHealthPoints}");
 
         // FIXED: Gestione migliorata dello stato durante il danno
         bool wasAttacking = isAttacking;
@@ -530,7 +530,7 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead) return;
 
-        Debug.Log("Player morto!");
+        //Debug.Log("Player morto!");
         isDead = true;
         
         // Ferma il feedback del danno se attivo
@@ -570,7 +570,7 @@ public class PlayerController : MonoBehaviour
 
     void InizializeSettings()
     {
-        Debug.Log("Reinizializzazione player...");
+        //Debug.Log("Reinizializzazione player...");
 
         isDead = false;
         currentHealthPoints = maxHealthPoints;
@@ -640,7 +640,7 @@ public class PlayerController : MonoBehaviour
             }
         }
         
-        Debug.Log($"Reset effettuato su {allEnemies.Length} nemici");
+        //Debug.Log($"Reset effettuato su {allEnemies.Length} nemici");
     }
 
     void InvalidateDistances()
@@ -672,7 +672,7 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead)
         {
-            Debug.Log("Non si può curare un player morto");
+            //Debug.Log("Non si può curare un player morto");
             return 0f;
         }
 
@@ -682,7 +682,7 @@ public class PlayerController : MonoBehaviour
         
         float actualHealAmount = currentHealthPoints - previousHealth;
         
-        Debug.Log($"Player curato di {actualHealAmount} HP. Vita attuale: {currentHealthPoints}/{maxHealthPoints}");
+        //Debug.Log($"Player curato di {actualHealAmount} HP. Vita attuale: {currentHealthPoints}/{maxHealthPoints}");
         
         return actualHealAmount;
     }
@@ -691,12 +691,12 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead)
         {
-            Debug.Log("Non si può curare un player morto");
+            //Debug.Log("Non si può curare un player morto");
             return;
         }
 
         currentHealthPoints = maxHealthPoints;
-        Debug.Log("Player completamente curato!");
+        //Debug.Log("Player completamente curato!");
     }
 
     void TryOpenNearbyDoor()
@@ -719,7 +719,7 @@ public class PlayerController : MonoBehaviour
     {
         if (mapManager == null || !mapManager.wallCalculated)
         {
-            Debug.LogWarning("MapManager non disponibile o non inizializzato!");
+            //Debug.LogWarning("MapManager non disponibile o non inizializzato!");
             return;
         }
 
@@ -727,12 +727,21 @@ public class PlayerController : MonoBehaviour
         
         if (!mapManager.IsValidArrayCoordinate(playerArrayPos))
         {
-            Debug.LogWarning($"Posizione player fuori dai bounds della mappa: {playerArrayPos}");
+            //Debug.LogWarning($"Posizione player fuori dai bounds della mappa: {playerArrayPos}");
             return;
         }
 
         // IMPORTANTE: Usa il nuovo BFS che considera solo i corridoi
         BFS_CorridorsOnly(playerArrayPos, mapManager.Distances, mapManager.TileTypes);
+    }
+
+    /// <summary>
+    /// Metodo pubblico per ricalcolare le distanze BFS.
+    /// Chiamato dal MazeManager quando cambia la tilemap.
+    /// </summary>
+    public void RecalculateDistances()
+    {
+        CalcoloDistanze();
     }
     
     // Nuovo metodo BFS che considera solo i corridoi per l'AI

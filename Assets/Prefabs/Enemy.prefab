@@ -207,7 +207,7 @@ MonoBehaviour:
   corridoioTile: {fileID: 11400000, guid: fc6f2fbdf1a3c4867a8933c2fc41f463, type: 2}
   intelligentChaseDistance: 350
   stopDistance: 1
-  enableDebug: 1
+  enableDebug: 0
   directionChangeChance: 0.1
   playerBias: 0.6
   maxHealthPoints: 100

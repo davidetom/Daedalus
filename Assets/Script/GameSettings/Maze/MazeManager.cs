@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
+using UnityEngine.Tilemaps;
 using TMPro;
 
 public class MazeManager : MonoBehaviour
@@ -11,7 +11,8 @@ public class MazeManager : MonoBehaviour
     public Transform player;
     public Transform hubCenter;
     public GameObject[] mazeDoors;
-    public EnemySpawner enemySpawner; // Gestore spawn nemici
+    public EnemySpawner enemySpawner;
+    public MapManager mapManager;
     
     [Header("UI")]
     public GameObject warningPanel;
@@ -22,40 +23,49 @@ public class MazeManager : MonoBehaviour
     public TextMeshProUGUI dawnWarningText;
     
     [Header("Zone")]
-    public Collider2D hubZone; // Per giochi 2D
-    // Se usi 3D, sostituisci con: public Collider hubZone;
+    public Collider2D hubZone;
     
-    [Header("Gestione Scene Labirinti")]
-    public int maxMazeCount = 4; // Numero massimo di labirinti
-    public float mazeChangeDelay = 3f; // Tempo di attesa prima del cambio scena
-    public Vector2 hubSpawnPosition = new Vector2(155.5f, 151.7f); // Posizione nell'hub
+    [Header("Gestione Tilemap Labirinti")]
+    public GameObject labirintoObject;
+    public int maxMazeCount = 4;
+    public float mazeChangeDelay = 3f;
+    public Vector2 hubSpawnPosition = new Vector2(155.5f, 151.7f);
     
     // Stato interno
     private bool playerInHub = true;
     private bool mazeDoorsOpen = true;
     private bool hasChosenToStay = false;
-    private int currentMazeNumber = 1; // Labirinto attuale
-    private bool isChangingMaze = false; // Impedisce cambiamenti multipli
+    private int currentMazeNumber = 1;
+    private bool isChangingMaze = false;
     
-    // Proprietà pubbliche
+    // Riferimenti tilemap
+    private GameObject[] tilemapPrefabs;
+    private GameObject currentTilemapInstance;
+    
+    // Proprieta pubbliche
     public bool IsPlayerInHub => playerInHub;
     public bool AreMazeDoorsOpen => mazeDoorsOpen;
     public int CurrentMazeNumber => currentMazeNumber;
     
     void Start()
     {
-        // Trova il player se non assegnato
         if (player == null)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
             if (playerObj != null) player = playerObj.transform;
         }
         
-        // Trova l'enemy spawner
         if (enemySpawner == null)
             enemySpawner = Object.FindFirstObjectByType<EnemySpawner>();
         
-        // Collega gli eventi del ciclo giorno/notte
+        if (mapManager == null)
+            mapManager = Object.FindFirstObjectByType<MapManager>();
+        
+        if (labirintoObject == null)
+            labirintoObject = GameObject.Find("Labirinto");
+        
+        LoadTilemapPrefabs();
+        
         if (dayNightManager != null)
         {
             dayNightManager.events.OnDayStart.AddListener(OnDayStart);
@@ -64,41 +74,189 @@ public class MazeManager : MonoBehaviour
             dayNightManager.events.OnDawnStart.AddListener(OnDawnStart);
         }
         
-        // Configura i pulsanti
         if (returnToHubButton != null)
             returnToHubButton.onClick.AddListener(ReturnToHub);
         if (stayInMazeButton != null)
             stayInMazeButton.onClick.AddListener(StayInMaze);
         
-        // Determina il labirinto attuale dalla scena
-        DetermineCurrentMaze();
-        
-        // Inizializza lo stato (partendo dal giorno)
+        LoadCurrentMaze();
         UpdatePlayerPosition();
         OpenMazeDoors();
         HideAllWarnings();
     }
     
-    void Update()
+    void LoadTilemapPrefabs()
     {
-        UpdatePlayerPosition();
-    }
-    
-    void DetermineCurrentMaze()
-    {
-        string currentSceneName = SceneManager.GetActiveScene().name;
+        tilemapPrefabs = new GameObject[maxMazeCount];
         
-        // Estrae il numero dal nome della scena (es: "Labirinto_01" -> 1)
-        if (currentSceneName.Contains("Labirinto_"))
+        for (int i = 0; i < maxMazeCount; i++)
         {
-            string numberPart = currentSceneName.Substring(currentSceneName.LastIndexOf('_') + 1);
-            if (int.TryParse(numberPart, out int mazeNum))
+            string[] possiblePaths = {
+                $"Prefab/Tilemaps/Tilemap_{(i + 1):D2}",
+                $"Tilemaps/Tilemap_{(i + 1):D2}",
+                $"Tilemap_{(i + 1):D2}"
+            };
+            
+            GameObject prefab = null;
+            string usedPath = "";
+            
+            foreach (string path in possiblePaths)
             {
-                currentMazeNumber = mazeNum;
+                prefab = Resources.Load<GameObject>(path);
+                if (prefab != null)
+                {
+                    usedPath = path;
+                    break;
+                }
+            }
+            
+            if (prefab != null)
+            {
+                tilemapPrefabs[i] = prefab;
+                Debug.Log($"Caricato prefab tilemap {i + 1}: {usedPath}");
+            }
+            else
+            {
+                Debug.LogError($"Impossibile caricare il prefab tilemap {i + 1}. Percorsi tentati: {string.Join(", ", possiblePaths)}");
+                Debug.LogWarning($"Assicurati che il prefab Tilemap_{(i + 1):D2} sia nella cartella Resources/Prefab/Tilemaps/ o Resources/Tilemaps/");
             }
         }
         
-        Debug.Log($"Labirinto attuale determinato: {currentMazeNumber}");
+        Debug.Log("=== DEBUG: Contenuto cartella Resources ===");
+        GameObject[] allResources = Resources.LoadAll<GameObject>("");
+        foreach (GameObject resource in allResources)
+        {
+            if (resource.name.Contains("Tilemap"))
+            {
+                Debug.Log($"Trovato risorsa: {resource.name}");
+            }
+        }
+    }
+    
+    void LoadCurrentMaze()
+    {
+        if (labirintoObject == null)
+        {
+            Debug.LogError("Oggetto Labirinto non trovato!");
+            return;
+        }
+        
+        if (tilemapPrefabs == null || tilemapPrefabs.Length == 0)
+        {
+            Debug.LogError("Array prefab tilemap non inizializzato!");
+            return;
+        }
+        
+        if (currentMazeNumber < 1 || currentMazeNumber > tilemapPrefabs.Length)
+        {
+            Debug.LogError($"Numero labirinto non valido: {currentMazeNumber}. Range valido: 1-{tilemapPrefabs.Length}");
+            return;
+        }
+        
+        if (currentTilemapInstance != null)
+        {
+            Debug.Log($"Rimuovendo tilemap esistente: {currentTilemapInstance.name}");
+            DestroyImmediate(currentTilemapInstance);
+            currentTilemapInstance = null;
+        }
+        
+        GameObject prefabToLoad = tilemapPrefabs[currentMazeNumber - 1];
+        
+        if (prefabToLoad != null)
+        {
+            currentTilemapInstance = Instantiate(prefabToLoad, labirintoObject.transform);
+            currentTilemapInstance.name = $"Tilemap_{currentMazeNumber:D2}_Instance";
+            
+            Debug.Log($"Caricata tilemap del labirinto {currentMazeNumber} ({prefabToLoad.name})");
+            
+            UpdateMapManager();
+        }
+        else
+        {
+            Debug.LogError($"Prefab tilemap non valido per il labirinto {currentMazeNumber}");
+            
+            for (int i = 0; i < tilemapPrefabs.Length; i++)
+            {
+                if (tilemapPrefabs[i] != null)
+                {
+                    Debug.LogWarning($"Fallback: caricando il labirinto {i + 1}");
+                    currentMazeNumber = i + 1;
+                    currentTilemapInstance = Instantiate(tilemapPrefabs[i], labirintoObject.transform);
+                    currentTilemapInstance.name = $"Tilemap_{currentMazeNumber:D2}_Fallback";
+                    
+                    UpdateMapManager();
+                    return;
+                }
+            }
+            
+            Debug.LogError("Nessun prefab tilemap valido trovato!");
+        }
+    }
+    
+    void UpdateMapManager()
+    {
+        if (mapManager == null)
+        {
+            Debug.LogWarning("MapManager non trovato, impossibile aggiornare la mappa!");
+            return;
+        }
+        
+        Tilemap newTilemap = null;
+        if (currentTilemapInstance != null)
+        {
+            newTilemap = currentTilemapInstance.GetComponentInChildren<Tilemap>();
+        }
+        
+        if (newTilemap == null)
+        {
+            Debug.LogError("Tilemap non trovata nella nuova istanza!");
+            return;
+        }
+        
+        Debug.Log("Aggiornando MapManager e PlayerController con la nuova tilemap...");
+        
+        mapManager.tilemap = newTilemap;
+        
+        if (player != null)
+        {
+            PlayerController playerController = player.GetComponent<PlayerController>();
+            if (playerController != null)
+            {
+                playerController.tilemap = newTilemap;
+                Debug.Log("Riferimento tilemap aggiornato nel PlayerController");
+            }
+        }
+        
+        StartCoroutine(RegenerateMapAfterFrame());
+    }
+    
+    IEnumerator RegenerateMapAfterFrame()
+    {
+        yield return null;
+        
+        if (mapManager != null)
+        {
+            // Chiamata diretta al metodo pubblico RecalculateMap()
+            mapManager.RecalculateMap();
+            
+            Debug.Log($"MapManager aggiornato con successo per il labirinto {currentMazeNumber}");
+            
+            if (player != null)
+            {
+                PlayerController playerController = player.GetComponent<PlayerController>();
+                if (playerController != null)
+                {
+                    // Chiamata diretta al metodo pubblico per ricalcolare le distanze
+                    playerController.RecalculateDistances();
+                    Debug.Log("Distanze BFS ricalcolate per la nuova tilemap");
+                }
+            }
+        }
+    }
+    
+    void Update()
+    {
+        UpdatePlayerPosition();
     }
     
     void UpdatePlayerPosition()
@@ -107,24 +265,21 @@ public class MazeManager : MonoBehaviour
         
         bool wasInHub = playerInHub;
         
-        // Controlla se il player è nell'hub
         if (hubZone != null)
         {
-            // Per Collider2D
             if (hubZone is Collider2D)
                 playerInHub = ((Collider2D)hubZone).bounds.Contains(player.position);
         }
         
-        // Log cambio posizione
         if (wasInHub != playerInHub)
         {
-            Debug.Log($"Player ora è {(playerInHub ? "nell'hub" : "nel labirinto")}");
+            Debug.Log($"Player ora e {(playerInHub ? "nell'hub" : "nel labirinto")}");
         }
     }
     
     void OnDayStart()
     {
-        Debug.Log("🌅 Inizia il GIORNO");
+        Debug.Log("Inizia il GIORNO");
         OpenMazeDoors();
         
         if (enemySpawner != null)
@@ -132,14 +287,13 @@ public class MazeManager : MonoBehaviour
             
         HideAllWarnings();
         hasChosenToStay = false;
-        isChangingMaze = false; // Reset del flag
+        isChangingMaze = false;
     }
     
     void OnSunsetStart()
     {
-        Debug.Log("🌇 Inizia il TRAMONTO");
+        Debug.Log("Inizia il TRAMONTO");
         
-        // Mostra l'avviso solo se il player è nel labirinto
         if (!playerInHub)
         {
             ShowSunsetWarning();
@@ -148,17 +302,15 @@ public class MazeManager : MonoBehaviour
     
     void OnNightStart()
     {
-        Debug.Log("🌙 Inizia la NOTTE");
+        Debug.Log("Inizia la NOTTE");
         HideAllWarnings();
         
         if (playerInHub && !hasChosenToStay)
         {
-            // Player è nell'hub, chiudi le porte del labirinto
             CloseMazeDoors();
         }
         else
         {
-            // Player ha scelto di rimanere, spawna nemici
             if (enemySpawner != null)
                 enemySpawner.SpawnNightEnemies();
         }
@@ -166,26 +318,20 @@ public class MazeManager : MonoBehaviour
     
     void OnDawnStart()
     {
-        Debug.Log("🌄 Inizia l'ALBA");
+        Debug.Log("Inizia l'ALBA");
         
-        // Impedisce cambiamenti multipli
         if (isChangingMaze) return;
         isChangingMaze = true;
         
-        // Mostra sempre l'avviso del cambio labirinto
         ShowMazeChangeWarning();
-        
-        // Avvia il processo di cambio labirinto
         StartCoroutine(HandleMazeChange());
         
-        // Rimuovi tutti i nemici
         if (enemySpawner != null)
             enemySpawner.ClearAllEnemies();
     }
     
     IEnumerator HandleMazeChange()
     {
-        // Se il player è nel labirinto, trasportalo nell'hub prima del cambio
         if (!playerInHub && player != null)
         {
             Debug.Log("Trasportando il player nell'hub prima del cambio labirinto");
@@ -193,37 +339,27 @@ public class MazeManager : MonoBehaviour
             UpdatePlayerPosition();
         }
         
-        // Aspetta il tempo configurato
         yield return new WaitForSeconds(mazeChangeDelay);
         
-        // Nasconde l'avviso
         HideAllWarnings();
-        
-        // Cambia il labirinto
-        ChangeMazeScene();
+        ChangeMazeTilemap();
     }
     
-    void ChangeMazeScene()
+    void ChangeMazeTilemap()
     {
-        // Calcola il prossimo labirinto
         int nextMazeNumber = currentMazeNumber + 1;
         if (nextMazeNumber > maxMazeCount)
         {
-            nextMazeNumber = 1; // Torna al primo
+            nextMazeNumber = 1;
         }
         
-        string nextSceneName = $"Labirinto_{nextMazeNumber:D2}";
+        Debug.Log($"Cambiando dal labirinto {currentMazeNumber} al labirinto {nextMazeNumber}");
         
-        Debug.Log($"🔄 Cambiando dal labirinto {currentMazeNumber} al labirinto {nextMazeNumber}");
+        currentMazeNumber = nextMazeNumber;
+        LoadCurrentMaze();
+        isChangingMaze = false;
         
-        // Salva la posizione del player per il trasferimento
-        PlayerPrefs.SetFloat("PlayerSpawnX", hubSpawnPosition.x);
-        PlayerPrefs.SetFloat("PlayerSpawnY", hubSpawnPosition.y);
-        PlayerPrefs.SetInt("FromMazeChange", 1); // Flag per indicare che viene da un cambio labirinto
-        PlayerPrefs.Save();
-        
-        // Carica la nuova scena
-        SceneManager.LoadScene(nextSceneName);
+        Debug.Log($"Cambio labirinto completato. Ora attivo: Labirinto {currentMazeNumber}");
     }
     
     void ShowSunsetWarning()
@@ -231,10 +367,7 @@ public class MazeManager : MonoBehaviour
         if (warningPanel != null)
         {
             warningPanel.SetActive(true);
-            if (warningText != null)
-                warningText.text = "⚠️ ATTENZIONE ⚠️\nIl labirinto sta per chiudersi!\nTorna all'hub o affronta la notte!";
-            
-            // Mostra i pulsanti di scelta
+
             if (returnToHubButton != null)
                 returnToHubButton.gameObject.SetActive(true);
             if (stayInMazeButton != null)
@@ -251,8 +384,6 @@ public class MazeManager : MonoBehaviour
             {
                 int nextMaze = currentMazeNumber + 1;
                 if (nextMaze > maxMazeCount) nextMaze = 1;
-                
-                dawnWarningText.text = $"🌅 L'alba sta arrivando!\n🔄 Il labirinto sta cambiando...\nCaricamento Labirinto {nextMaze:D2}";
             }
         }
     }
@@ -262,10 +393,6 @@ public class MazeManager : MonoBehaviour
         if (dawnWarningPanel != null)
         {
             dawnWarningPanel.SetActive(true);
-            if (dawnWarningText != null)
-                dawnWarningText.text = "🌅 L'alba sta arrivando!\nLa notte sta per finire!";
-            
-            // Nasconde automaticamente dopo 3 secondi
             StartCoroutine(HideWarningAfterDelay(dawnWarningPanel, 3f));
         }
     }
@@ -290,7 +417,6 @@ public class MazeManager : MonoBehaviour
         Debug.Log("Player ha scelto di tornare all'hub");
         hasChosenToStay = false;
         
-        // Teletrasporta il player all'hub
         if (player != null)
         {
             player.position = hubSpawnPosition;
@@ -313,10 +439,10 @@ public class MazeManager : MonoBehaviour
         {
             if (door != null)
             {
-                door.SetActive(false); // Disattiva le porte
+                door.SetActive(false);
             }
         }
-        Debug.Log("🚪 Porte del labirinto aperte");
+        Debug.Log("Porte del labirinto aperte");
     }
     
     void CloseMazeDoors()
@@ -326,13 +452,12 @@ public class MazeManager : MonoBehaviour
         {
             if (door != null)
             {
-                door.SetActive(true); // Attiva le porte
+                door.SetActive(true);
             }
         }
-        Debug.Log("🔒 Porte del labirinto chiuse");
+        Debug.Log("Porte del labirinto chiuse");
     }
     
-    // Metodi pubblici per controllo esterno
     public void ForcePlayerToHub()
     {
         if (player != null)
@@ -342,40 +467,28 @@ public class MazeManager : MonoBehaviour
         }
     }
     
-    // Metodo chiamabile dal letto per passare direttamente al giorno
     public void SleepToNextDay()
     {
-        Debug.Log("💤 Player ha dormito, saltando la notte e passando direttamente al giorno");
-        
-        // Avvia la sequenza di sonno completa
+        Debug.Log("Player ha dormito, saltando la notte e passando direttamente al giorno");
         StartCoroutine(SleepSequence());
     }
     
     IEnumerator SleepSequence()
     {
-        // 1. Salta direttamente all'alba nel ciclo giorno/notte
         if (dayNightManager != null)
         {
             dayNightManager.ForceToDawn();
         }
         
-        // 2. Mostra l'avviso del cambio labirinto
         ShowMazeChangeWarning();
-        
-        // 3. Aspetta il tempo configurato per l'avviso
         yield return new WaitForSeconds(mazeChangeDelay);
-        
-        // 4. Nasconde l'avviso
         HideAllWarnings();
+        ChangeMazeTilemap();
         
-        // 5. Salva che il player sta dormendo per gestire il post-cambio scena
-        PlayerPrefs.SetInt("PlayerSlept", 1);
-        PlayerPrefs.Save();
-        
-        // 6. Cambia il labirinto
-        ChangeMazeScene();
-        
-        // Nota: il passaggio al giorno verrà gestito dopo il caricamento della scena
+        if (dayNightManager != null)
+        {
+            dayNightManager.ForceToDay();
+        }
     }
     
     public string GetStatusInfo()
@@ -384,68 +497,33 @@ public class MazeManager : MonoBehaviour
         return $"Player in Hub: {playerInHub} | Porte aperte: {mazeDoorsOpen} | {enemyInfo} | Ha scelto di rimanere: {hasChosenToStay} | Labirinto: {currentMazeNumber}";
     }
     
-    // Metodo per gestire il respawn del player dopo il cambio scena
-    void OnEnable()
+    [ContextMenu("Cambia Labirinto Successivo")]
+    public void ChangeToNextMaze()
     {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
-    
-    void OnDisable()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-    
-    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        // Se viene da un cambio labirinto, posiziona il player nell'hub
-        if (PlayerPrefs.GetInt("FromMazeChange", 0) == 1)
+        if (!isChangingMaze)
         {
-            StartCoroutine(PositionPlayerAfterSceneLoad());
-            PlayerPrefs.DeleteKey("FromMazeChange");
+            int nextMaze = currentMazeNumber + 1;
+            if (nextMaze > maxMazeCount) nextMaze = 1;
+            
+            currentMazeNumber = nextMaze;
+            LoadCurrentMaze();
+            
+            Debug.Log($"Cambiato manualmente al labirinto {currentMazeNumber}");
         }
     }
     
-    IEnumerator PositionPlayerAfterSceneLoad()
+    public void LoadSpecificMaze(int mazeNumber)
     {
-        yield return new WaitForEndOfFrame(); // Aspetta che la scena sia completamente caricata
-        
-        if (player == null)
+        if (mazeNumber >= 1 && mazeNumber <= maxMazeCount && !isChangingMaze)
         {
-            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null) player = playerObj.transform;
+            currentMazeNumber = mazeNumber;
+            LoadCurrentMaze();
+            
+            Debug.Log($"Caricato specificamente il labirinto {currentMazeNumber}");
         }
-        
-        if (player != null)
+        else
         {
-            Vector2 spawnPos = new Vector2(
-                PlayerPrefs.GetFloat("PlayerSpawnX", hubSpawnPosition.x),
-                PlayerPrefs.GetFloat("PlayerSpawnY", hubSpawnPosition.y)
-            );
-            
-            player.position = spawnPos;
-            Debug.Log($"Player posizionato nell'hub dopo il cambio labirinto: {spawnPos}");
+            Debug.LogWarning($"Numero labirinto non valido: {mazeNumber} o cambio gia in corso");
         }
-        
-        // Se il player ha dormito, completa la sequenza di sonno
-        bool playerSlept = PlayerPrefs.GetInt("PlayerSlept", 0) == 1;
-        if (playerSlept)
-        {
-            Debug.Log("💤 Completando la sequenza di sonno...");
-            
-            // Aspetta un frame per assicurarsi che tutto sia inizializzato
-            yield return new WaitForEndOfFrame();
-            
-            // Passa direttamente al giorno saltando il resto dell'alba
-            if (dayNightManager != null)
-            {
-                dayNightManager.ForceToDay(); // Salta direttamente al giorno
-            }
-            
-            // Pulisci il flag
-            PlayerPrefs.DeleteKey("PlayerSlept");
-        }
-        
-        PlayerPrefs.DeleteKey("PlayerSpawnX");
-        PlayerPrefs.DeleteKey("PlayerSpawnY");
     }
 }
