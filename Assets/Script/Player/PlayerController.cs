@@ -62,6 +62,12 @@ public class PlayerController : MonoBehaviour
     [Header("Coins and Gems")]
     public int coinsPicked = 0;
 
+    //GAMEOVER UI
+    [Header("Defeat UI")]
+    [SerializeField] private GameObject gameUICanvas;
+    [SerializeField] private GameObject gameButtons;
+    [SerializeField] private GameObject gameOverCanvas;
+
     // INPUT SETTINGS
     private Vector2 input;
     private Vector2 mobileInput = Vector2.zero; // Nuova variabile per mobile input
@@ -554,21 +560,56 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("isMoving", false);
         animator.SetBool("isAttacking", false);
 
-        yield return new WaitForSeconds(1f);
-
-        // Logica per un death screen
-
-        yield return new WaitForSeconds(1.5f);
-
-        // Logica per rimuovere il death screen
-
+        // Logica il death screen
         yield return new WaitForSeconds(0.2f);
-        
-        // Reinizializza il player
-        InizializeSettings();
+        ShowGameOver();
     }
 
-    void InizializeSettings()
+    //UI per il processo di Respawn
+    public void ShowGameOver()
+    {
+        //FERMA IL GIOCO
+        Time.timeScale = 0f;
+
+        if (gameUICanvas != null)
+        {
+            gameUICanvas.SetActive(false);
+        }
+
+        if (gameButtons != null)
+        {
+            gameButtons.SetActive(false);
+        }
+
+        if (gameOverCanvas != null)
+        {
+            gameOverCanvas.SetActive(true);
+        }
+    }
+
+    //Dopo respawn riattiva tutta la UI
+    public void ShowRespawn()
+    {
+        if (gameUICanvas != null)
+        {
+            gameUICanvas.SetActive(true);
+        }
+
+        if (gameButtons != null)
+        {
+            gameButtons.SetActive(true);
+        }
+
+        if (gameOverCanvas != null)
+        {
+            gameOverCanvas.SetActive(false);
+        }
+
+        //Riprendi gioco
+        Time.timeScale = 1f;
+    }
+
+    public void InizializeSettings()
     {
         //Debug.Log("Reinizializzazione player...");
 
@@ -602,6 +643,7 @@ public class PlayerController : MonoBehaviour
 
         InvalidateDistances();
         StartCoroutine(RecalculateDistancesNextFrame());
+        ShowRespawn();
 
     }
 
@@ -828,4 +870,29 @@ public class PlayerController : MonoBehaviour
         // FUTURO: attacco nemico
         // if (nemicoVicino) AttaccaNemico();
     }
+
+    //FOR SAVE AND LOAD DATA
+    #region Save and Load
+
+    public void Save(ref PlayerSaveData data)
+    {
+        data.Position = transform.position;
+        data.HealthPoints = currentHealthPoints;
+    }
+
+    public void Load(PlayerSaveData data)
+    {
+        transform.position = data.Position;
+        this.currentHealthPoints = data.HealthPoints;
+    }
+
+    #endregion
+}
+
+//Struct per i dati da salvare (per ora solo la posizione)
+[System.Serializable]
+public struct PlayerSaveData
+{
+    public Vector3 Position;
+    public float HealthPoints;
 }
