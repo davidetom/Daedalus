@@ -17,6 +17,10 @@ public class PlayerController : MonoBehaviour
     public MapManager mapManager; // Riferimento al MapManager
     public Vector3 startPos;
 
+    [Header("Cycle Management")]
+    public DayNightCycleManager dayNightCycleManager;
+    public MazeManager mazeManager;
+
     [Header("Move Settings")]
     public float moveSpeed;
     public bool isMoving = false;
@@ -35,7 +39,7 @@ public class PlayerController : MonoBehaviour
     private Vector2 lastDirection = Vector2.down;
     public bool isAttacking = false;
     public bool canAttack = true;
-    public bool isNightTime = true; // il player può attaccare solo di notte
+    public bool isNightTime = false; // il player può attaccare solo di notte
     public bool canAttackWhileMoving = true; // Permette di attaccare mentre si muove
 
     [Header("Attack Settings")]
@@ -60,6 +64,7 @@ public class PlayerController : MonoBehaviour
     public bool isDead = false;
 
     [Header("Coins and Gems")]
+    public int maxCoinNumber = 9999;
     public int coinsPicked = 0;
 
     //GAMEOVER UI
@@ -209,12 +214,10 @@ public class PlayerController : MonoBehaviour
     {
         if (mapManager != null && mapManager.wallCalculated)
         {
-            // Usa il nuovo sistema del MapManager
             Vector2Int arrayPos = mapManager.WorldToArrayCoordinates(targetPos);
             if (!mapManager.IsValidArrayCoordinate(arrayPos))
                 return false;
 
-            // Il player può camminare su corridoi e porte
             if (!mapManager.IsWalkableForPlayer(arrayPos))
                 return false;
         }
@@ -223,7 +226,6 @@ public class PlayerController : MonoBehaviour
             // Fallback al sistema originale se MapManager non è disponibile
             if (tilemap == null)
             {
-                //Debug.LogWarning("Tilemap non assegnata!");
                 return true;
             }
 
@@ -241,14 +243,22 @@ public class PlayerController : MonoBehaviour
             if (isWall) return false;
         }
 
-        // Verifica se c'è una porta chiusa in quella cella
-        Collider2D doorCollider = Physics2D.OverlapPoint(targetPos);
-        if (doorCollider != null)
+        // NUOVO: Verifica se c'è una porta chiusa in quella cella
+        DoorController[] doors = GameObject.FindObjectsByType<DoorController>(FindObjectsSortMode.None);
+        foreach (DoorController door in doors)
         {
-            DoorController door = doorCollider.GetComponent<DoorController>();
-            if (door != null && !door.IsOpen())
+            // Controlla se la porta è nella stessa posizione della tile target
+            Vector3 doorPos = door.transform.position;
+            float distance = Vector3.Distance(doorPos, targetPos);
+            
+            // Se la porta è molto vicina alla posizione target (stessa tile)
+            if (distance < 0.5f)
             {
-                return false; // Porta chiusa → non camminabile
+                // Se la porta è chiusa, la tile non è percorribile
+                if (!door.IsOpen())
+                {
+                    return false;
+                }
             }
         }
 
@@ -536,7 +546,7 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead) return;
 
-        //Debug.Log("Player morto!");
+        Debug.Log("Player morto!");
         isDead = true;
         
         // Ferma il feedback del danno se attivo
@@ -546,6 +556,12 @@ public class PlayerController : MonoBehaviour
             currentDamageFeedbackCoroutine = null;
         }
         takingDamage = false;
+        
+        // NUOVO: Ferma anche il ciclo giorno/notte
+        if (dayNightCycleManager != null)
+        {
+            dayNightCycleManager.PauseSystem();
+        }
         
         StopAllCoroutines();
         StartCoroutine(DeathSequence());
@@ -637,14 +653,23 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("isMoving", false);
         transform.position = startPos;
 
-        // coinsPicked = 0; oppure coinsPicked = coinsPicked / 2; DA DECIDERE
+        // NUOVO: Cambia labirinto prima di riavviare il giorno
+        if (mazeManager != null)
+        {
+            mazeManager.ChangeToNextMaze();
+        }
+
+        // NUOVO: Riavvia il ciclo giorno/notte dall'inizio del giorno
+        if (dayNightCycleManager != null)
+        {
+            dayNightCycleManager.ResetToDay();
+        }
 
         ResetAllEnemiesState();
 
         InvalidateDistances();
         StartCoroutine(RecalculateDistancesNextFrame());
         ShowRespawn();
-
     }
 
     void ResetAllEnemiesState()
@@ -750,7 +775,15 @@ public class PlayerController : MonoBehaviour
             float distance = Vector3.Distance(transform.position, door.transform.position);
             if (distance <= interactRange)
             {
-                door.TryOpen(this);
+                // NUOVO: Solo le outer doors possono essere aperte dal player
+                if (door.IsOuterDoor())
+                {
+                    door.TryOpen(this);
+                }
+                else if (door.IsInnerDoor())
+                {
+                    Debug.Log("Le porte interne si aprono automaticamente!");
+                }
                 break;
             }
         }

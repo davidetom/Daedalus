@@ -7,8 +7,11 @@ public class Coin : MonoBehaviour
         PlayerController player = other.GetComponent<PlayerController>();
         if (player != null)
         {
-            player.coinsPicked++;
-            Destroy(gameObject);
+            if (player.coinsPicked < player.maxCoinNumber)
+            {
+                player.coinsPicked++;
+                Destroy(gameObject);
+            }
         }
     }
 }
