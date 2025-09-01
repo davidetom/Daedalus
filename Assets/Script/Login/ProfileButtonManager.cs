@@ -105,6 +105,7 @@ public class ProfileButtonManager : MonoBehaviour
     void OnLogoutClick()
     {
         auth.SignOut();
+        SaveSystem.ClearData();
         profilePanel.SetActive(false);
         UpdateButton();
     }

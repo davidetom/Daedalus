@@ -197,4 +197,10 @@ public class FirebaseAuthManager : MonoBehaviour
             Debug.Log(msg);
         }
     }
+
+    //Back to the main menu
+    public void onClickBackButton()
+    {
+        SceneManager.LoadScene("MainMenu");
+    }
 }

@@ -42,6 +42,10 @@ public class DayNightCycleManager : MonoBehaviour
     private const float SUNSET_START = 0.75f;    // 0.75  
     private const float NIGHT_START = 5f / 6f;     // 0.833
 
+    //PER CAMBIARE COLORE BORDO MINIMAPPA DURANTE LA NOTTE
+    [Header("UI Changer")]
+    public MinimapFollow minimapBorder;
+
     // Eventi per le varie fasi
     [System.Serializable]
     public class DayNightEvents
@@ -125,6 +129,7 @@ public class DayNightCycleManager : MonoBehaviour
             yield return StartCoroutine(RunPhase(DayPhase.Sunset, sunsetDuration, SUNSET_START, NIGHT_START));
 
             // FASE NOTTE
+            minimapBorder.ChangeBorderColor(Color.white);
             currentPhase = DayPhase.Night;
             events.OnNightStart?.Invoke();
             yield return StartCoroutine(RunPhase(DayPhase.Night, nightDuration, NIGHT_START, DAWN_START));
@@ -138,6 +143,7 @@ public class DayNightCycleManager : MonoBehaviour
             IncrementDay();
 
             // FASE GIORNO
+            minimapBorder.ChangeBorderColor(Color.black);
             currentPhase = DayPhase.Day;
             events.OnNewDay?.Invoke(); // Invoca evento nuovo giorno
             events.OnDayStart?.Invoke();
@@ -360,4 +366,59 @@ public class DayNightCycleManager : MonoBehaviour
         // 2. Non siamo più nella fase di setup iniziale (startFromDay è false dopo il primo ciclo)
         return isRunning && !startFromDay;
     }
+
+    #region SAVE AND LOAD
+
+    public void Save(ref DayNightSaveData data)
+    {
+        data.dayTimeValue = dayTime;
+        data.currentPhaseIndex = (int)currentPhase;
+        data.phaseTimer = phaseTimer;
+        data.wasRunning = isRunning;
+
+        Debug.Log("DayNight salvato - Tempo: " + dayTime + " Fase: " + currentPhase);
+    }
+
+    public void Load(DayNightSaveData data)
+    {
+        // Ferma tutto
+        StopAllCoroutines();
+
+        dayTime = data.dayTimeValue;
+        currentPhase = (DayPhase)data.currentPhaseIndex;
+        phaseTimer = data.phaseTimer;
+        isRunning = data.wasRunning;
+
+        // Aggiorna immediatamente le luci
+        UpdateLighting();
+
+        // Forza l'aggiornamento del colore della minimappa se necessario
+        if (minimapBorder != null)
+        {
+            if (IsNight)
+                minimapBorder.ChangeBorderColor(Color.white);
+            else
+                minimapBorder.ChangeBorderColor(Color.black);
+        }
+
+        // Riavvia il sistema
+        if (isRunning)
+        {
+            StartCoroutine(DayNightCycle());
+        }
+
+        Debug.Log("DayNight caricato - Tempo: " + dayTime + " Fase: " + currentPhase);
+    }
+
+    #endregion
+}
+
+//For Save and Load
+[System.Serializable]
+public struct DayNightSaveData
+{
+    public float dayTimeValue;
+    public int currentPhaseIndex;
+    public float phaseTimer;
+    public bool wasRunning;
 }
