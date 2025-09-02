@@ -13,7 +13,7 @@ public class EnemySpawner : MonoBehaviour
     public bool spawnRandomly = true;
     
     [Header("Integrazione SpawnPoint Generator")]
-    [SerializeField] private bool useGeneratedSpawnPoints = true;
+    [SerializeField] public bool useGeneratedSpawnPoints = true;
     [SerializeField] private Vector3[] generatedSpawnPositions;
     
     [Header("Parametri Nemici")]
@@ -89,17 +89,136 @@ public class EnemySpawner : MonoBehaviour
         }
         else
         {
-            // Usa il metodo originale
-            if (spawnPoints == null || spawnPoints.Length == 0)
+            Debug.Log("🎯 Tentativo di usare spawn points tradizionali...");
+            
+            // Usa il metodo originale SOLO se il tag esiste
+            if (HasEnemySpawnTag())
             {
-                GameObject[] spawnObjects = GameObject.FindGameObjectsWithTag("EnemySpawn");
-                spawnPoints = new Transform[spawnObjects.Length];
-                for (int i = 0; i < spawnObjects.Length; i++)
+                if (spawnPoints == null || spawnPoints.Length == 0)
                 {
-                    spawnPoints[i] = spawnObjects[i].transform;
+                    GameObject[] spawnObjects = GameObject.FindGameObjectsWithTag("EnemySpawn");
+                    spawnPoints = new Transform[spawnObjects.Length];
+                    for (int i = 0; i < spawnObjects.Length; i++)
+                    {
+                        spawnPoints[i] = spawnObjects[i].transform;
+                    }
                 }
+                Debug.Log($"🎯 Utilizzando {spawnPoints.Length} spawn points tradizionali");
             }
-            Debug.Log($"🎯 Utilizzando {spawnPoints.Length} spawn points tradizionali");
+            else
+            {
+                Debug.LogWarning("⚠️ Tag 'EnemySpawn' non definito e nessun spawn point generato disponibile!");
+                Debug.LogWarning("🔄 Tentativo di recuperare spawn points dal SpawnPointGenerator...");
+                
+                // NUOVO: Tenta di recuperare gli spawn points dal generator se non ci sono spawn points tradizionali
+                TryGetSpawnPointsFromGenerator();
+            }
+        }
+    }
+    
+    bool HasEnemySpawnTag()
+    {
+        try
+        {
+            // Testa se il tag esiste cercando oggetti con quel tag
+            GameObject[] testObjects = GameObject.FindGameObjectsWithTag("EnemySpawn");
+            return true; // Se non ha lanciato eccezione, il tag esiste
+        }
+        catch (UnityException)
+        {
+            return false; // Tag non definito
+        }
+    }
+
+    void TryGetSpawnPointsFromGenerator()
+    {
+        SpawnPointGenerator generator = FindFirstObjectByType<SpawnPointGenerator>();
+        
+        if (generator == null)
+        {
+            Debug.LogError("❌ SpawnPointGenerator non trovato nella scena!");
+            return;
+        }
+        
+        List<SpawnPoint> spawnPointsList = generator.GetSpawnPoints();
+        
+        if (spawnPointsList.Count == 0)
+        {
+            Debug.LogWarning("⚠️ Nessun spawn point disponibile nel generator! Forzo la generazione...");
+            
+            // Forza la generazione degli spawn points
+            generator.GeneraSpawnPoints();
+            spawnPointsList = generator.GetSpawnPoints();
+            
+            if (spawnPointsList.Count == 0)
+            {
+                Debug.LogError("❌ Impossibile generare spawn points!");
+                return;
+            }
+        }
+        
+        // Copia le posizioni nell'array
+        generatedSpawnPositions = new Vector3[spawnPointsList.Count];
+        
+        for (int i = 0; i < spawnPointsList.Count; i++)
+        {
+            generatedSpawnPositions[i] = spawnPointsList[i].position;
+        }
+        
+        // Attiva l'uso delle posizioni generate
+        useGeneratedSpawnPoints = true;
+        
+        // Crea i Transform
+        CreateTransformsFromPositions();
+        
+        Debug.Log($"✅ Recuperati {generatedSpawnPositions.Length} spawn points dal SpawnPointGenerator");
+    }
+
+    public void UpdateGeneratedSpawnPoints(Vector3[] newPositions)
+    {
+        // Pulisci i vecchi spawn points generati se esistono
+        ClearGeneratedSpawnPoints();
+
+        // Aggiorna l'array delle posizioni
+        generatedSpawnPositions = newPositions;
+        useGeneratedSpawnPoints = true;
+
+        // Ricrea i Transform dagli spawn points
+        if (Application.isPlaying)
+        {
+            CreateTransformsFromPositions();
+
+            // Pulisci la cache per forzare il ricalcolo
+            validSpawnPoints.Clear();
+            lastDistanceUpdateTime = 0f;
+
+            Debug.Log($"Aggiornati {newPositions.Length} spawn points per il nuovo labirinto");
+        }
+
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(this);
+#endif
+    }
+
+    private void ClearGeneratedSpawnPoints()
+    {
+        // Rimuovi i GameObject temporanei esistenti
+        Transform[] children = GetComponentsInChildren<Transform>();
+        foreach (Transform child in children)
+        {
+            if (child != this.transform && child.name.StartsWith("GeneratedSpawn_"))
+            {
+                if (Application.isPlaying)
+                    Destroy(child.gameObject);
+                else
+                    DestroyImmediate(child.gameObject);
+            }
+        }
+        
+        // Pulisci l'array dei Transform
+        if (useGeneratedSpawnPoints)
+        {
+            spawnPoints = new Transform[0];
         }
     }
     

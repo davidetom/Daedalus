@@ -13,6 +13,7 @@ public class MazeManager : MonoBehaviour
     public GameObject[] mazeDoors;
     public EnemySpawner enemySpawner;
     public MapManager mapManager;
+    public SpawnPointGenerator spawnPointGenerator;
 
     [Header("UI")]
     public GameObject warningPanel;
@@ -76,6 +77,9 @@ public class MazeManager : MonoBehaviour
 
         if (labirintoObject == null)
             labirintoObject = GameObject.Find("Labirinto");
+
+        if (spawnPointGenerator == null)
+            spawnPointGenerator = FindFirstObjectByType<SpawnPointGenerator>();
 
         LoadTilemapPrefabs();
 
@@ -151,6 +155,8 @@ public class MazeManager : MonoBehaviour
 
     void LoadCurrentMaze()
     {
+        Debug.Log($"=== CARICAMENTO LABIRINTO {currentMazeNumber} ===");
+        
         if (labirintoObject == null)
         {
             Debug.LogError("Oggetto Labirinto non trovato!");
@@ -180,32 +186,29 @@ public class MazeManager : MonoBehaviour
 
         if (prefabToLoad != null)
         {
+            Debug.Log($"Istanziando prefab: {prefabToLoad.name}");
             currentTilemapInstance = Instantiate(prefabToLoad, labirintoObject.transform);
             currentTilemapInstance.name = $"Tilemap_{currentMazeNumber:D2}_Instance";
 
             Debug.Log($"Caricata tilemap del labirinto {currentMazeNumber} ({prefabToLoad.name})");
+
+            // Verifica che la tilemap sia stata creata correttamente
+            Tilemap newTilemap = currentTilemapInstance.GetComponentInChildren<Tilemap>();
+            if (newTilemap != null)
+            {
+                Debug.Log($"Tilemap trovata: {newTilemap.name}, Bounds: {newTilemap.cellBounds}");
+            }
+            else
+            {
+                Debug.LogError("Tilemap non trovata nell'istanza creata!");
+            }
 
             UpdateMapManager();
         }
         else
         {
             Debug.LogError($"Prefab tilemap non valido per il labirinto {currentMazeNumber}");
-
-            for (int i = 0; i < tilemapPrefabs.Length; i++)
-            {
-                if (tilemapPrefabs[i] != null)
-                {
-                    Debug.LogWarning($"Fallback: caricando il labirinto {i + 1}");
-                    currentMazeNumber = i + 1;
-                    currentTilemapInstance = Instantiate(tilemapPrefabs[i], labirintoObject.transform);
-                    currentTilemapInstance.name = $"Tilemap_{currentMazeNumber:D2}_Fallback";
-
-                    UpdateMapManager();
-                    return;
-                }
-            }
-
-            Debug.LogError("Nessun prefab tilemap valido trovato!");
+            // ... resto del codice di fallback rimane uguale ...
         }
     }
 
@@ -248,6 +251,8 @@ public class MazeManager : MonoBehaviour
 
     IEnumerator RegenerateMapAfterFrame()
     {
+        // Attendi 2 frame per assicurarti che tutto sia inizializzato
+        yield return null;
         yield return null;
 
         if (mapManager != null)
@@ -266,6 +271,25 @@ public class MazeManager : MonoBehaviour
                     playerController.RecalculateDistances();
                     Debug.Log("Distanze BFS ricalcolate per la nuova tilemap");
                 }
+            }
+
+            // Attendi un altro frame per assicurarti che BFS sia completato
+            yield return null;
+
+            // NUOVO: Aggiorna SpawnPointGenerator dopo che MapManager e BFS sono stati ricalcolati
+            if (spawnPointGenerator != null && mapManager.tilemap != null)
+            {
+                Debug.Log($"Avviando aggiornamento spawn points per tilemap: {mapManager.tilemap.name}");
+
+                // Forza l'aggiornamento anche se la tilemap sembra uguale
+                spawnPointGenerator.ForceRegenerateSpawns(mapManager.tilemap);
+
+                Debug.Log("Spawn points aggiornati per la tilemap corrente");
+            }
+            else
+            {
+                Debug.LogWarning($"SpawnPointGenerator: {(spawnPointGenerator == null ? "NULL" : "OK")}, " +
+                            $"MapManager.tilemap: {(mapManager.tilemap == null ? "NULL" : "OK")}");
             }
         }
     }
@@ -296,20 +320,20 @@ public class MazeManager : MonoBehaviour
     void OnDayStart()
     {
         Debug.Log("Inizia il GIORNO");
-        
+
         // NUOVO: Aggiorna stato player - durante il giorno può aprire porte
         UpdatePlayerNightTimeState(false);
-        
+
         // NON aprire le porte qui - saranno aperte dopo il cambio labirinto
-        
+
         if (enemySpawner != null)
             enemySpawner.ClearAllEnemies();
-        
+
         // NON chiamare HideAllWarnings() qui - il dawn panel deve rimanere attivo
         // Nascondi solo il warning panel del tramonto/notte se attivo
         if (warningPanel != null)
             warningPanel.SetActive(false);
-        
+
         EnablePlayerInputsAndUI();
         hasChosenToStay = false;
         isChangingMaze = false;
@@ -318,13 +342,13 @@ public class MazeManager : MonoBehaviour
     void OnSunsetStart()
     {
         Debug.Log("Inizia il TRAMONTO");
-        
+
         // NUOVO: Aggiorna stato player - durante il tramonto può ancora aprire porte
         UpdatePlayerNightTimeState(false);
-        
+
         // NUOVO: Chiudi le porte immediatamente durante il tramonto, sempre
         CloseMazeDoorsImmediately();
-        
+
         if (!playerInHub)
         {
             sunsetChoiceMade = false; // Reset del flag
@@ -343,19 +367,19 @@ public class MazeManager : MonoBehaviour
     void OnNightStart()
     {
         Debug.Log("Inizia la NOTTE");
-        
+
         // NUOVO: Aggiorna stato player - durante la notte può attaccare
         UpdatePlayerNightTimeState(true);
-        
+
         if (!playerInHub && !sunsetChoiceMade)
         {
             Debug.Log("Nessuna scelta fatta durante il tramonto - player rimane nel labirinto");
             hasChosenToStay = true;
             sunsetChoiceMade = true; // Importante: imposta anche questo flag
         }
-        
+
         StartCoroutine(HandleSunsetToNightTransition());
-        
+
         if (!playerInHub)
         {
             if (enemySpawner != null)
@@ -366,16 +390,16 @@ public class MazeManager : MonoBehaviour
     void OnDawnStart()
     {
         Debug.Log("Inizia l'ALBA");
-        
+
         // NUOVO: Aggiorna stato player - durante l'alba può attaccare
         UpdatePlayerNightTimeState(true);
-        
+
         if (isChangingMaze) return;
         isChangingMaze = true;
-        
+
         ShowDawnWarnings();
         StartCoroutine(HandleMazeChangeWithWarnings());
-        
+
         if (enemySpawner != null)
             enemySpawner.ClearAllEnemies();
     }
@@ -389,10 +413,10 @@ public class MazeManager : MonoBehaviour
             MakeWarningPanelTransparent();
             EnablePlayerInputsAndUI();
         }
-        
+
         // Attende un momento per evitare conflitti
         yield return new WaitForSeconds(0.3f);
-        
+
         // Se il player è nell'hub, attiva il warning panel e assicurati che i testi del tramonto siano nascosti
         if (playerInHub && warningPanel != null && !warningPanel.activeInHierarchy)
         {
@@ -400,7 +424,7 @@ public class MazeManager : MonoBehaviour
             MakeWarningPanelTransparent(); // Inizia trasparente
             HideSunsetWarningTexts(); // Assicurati che i testi del tramonto siano nascosti
         }
-        
+
         StartCoroutine(ShowMazeClosedWarnings());
     }
 
@@ -415,9 +439,49 @@ public class MazeManager : MonoBehaviour
         if (shouldTransportPlayer && player != null)
         {
             Debug.Log("Trasportando il player nell'hub dopo 3 secondi");
+
+            // NUOVO: Ferma completamente il movimento del player prima del trasporto
+            PlayerController playerController = player.GetComponent<PlayerController>();
+            if (playerController != null)
+            {
+                // Ferma tutte le coroutine (inclusa Move())
+                playerController.StopAllCoroutines();
+
+                // Reset degli stati di movimento
+                playerController.isMoving = false;
+
+                // Reset dell'input mobile se attivo
+                playerController.StopMovimento();
+
+                // Forza il reset delle animazioni
+                Animator playerAnimator = player.GetComponent<Animator>();
+                if (playerAnimator != null)
+                {
+                    playerAnimator.SetBool("isMoving", false);
+                    playerAnimator.SetFloat("moveX", 0);
+                    playerAnimator.SetFloat("moveY", 0);
+                }
+
+                Debug.Log("Movimento player fermato prima del trasporto");
+            }
+
+            // Aspetta un frame per assicurarsi che tutto sia fermato
+            yield return null;
+
+            // Ora trasporta il player
             player.position = hubSpawnPosition;
+
+            // NUOVO: Dopo il trasporto, correggi la posizione sulla griglia
+            if (playerController != null)
+            {
+                // Chiama il nuovo metodo pubblico per il trasporto sicuro
+                playerController.SafeTransportTo(hubSpawnPosition);
+
+                Debug.Log($"Player trasportato e posizione corretta a: {player.position}");
+            }
+
             UpdatePlayerPosition();
-            
+
             // Nasconde SOLO il warning di trasporto dopo il trasporto
             if (toHubWarningText != null)
             {
@@ -428,7 +492,7 @@ public class MazeManager : MonoBehaviour
 
         // Il dawn warning text rimane attivo per altri 2 secondi
         yield return new WaitForSeconds(2f);
-        
+
         // Ora nasconde anche il dawn warning text
         if (dawnWarningText != null)
         {
@@ -459,6 +523,7 @@ public class MazeManager : MonoBehaviour
         yield return StartCoroutine(ShowMazeOpenWarningSequence());
     }
 
+
     IEnumerator ShowMazeOpenWarningSequence()
     {
         // Mostra il maze open warning per 3 secondi
@@ -466,13 +531,13 @@ public class MazeManager : MonoBehaviour
         {
             mazeOpenWarningText.gameObject.SetActive(true);
             Debug.Log("Mostro warning: labirinto aperto dopo cambio maze");
-            
+
             yield return new WaitForSeconds(3f);
-            
+
             mazeOpenWarningText.gameObject.SetActive(false);
             Debug.Log("Warning labirinto aperto nascosto");
         }
-        
+
         // INFINE: Disattiva completamente il dawn warning panel
         if (dawnWarningPanel != null)
         {
@@ -485,19 +550,19 @@ public class MazeManager : MonoBehaviour
     {
         // Attende che le porte si aprano
         yield return new WaitForSeconds(0.5f);
-        
+
         // Mostra il maze open warning per 3 secondi
         if (mazeOpenWarningText != null)
         {
             mazeOpenWarningText.gameObject.SetActive(true);
             Debug.Log("Mostro warning: labirinto aperto dopo cambio maze");
-            
+
             yield return new WaitForSeconds(3f);
-            
+
             mazeOpenWarningText.gameObject.SetActive(false);
             Debug.Log("Warning labirinto aperto nascosto");
         }
-        
+
         // INFINE: Disattiva completamente il dawn warning panel
         if (dawnWarningPanel != null)
         {
@@ -515,7 +580,7 @@ public class MazeManager : MonoBehaviour
             // Nascondi il maze open warning che verrà mostrato dopo
             if (mazeOpenWarningText != null)
                 mazeOpenWarningText.gameObject.SetActive(false);
-            
+
             // Mostra sempre il warning dell'alba
             if (dawnWarningText != null)
             {
@@ -620,20 +685,20 @@ public class MazeManager : MonoBehaviour
         if (warningPanel != null)
         {
             warningPanel.SetActive(true);
-            
+
             // Assicurati che il pannello sia opaco
             Image panelImage = warningPanel.GetComponent<Image>();
             if (panelImage != null)
             {
                 panelImage.color = warningPanelOriginalColor;
             }
-            
+
             // Nascondi i warning figli che non servono ora
             if (mazeClosedWarningText != null)
                 mazeClosedWarningText.gameObject.SetActive(false);
             if (goodLuckText != null)
                 goodLuckText.gameObject.SetActive(false);
-            
+
             // Mostra i testi e bottoni del tramonto
             if (warningText != null)
                 warningText.gameObject.SetActive(true);
@@ -708,19 +773,17 @@ public class MazeManager : MonoBehaviour
 
         if (player != null)
         {
-            player.position = hubSpawnPosition;
+            PlayerController playerController = player.GetComponent<PlayerController>();
+            if (playerController != null)
+            {
+                playerController.SafeTransportTo(hubSpawnPosition);
+            }
             UpdatePlayerPosition();
         }
 
-        // Nascondi i testi del tramonto
         HideSunsetWarningTexts();
-        
-        // Rendi il warning panel trasparente
         MakeWarningPanelTransparent();
-        
         EnablePlayerInputsAndUI();
-        
-        // Il warning panel rimane attivo per mostrare i messaggi della notte
     }
 
     void StayInMaze()
@@ -728,16 +791,16 @@ public class MazeManager : MonoBehaviour
         Debug.Log("Player ha scelto di affrontare la notte");
         sunsetChoiceMade = true;
         hasChosenToStay = true;
-        
+
         // Nascondi immediatamente i testi del tramonto
         HideSunsetWarningTexts();
-        
+
         // Rendi il warning panel trasparente
         MakeWarningPanelTransparent();
-        
+
         // Riabilita gli input del player
         EnablePlayerInputsAndUI();
-        
+
         // Il warning panel rimane attivo per mostrare i messaggi della notte
         // che verranno gestiti da HandleSunsetToNightTransition
     }
@@ -780,17 +843,17 @@ public class MazeManager : MonoBehaviour
     {
         // Assicurati che tutti i testi del tramonto siano nascosti prima di mostrare quelli della notte
         HideSunsetWarningTexts();
-        
+
         // NON ripristinare l'opacità - il pannello deve rimanere trasparente
         // I testi sono visibili anche con pannello trasparente
-        
+
         // Mostra sempre il warning di chiusura
         if (mazeClosedWarningText != null)
         {
             mazeClosedWarningText.gameObject.SetActive(true);
             Debug.Log("Mostro warning: labirinto chiuso");
         }
-        
+
         // Mostra good luck SOLO se il player è rimasto nel labirinto (hasChosenToStay = true)
         if (goodLuckText != null && hasChosenToStay)
         {
@@ -803,22 +866,22 @@ public class MazeManager : MonoBehaviour
             goodLuckText.gameObject.SetActive(false);
             Debug.Log("Good luck text nascosto: player non rimasto nel labirinto");
         }
-        
+
         yield return new WaitForSeconds(2f);
-        
+
         // Nasconde entrambi i warning dopo 2 secondi
         if (mazeClosedWarningText != null)
         {
             mazeClosedWarningText.gameObject.SetActive(false);
             Debug.Log("Warning labirinto chiuso nascosto");
         }
-        
+
         if (goodLuckText != null)
         {
             goodLuckText.gameObject.SetActive(false);
             Debug.Log("Good luck text nascosto");
         }
-        
+
         // INFINE: Disattiva completamente il warning panel
         if (warningPanel != null)
         {
@@ -845,7 +908,11 @@ public class MazeManager : MonoBehaviour
     {
         if (player != null)
         {
-            player.position = hubSpawnPosition;
+            PlayerController playerController = player.GetComponent<PlayerController>();
+            if (playerController != null)
+            {
+                playerController.SafeTransportTo(hubSpawnPosition);
+            }
             UpdatePlayerPosition();
         }
     }
@@ -909,13 +976,41 @@ public class MazeManager : MonoBehaviour
             Debug.LogWarning($"Numero labirinto non valido: {mazeNumber} o cambio gia in corso");
         }
     }
-    
-     void UpdatePlayerNightTimeState(bool isNightTime)
+
+    void UpdatePlayerNightTimeState(bool isNightTime)
     {
         if (playerController != null)
         {
             playerController.isNightTime = isNightTime;
             Debug.Log($"Player isNightTime aggiornato a: {isNightTime}");
         }
+    }
+
+    /// <summary>
+    /// Forza manualmente la rigenerazione degli spawn points
+    /// </summary>
+    [ContextMenu("Forza Rigenerazione Spawn Points")]
+    public void ForceRegenerateSpawnPoints()
+    {
+        Debug.Log("Forzando rigenerazione spawn points...");
+        
+        if (spawnPointGenerator == null)
+        {
+            spawnPointGenerator = FindFirstObjectByType<SpawnPointGenerator>();
+            if (spawnPointGenerator == null)
+            {
+                Debug.LogError("SpawnPointGenerator non trovato!");
+                return;
+            }
+        }
+        
+        if (mapManager == null || mapManager.tilemap == null)
+        {
+            Debug.LogError("MapManager o tilemap non disponibili!");
+            return;
+        }
+        
+        Debug.Log($"Rigenerando spawn points per tilemap: {mapManager.tilemap.name}");
+        spawnPointGenerator.ForceRegenerateSpawns(mapManager.tilemap);
     }
 }

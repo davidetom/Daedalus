@@ -9,6 +9,9 @@ public class PlayerController : MonoBehaviour
 {
     private Animator animator;
 
+    [Header("Enable Debug")]
+    public bool enableDebug = false;
+
     [Header("Tilemap Reference")]
     public Tilemap tilemap;
     public TileBase muraTile;
@@ -53,11 +56,14 @@ public class PlayerController : MonoBehaviour
 
     [Header("Damage Feedback")]
     public float damageFeedbackDuration = 0.2f;
+    public float invincibilityDuration = 0.5f; // NUOVO: Durata dell'invincibilità
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
     private bool takingDamage = false;
-    private Coroutine currentDamageFeedbackCoroutine = null; // NUOVO: per gestire correttamente il feedback
-    
+    private bool isInvincible = false; // NUOVO: Stato di invincibilità
+    private Coroutine currentDamageFeedbackCoroutine = null;
+    private Coroutine currentInvincibilityCoroutine = null; // NUOVO: Coroutine per invincibilità
+
     [Header("Health Settings")]
     public float maxHealthPoints = 100f;
     [SerializeField] private float currentHealthPoints;
@@ -131,8 +137,8 @@ public class PlayerController : MonoBehaviour
 
     void HandleMovement()
     {
-        // MODIFICA: Non può muoversi durante il danno o se è morto
-        if (!isMoving && (!isAttacking || canAttackWhileMoving) && !takingDamage && !isDead)
+        // MODIFICA: Rimosso il controllo !takingDamage - ora può muoversi anche durante il danno
+        if (!isMoving && (!isAttacking || canAttackWhileMoving) && !isDead)
         {
             // 🔹 Se sto usando pulsanti mobile → uso mobileInput
             // altrimenti uso Input da tastiera
@@ -175,8 +181,8 @@ public class PlayerController : MonoBehaviour
 
         while ((targetPos - transform.position).sqrMagnitude > Mathf.Epsilon)
         {
-            // MODIFICA: Ferma il movimento se il player prende danno o muore
-            if (takingDamage || isDead)
+            // MODIFICA: Rimosso il controllo takingDamage - ferma solo se muore
+            if (isDead)
             {
                 SnapToNearestGridPosition();
                 isMoving = false;
@@ -194,7 +200,7 @@ public class PlayerController : MonoBehaviour
         isMoving = false;
     }
     
-    void SnapToNearestGridPosition()
+    public void SnapToNearestGridPosition()
     {
         Vector3 currentPos = transform.position;
         
@@ -267,8 +273,8 @@ public class PlayerController : MonoBehaviour
 
     public void HandleAttack()
     {
-        // MODIFICA: Non può attaccare se prende danno o è morto
-        if ((!isMoving || canAttackWhileMoving) && !isAttacking && canAttack && !takingDamage && !isDead)
+        // MODIFICA: Rimosso il controllo !takingDamage - può attaccare anche durante il danno
+        if ((!isMoving || canAttackWhileMoving) && !isAttacking && canAttack && !isDead)
         {
             animator.SetFloat("attackX", lastDirection.x);
             animator.SetFloat("attackY", lastDirection.y);
@@ -428,53 +434,28 @@ public class PlayerController : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
-        if (isDead)
+        // Se è invincibile o morto, ignora il danno
+        if (isDead || isInvincible)
         {
-            //Debug.Log("Player già morto, danno ignorato");
+            if (isInvincible && enableDebug)
+            {
+                Debug.Log("Danno bloccato: player invincibile");
+            }
             return;
         }
 
-        //Debug.Log($"Player riceve {damage} danni. Vita prima: {currentHealthPoints}");
+        Debug.Log($"Player riceve {damage} danni. Vita prima: {currentHealthPoints}");
         
         currentHealthPoints -= damage;
         currentHealthPoints = Mathf.Max(0, currentHealthPoints);
 
-        //Debug.Log($"Vita dopo danno: {currentHealthPoints}");
+        Debug.Log($"Vita dopo danno: {currentHealthPoints}");
 
-        // FIXED: Gestione migliorata dello stato durante il danno
-        bool wasAttacking = isAttacking;
-        bool wasMoving = isMoving;
+        // MODIFICA: Rimossa la gestione del movimento durante il danno
+        // Il player può continuare a muoversi liberamente
 
-        // Ferma tutti i movimenti e correggi posizione se necessario
-        if (isMoving)
-        {
-            StopAllCoroutines(); // Ferma il movimento
-            SnapToNearestGridPosition(); // Correggi la posizione
-            isMoving = false; // Reset dello stato
-            
-            // Ricalcola le distanze dalla nuova posizione corretta
-            CalcoloDistanze();
-        }
-
-        // FIXED: Se era in attacco, resetta completamente lo stato dell'attacco
-        if (wasAttacking)
-        {
-            // Reset dello stato di attacco
-            isAttacking = false;
-            canAttack = true;
-            attackAnimationFinished = false;
-            
-            // FIXED: Forza il reset delle animazioni
-            animator.SetBool("isAttacking", false);
-            animator.SetBool("isMoving", false);
-            
-            // FIXED: Assicura che l'animator sia in uno stato coerente
-            // Forza la transizione verso Idle
-            animator.SetFloat("moveX", 0);
-            animator.SetFloat("moveY", 0);
-            animator.SetFloat("attackX", 0);
-            animator.SetFloat("attackY", 0);
-        }
+        // Avvia l'invincibilità prima del feedback visivo
+        StartInvincibility();
 
         // Avvia feedback visivo del danno
         StartDamageFeedback();
@@ -495,8 +476,11 @@ public class PlayerController : MonoBehaviour
             currentDamageFeedbackCoroutine = null;
         }
         
-        // Avvia il nuovo feedback
-        currentDamageFeedbackCoroutine = StartCoroutine(DamageFeedbackCoroutine());
+        // Avvia il nuovo feedback solo se non è morto
+        if (!isDead)
+        {
+            currentDamageFeedbackCoroutine = StartCoroutine(DamageFeedbackCoroutine());
+        }
     }
     
     // NUOVO METODO: Coroutine per il lampeggiamento del player
@@ -508,31 +492,38 @@ public class PlayerController : MonoBehaviour
             yield break;
         }
         
-        takingDamage = true;
+        takingDamage = true; // Mantieni la flag per il feedback visivo
         
-        // Lampeggiamento con modifica dell'alpha
-        float flashDuration = damageFeedbackDuration / 6f; // 6 flash totali
+        // Lampeggiamento durante l'invincibilità
+        float totalDuration = Mathf.Max(damageFeedbackDuration, invincibilityDuration);
+        float flashInterval = 0.1f; // Lampeggia ogni 0.1 secondi
+        float elapsed = 0f;
         
-        for (int i = 0; i < 3; i++) // 3 cicli di lampeggiamento
+        bool isVisible = true;
+        
+        while (elapsed < totalDuration && !isDead)
         {
-            if (isDead) break; // Interrompi se il player muore durante il feedback
+            // Cambia visibilità 
+            if (isInvincible)
+            {
+                // Durante l'invincibilità: lampeggiamento alpha
+                Color currentColor = originalColor;
+                currentColor.a = isVisible ? 0.3f : 1f;
+                spriteRenderer.color = currentColor;
+            }
+            else
+            {
+                // Feedback normale del danno (primo momento)
+                spriteRenderer.color = Color.red;
+            }
             
-            // Imposta alpha a 0.3 (quasi trasparente)
-            Color flashColor = originalColor;
-            flashColor.a = 0.3f;
-            spriteRenderer.color = flashColor;
+            isVisible = !isVisible;
             
-            yield return new WaitForSeconds(flashDuration);
-            
-            if (isDead) break;
-            
-            // Ripristina alpha originale
-            spriteRenderer.color = originalColor;
-            
-            yield return new WaitForSeconds(flashDuration);
+            yield return new WaitForSeconds(flashInterval);
+            elapsed += flashInterval;
         }
         
-        // Assicura che il colore sia completamente ripristinato
+        // Ripristina il colore originale
         if (!isDead && spriteRenderer != null)
         {
             spriteRenderer.color = originalColor;
@@ -542,12 +533,64 @@ public class PlayerController : MonoBehaviour
         currentDamageFeedbackCoroutine = null;
     }
 
+    void StartInvincibility()
+    {
+        // Ferma l'invincibilità precedente se esiste
+        if (currentInvincibilityCoroutine != null)
+        {
+            StopCoroutine(currentInvincibilityCoroutine);
+            currentInvincibilityCoroutine = null;
+        }
+        
+        // Avvia la nuova invincibilità
+        currentInvincibilityCoroutine = StartCoroutine(InvincibilityCoroutine());
+    }
+
+    IEnumerator InvincibilityCoroutine()
+    {
+        if (isDead)
+        {
+            currentInvincibilityCoroutine = null;
+            yield break;
+        }
+        
+        isInvincible = true;
+        
+        if (enableDebug)
+        {
+            Debug.Log($"Player invincibile per {invincibilityDuration} secondi");
+        }
+        
+        yield return new WaitForSeconds(invincibilityDuration);
+        
+        // Fine dell'invincibilità
+        if (!isDead)
+        {
+            isInvincible = false;
+            
+            if (enableDebug)
+            {
+                Debug.Log("Invincibilità terminata");
+            }
+        }
+        
+        currentInvincibilityCoroutine = null;
+    }
+
     void Die()
     {
         if (isDead) return;
 
         Debug.Log("Player morto!");
         isDead = true;
+        
+        // NUOVO: Ferma anche l'invincibilità
+        if (currentInvincibilityCoroutine != null)
+        {
+            StopCoroutine(currentInvincibilityCoroutine);
+            currentInvincibilityCoroutine = null;
+        }
+        isInvincible = false;
         
         // Ferma il feedback del danno se attivo
         if (currentDamageFeedbackCoroutine != null)
@@ -627,7 +670,7 @@ public class PlayerController : MonoBehaviour
 
     public void InizializeSettings()
     {
-        //Debug.Log("Reinizializzazione player...");
+        Debug.Log("Reinizializzazione player...");
 
         isDead = false;
         currentHealthPoints = maxHealthPoints;
@@ -635,6 +678,7 @@ public class PlayerController : MonoBehaviour
         isAttacking = false;
         canAttack = true;
         takingDamage = false;
+        isInvincible = false; // NUOVO: Reset invincibilità
 
         // Ripristina il colore originale
         if (spriteRenderer != null)
@@ -647,6 +691,13 @@ public class PlayerController : MonoBehaviour
         {
             StopCoroutine(currentDamageFeedbackCoroutine);
             currentDamageFeedbackCoroutine = null;
+        }
+        
+        // NUOVO: Reset coroutine invincibilità
+        if (currentInvincibilityCoroutine != null)
+        {
+            StopCoroutine(currentInvincibilityCoroutine);
+            currentInvincibilityCoroutine = null;
         }
 
         animator.SetBool("isAttacking", false);
@@ -879,6 +930,45 @@ public class PlayerController : MonoBehaviour
         if (mapManager == null) return -1;
         return mapManager.GetDistanceAtWorldPosition(worldPos);
     }
+
+    // Aggiungi questo metodo pubblico alla fine della classe PlayerController
+
+    /// <summary>
+    /// Trasporta il player in modo sicuro alla posizione specificata, 
+    /// fermando tutti i movimenti e correggendo la posizione sulla griglia.
+    /// </summary>
+    public void SafeTransportTo(Vector3 targetPosition)
+    {
+        // Ferma tutte le coroutine attive (inclusa Move())
+        StopAllCoroutines();
+        
+        // Reset completo dello stato di movimento
+        isMoving = false;
+        isAttacking = false;
+        
+        // Reset dell'input mobile
+        StopMovimento();
+        
+        // Reset delle animazioni
+        if (animator != null)
+        {
+            animator.SetBool("isMoving", false);
+            animator.SetBool("isAttacking", false);
+            animator.SetFloat("moveX", 0);
+            animator.SetFloat("moveY", 0);
+        }
+        
+        // Imposta la nuova posizione
+        transform.position = targetPosition;
+        
+        // Correggi la posizione sulla griglia
+        SnapToNearestGridPosition();
+        
+        // Ricalcola le distanze BFS
+        CalcoloDistanze();
+        
+        Debug.Log($"Player trasportato in modo sicuro a: {transform.position}");
+    }
     
     // Metodi pubblici per accesso esterno allo stato del player
     public float GetCurrentHealth() => currentHealthPoints;
@@ -886,6 +976,7 @@ public class PlayerController : MonoBehaviour
     public float GetHealthPercentage() => currentHealthPoints / maxHealthPoints;
     public bool IsAlive() => !isDead;
     public bool IsTakingDamage() => takingDamage;
+    public bool IsInvincible() => isInvincible;
 
     // ----------------- Metodi per pulsanti mobile -----------------
     public void MuoviSu() => mobileInput = Vector2.up;

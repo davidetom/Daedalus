@@ -104,10 +104,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bd22817f899d417f9af09386a06c568, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableDebug: 0
   tilemap: {fileID: 0}
   muraTile: {fileID: 11400000, guid: 71b947652f19a46c892c762282e0a8af, type: 2}
   mapManager: {fileID: 0}
   startPos: {x: 155.5, y: 151.7, z: 0}
+  dayNightCycleManager: {fileID: 0}
+  mazeManager: {fileID: 0}
   moveSpeed: 5
   isMoving: 0
   interactRange: 1
@@ -119,7 +122,7 @@ MonoBehaviour:
   attackCooldown: 0.3
   isAttacking: 0
   canAttack: 1
-  isNightTime: 1
+  isNightTime: 0
   canAttackWhileMoving: 1
   enemyKnockbackForce: 2
   enableAttackEffects: 1
@@ -129,10 +132,15 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   damageFeedbackDuration: 0.2
+  invincibilityDuration: 0.5
   maxHealthPoints: 100
   currentHealthPoints: 0
   isDead: 0
+  maxCoinNumber: 9999
   coinsPicked: 0
+  gameUICanvas: {fileID: 0}
+  gameButtons: {fileID: 0}
+  gameOverCanvas: {fileID: 0}
 --- !u!114 &7355218500396511008
 MonoBehaviour:
   m_ObjectHideFlags: 0
