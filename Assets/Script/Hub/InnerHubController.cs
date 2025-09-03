@@ -16,7 +16,7 @@ public class InnerHubController : MonoBehaviour
 
     [Header("Riferimenti Sistema")]
     [SerializeField] private PlayerController playerController;
-    [SerializeField] private HubController outerHubController;
+    [SerializeField] private OuterHubController outerHubController;
 
     [Header("Debug")]
     [SerializeField] private bool enableDebug = false;
@@ -73,7 +73,7 @@ public class InnerHubController : MonoBehaviour
         // Trova automaticamente l'OuterHubController se non assegnato
         if (outerHubController == null)
         {
-            outerHubController = FindFirstObjectByType<HubController>();
+            outerHubController = FindFirstObjectByType<OuterHubController>();
             if (outerHubController != null && enableDebug)
             {
                 Debug.Log("OuterHubController trovato automaticamente");
@@ -94,15 +94,6 @@ public class InnerHubController : MonoBehaviour
         {
             originalIndicatorPosition = doorIndicator.transform.localPosition;
             doorIndicator.SetActive(false); // Inizialmente disattivo
-        }
-    }
-
-    void Update()
-    {
-        // Controlla input per uscire dall'hub
-        if (isPlayerInExitPoint && Input.GetKeyDown(KeyCode.E))
-        {
-            ExitHub();
         }
     }
 
@@ -170,7 +161,7 @@ public class InnerHubController : MonoBehaviour
         isAnimating = false;
     }
 
-    private void ExitHub()
+    public void ExitHub()
     {
         if (enableDebug)
             Debug.Log("Player sta uscendo dall'hub");

@@ -19,7 +19,7 @@ public class MinimapFollow : MonoBehaviour
     public float borderThickness = 10f;
     
     [Header("Hub Settings")]
-    private HubController hubController;
+    private OuterHubController hubController;
     private bool wasActiveBeforeHub = true;
 
     private Camera cam;
@@ -33,7 +33,7 @@ public class MinimapFollow : MonoBehaviour
         cam.rect = new Rect(0, 0, 1, 1);
 
         // Trova il HubController
-        hubController = FindFirstObjectByType<HubController>();
+        hubController = FindFirstObjectByType<OuterHubController>();
 
         StartCoroutine(SetupMinimapDelayed());
     }

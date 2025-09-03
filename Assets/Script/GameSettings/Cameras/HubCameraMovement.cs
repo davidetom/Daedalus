@@ -99,7 +99,7 @@ public class HubCameraMovement : MonoBehaviour
 
     void UpdateCameraPosition()
     {
-        HubController hubController = FindFirstObjectByType<HubController>();
+        OuterHubController hubController = FindFirstObjectByType<OuterHubController>();
         if (hubController == null || !hubController.IsPlayerInHub())
         {
             return; // Non aggiornare la camera se il player non è nell'hub

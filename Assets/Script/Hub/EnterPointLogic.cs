@@ -3,7 +3,7 @@ using UnityEngine;
 public class EnterPointLogic : MonoBehaviour
 {
     [Header("Hub Controller")]
-    public HubController hub;
+    public OuterHubController hub;
 
     public bool enableDebug = false;
 

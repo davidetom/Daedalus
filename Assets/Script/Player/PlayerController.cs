@@ -22,7 +22,8 @@ public class PlayerController : MonoBehaviour
     public Tilemap hubSolidObjectsTilemap;
 
     [Header("Hub Controller Reference")]
-    public HubController hubController; // Per verificare se siamo nell'hub
+    public OuterHubController outerHubController; // Per verificare se siamo nell'hub
+    public InnerHubController innerHubController;
 
     [Header("Map Reference")]
     public MapManager mapManager; // Riferimento al MapManager
@@ -119,7 +120,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         // Calcola le distanze al primo frame utile se non è stato ancora fatto
-        if (mapManager != null && mapManager.wallCalculated && mapManager.Distances[0,0] == 0 && !HasCalculatedDistances())
+        if (mapManager != null && mapManager.wallCalculated && mapManager.Distances[0, 0] == 0 && !HasCalculatedDistances())
         {
             CalcoloDistanze();
         }
@@ -128,10 +129,7 @@ public class PlayerController : MonoBehaviour
 
         // Controlla input per aprire la porta
         if (Input.GetKeyDown(interactKey))
-        {
-            if (isNightTime) HandleAttack();
-            else TryOpenNearbyDoor();
-        }
+            KeyBoardKeyAzione();
     }
 
     // Metodo helper per verificare se le distanze sono state calcolate
@@ -366,9 +364,9 @@ public class PlayerController : MonoBehaviour
     private bool IsPlayerInHub()
     {
         // Metodo 1: Usa HubController se disponibile
-        if (hubController != null)
+        if (outerHubController != null)
         {
-            return hubController.IsPlayerInHub();
+            return outerHubController.IsPlayerInHub();
         }
         
         // Metodo 2: Fallback - controlla coordinate
@@ -392,7 +390,7 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-        
+
         if (hubSolidObjectsBaseTilemap == null)
         {
             GameObject solidBaseObj = GameObject.Find("SolidObjectsBase");
@@ -405,7 +403,7 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-        
+
         if (hubSolidObjectsTilemap == null)
         {
             GameObject solidObj = GameObject.Find("SolidObjects");
@@ -418,14 +416,23 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-        
-        // Trova HubController se non assegnato
-        if (hubController == null)
+
+        // Trova HubController se non assegnati
+        if (outerHubController == null)
         {
-            hubController = FindFirstObjectByType<HubController>();
-            if (enableDebug && hubController != null)
+            outerHubController = FindFirstObjectByType<OuterHubController>();
+            if (enableDebug && outerHubController != null)
             {
-                Debug.Log("HubController trovato automaticamente");
+                Debug.Log("OuterHubController trovato automaticamente");
+            }
+        }
+        
+        if (innerHubController == null)
+        {
+            innerHubController = FindFirstObjectByType<InnerHubController>();
+            if (enableDebug && innerHubController != null)
+            {
+                Debug.Log("InnerHubController trovato automaticamente");
             }
         }
     }
@@ -1147,12 +1154,72 @@ public class PlayerController : MonoBehaviour
 
     public void PulsanteAzione()
     {
-        // Al momento solo porta
-        if (isNightTime) HandleAttack();
-        else TryOpenNearbyDoor();
+        // Prima controlla se siamo nell'inner hub (la priorità più alta)
+        if (IsPlayerInHub())                                        // se il player è nell'inner hub
+        {
+            if (innerHubController != null && innerHubController.IsPlayerInExitPoint)         
+            {
+                innerHubController.ExitHub();
+            }
+            // Nell'inner hub NON si può attaccare, quindi non aggiungiamo altre azioni
+            return;
+        }
+        
+        // Se siamo nell'outer hub (ma non nell'inner hub)
+        if (mazeManager.IsPlayerInHub)                              // se il player è nell'outer hub
+        {
+            if (outerHubController != null && outerHubController.IsPlayerInEnterPoint)        
+            {
+                outerHubController.EnterHub();
+            }
+            // Nell'outer hub NON si può attaccare, quindi non aggiungiamo altre azioni
+            return;
+        }
+        
+        // Se siamo nel labirinto (fuori da entrambi gli hub)
+        if (isNightTime)                                            // se è notte
+        {
+            HandleAttack();
+        }
+        else                                                        // se è giorno
+        {
+            TryOpenNearbyDoor();
+        }
+    }
 
-        // FUTURO: attacco nemico
-        // if (nemicoVicino) AttaccaNemico();
+    public void KeyBoardKeyAzione()
+    {
+        // Prima controlla se siamo nell'inner hub (la priorità più alta)
+        if (IsPlayerInHub())                                        // se il player è nell'inner hub
+        {
+            if (innerHubController != null && innerHubController.IsPlayerInExitPoint)         
+            {
+                innerHubController.ExitHub();
+            }
+            // Nell'inner hub NON si può attaccare, quindi non aggiungiamo altre azioni
+            return;
+        }
+        
+        // Se siamo nell'outer hub (ma non nell'inner hub)
+        if (mazeManager.IsPlayerInHub)                              // se il player è nell'outer hub
+        {
+            if (outerHubController != null && outerHubController.IsPlayerInEnterPoint)        
+            {
+                outerHubController.EnterHub();
+            }
+            // Nell'outer hub NON si può attaccare, quindi non aggiungiamo altre azioni
+            return;
+        }
+        
+        // Se siamo nel labirinto (fuori da entrambi gli hub)
+        if (isNightTime)                                            // se è notte
+        {
+            HandleAttack();
+        }
+        else                                                        // se è giorno
+        {
+            TryOpenNearbyDoor();
+        }
     }
 
     //FOR SAVE AND LOAD DATA

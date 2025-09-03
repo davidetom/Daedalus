@@ -15,7 +15,7 @@ public class DayNightController : MonoBehaviour
     
     [Header("Hub Settings")]
     public Vector3 defaultHubPosition = new Vector3(155f, 155f, 0f);
-    private HubController hubController;
+    private OuterHubController hubController;
 
     void Start()
     {
@@ -24,7 +24,7 @@ public class DayNightController : MonoBehaviour
         player = playerObj.transform;
         
         // Trova il HubController
-        hubController = FindFirstObjectByType<HubController>();
+        hubController = FindFirstObjectByType<OuterHubController>();
     }
 
     void Update()

@@ -4122,6 +4122,7 @@ MonoBehaviour:
   enemySpawner: {fileID: 1723160730}
   mapManager: {fileID: 2120444318}
   spawnPointGenerator: {fileID: 742367400}
+  hubController: {fileID: 150888675}
   warningPanel: {fileID: 1745792816}
   warningPanelOriginalColor: {r: 0, g: 0, b: 0, a: 0}
   warningText: {fileID: 1745792815}

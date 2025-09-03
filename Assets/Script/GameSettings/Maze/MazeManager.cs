@@ -14,6 +14,7 @@ public class MazeManager : MonoBehaviour
     public EnemySpawner enemySpawner;
     public MapManager mapManager;
     public SpawnPointGenerator spawnPointGenerator;
+    public OuterHubController hubController; // NUOVO: Riferimento all'HubController
 
     [Header("UI")]
     public GameObject warningPanel;
@@ -80,6 +81,10 @@ public class MazeManager : MonoBehaviour
 
         if (spawnPointGenerator == null)
             spawnPointGenerator = FindFirstObjectByType<SpawnPointGenerator>();
+
+        // NUOVO: Trova automaticamente l'HubController se non assegnato
+        if (hubController == null)
+            hubController = Object.FindFirstObjectByType<OuterHubController>();
 
         LoadTilemapPrefabs();
 
@@ -317,6 +322,16 @@ public class MazeManager : MonoBehaviour
         }
     }
 
+    // NUOVO: Metodo helper per verificare se il player è nell'hub esterno
+    private bool IsPlayerInOuterHub()
+    {
+        if (hubController != null)
+        {
+            return hubController.IsPlayerInHub();
+        }
+        return false;
+    }
+
     void OnDayStart()
     {
         Debug.Log("Inizia il GIORNO");
@@ -328,6 +343,13 @@ public class MazeManager : MonoBehaviour
 
         if (enemySpawner != null)
             enemySpawner.ClearAllEnemies();
+
+        // NUOVO: Gestione differente per player nell'hub esterno
+        if (IsPlayerInOuterHub())
+        {
+            // Se il player è nell'hub, mostra il dawn warning panel e maze open warning
+            ShowDawnWarningsForHubPlayer();
+        }
 
         // NON chiamare HideAllWarnings() qui - il dawn panel deve rimanere attivo
         // Nascondi solo il warning panel del tramonto/notte se attivo
@@ -349,8 +371,17 @@ public class MazeManager : MonoBehaviour
         // NUOVO: Chiudi le porte immediatamente durante il tramonto, sempre
         CloseMazeDoorsImmediately();
 
-        if (!playerInHub)
+        // NUOVO: Gestione differente se il player è nell'hub esterno
+        if (IsPlayerInOuterHub())
         {
+            // Se il player è nell'hub esterno, non mostrare warning e non disabilitare input
+            Debug.Log("Player nell'hub esterno - nessun warning al tramonto");
+            sunsetChoiceMade = true; // Il player è nell'hub, scelta "fatta"
+            hasChosenToStay = false; // Non è rimasto nel labirinto
+        }
+        else if (!playerInHub)
+        {
+            // Comportamento originale se il player è nel labirinto
             sunsetChoiceMade = false; // Reset del flag
             hasChosenToStay = false;  // Reset del flag
             ShowSunsetWarning();
@@ -358,7 +389,7 @@ public class MazeManager : MonoBehaviour
         }
         else
         {
-            // Se il player è nell'hub, imposta i flag appropriati
+            // Se il player è nell'hub interno, imposta i flag appropriati
             sunsetChoiceMade = true; // Il player è già nell'hub, scelta "fatta"
             hasChosenToStay = false; // Non è rimasto nel labirinto
         }
@@ -380,10 +411,15 @@ public class MazeManager : MonoBehaviour
 
         StartCoroutine(HandleSunsetToNightTransition());
 
-        if (!playerInHub)
+        // NUOVO: Gestione spawn nemici differente se player nell'hub esterno
+        if (!playerInHub && !IsPlayerInOuterHub())
         {
             if (enemySpawner != null)
                 enemySpawner.SpawnNightEnemies();
+        }
+        else if (IsPlayerInOuterHub())
+        {
+            Debug.Log("Player nell'hub esterno - nessun spawn di nemici notturni");
         }
     }
 
@@ -397,11 +433,80 @@ public class MazeManager : MonoBehaviour
         if (isChangingMaze) return;
         isChangingMaze = true;
 
-        ShowDawnWarnings();
-        StartCoroutine(HandleMazeChangeWithWarnings());
+        // NUOVO: Gestione differente per player nell'hub esterno
+        if (IsPlayerInOuterHub())
+        {
+            // Se il player è nell'hub esterno, non mostrare dawn warning e non teletrasportare
+            Debug.Log("Player nell'hub esterno - cambio maze senza warning e trasporto");
+            StartCoroutine(HandleMazeChangeForHubPlayer());
+        }
+        else
+        {
+            // Comportamento originale se il player è nel labirinto o hub interno
+            ShowDawnWarnings();
+            StartCoroutine(HandleMazeChangeWithWarnings());
+        }
 
         if (enemySpawner != null)
             enemySpawner.ClearAllEnemies();
+    }
+
+    // NUOVO: Gestione specifica per il cambio maze quando il player è nell'hub esterno
+    IEnumerator HandleMazeChangeForHubPlayer()
+    {
+        // Attende il delay normale per il cambio labirinto
+        yield return new WaitForSeconds(mazeChangeDelay);
+
+        // Cambia il labirinto
+        ChangeMazeTilemap();
+
+        // Attesa di 1 secondo prima di aprire le porte
+        yield return new WaitForSeconds(1f);
+
+        // Apri le porte
+        OpenMazeDoors();
+
+        Debug.Log("Cambio labirinto completato per player nell'hub esterno");
+    }
+
+    // NUOVO: Mostra dawn warning per player nell'hub
+    void ShowDawnWarningsForHubPlayer()
+    {
+        if (dawnWarningPanel != null)
+        {
+            dawnWarningPanel.SetActive(true);
+
+            // Mostra solo il maze open warning, non gli altri
+            if (dawnWarningText != null)
+                dawnWarningText.gameObject.SetActive(false);
+            if (toHubWarningText != null)
+                toHubWarningText.gameObject.SetActive(false);
+            if (mazeOpenWarningText != null)
+                mazeOpenWarningText.gameObject.SetActive(true);
+
+            Debug.Log("Mostro maze open warning per player nell'hub");
+
+            // Nascondi il warning dopo 3 secondi
+            StartCoroutine(HideMazeOpenWarningForHubPlayer());
+        }
+    }
+
+    // NUOVO: Nascondi il maze open warning per player nell'hub
+    IEnumerator HideMazeOpenWarningForHubPlayer()
+    {
+        yield return new WaitForSeconds(3f);
+
+        if (mazeOpenWarningText != null)
+        {
+            mazeOpenWarningText.gameObject.SetActive(false);
+            Debug.Log("Maze open warning nascosto per player nell'hub");
+        }
+
+        if (dawnWarningPanel != null)
+        {
+            dawnWarningPanel.SetActive(false);
+            Debug.Log("Dawn warning panel disattivato per player nell'hub");
+        }
     }
 
     IEnumerator HandleSunsetToNightTransition()
@@ -417,15 +522,65 @@ public class MazeManager : MonoBehaviour
         // Attende un momento per evitare conflitti
         yield return new WaitForSeconds(0.3f);
 
-        // Se il player è nell'hub, attiva il warning panel e assicurati che i testi del tramonto siano nascosti
-        if (playerInHub && warningPanel != null && !warningPanel.activeInHierarchy)
+        // NUOVO: Gestione differente per player nell'hub esterno
+        if (IsPlayerInOuterHub())
         {
-            warningPanel.SetActive(true);
-            MakeWarningPanelTransparent(); // Inizia trasparente
-            HideSunsetWarningTexts(); // Assicurati che i testi del tramonto siano nascosti
+            // Per player nell'hub esterno, attiva il warning panel trasparente
+            if (warningPanel != null && !warningPanel.activeInHierarchy)
+            {
+                warningPanel.SetActive(true);
+                MakeWarningPanelTransparent();
+                HideSunsetWarningTexts();
+            }
+            StartCoroutine(ShowMazeClosedWarningsForHubPlayer());
+        }
+        else
+        {
+            // Comportamento originale per player nel labirinto o hub interno
+            if (playerInHub && warningPanel != null && !warningPanel.activeInHierarchy)
+            {
+                warningPanel.SetActive(true);
+                MakeWarningPanelTransparent();
+                HideSunsetWarningTexts();
+            }
+            StartCoroutine(ShowMazeClosedWarnings());
+        }
+    }
+
+    // NUOVO: Mostra maze closed warnings per player nell'hub (senza good luck)
+    IEnumerator ShowMazeClosedWarningsForHubPlayer()
+    {
+        // Assicurati che tutti i testi del tramonto siano nascosti
+        HideSunsetWarningTexts();
+
+        // Mostra solo il warning di chiusura, NON il good luck
+        if (mazeClosedWarningText != null)
+        {
+            mazeClosedWarningText.gameObject.SetActive(true);
+            Debug.Log("Mostro warning: labirinto chiuso (player nell'hub)");
         }
 
-        StartCoroutine(ShowMazeClosedWarnings());
+        // Non mostrare good luck per player nell'hub
+        if (goodLuckText != null)
+        {
+            goodLuckText.gameObject.SetActive(false);
+        }
+
+        yield return new WaitForSeconds(2f);
+
+        // Nasconde il warning dopo 2 secondi
+        if (mazeClosedWarningText != null)
+        {
+            mazeClosedWarningText.gameObject.SetActive(false);
+            Debug.Log("Warning labirinto chiuso nascosto (player nell'hub)");
+        }
+
+        // Disattiva il warning panel
+        if (warningPanel != null)
+        {
+            warningPanel.SetActive(false);
+            Debug.Log("Warning panel disattivato per player nell'hub");
+        }
     }
 
     IEnumerator HandleMazeChangeWithWarnings()

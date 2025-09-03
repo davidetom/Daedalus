@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class HubController : MonoBehaviour
+public class OuterHubController : MonoBehaviour
 {
     [Header("Riferimenti Oggetti Figli")]
     [SerializeField] private Collider2D enterPoint;
@@ -155,15 +155,6 @@ public class HubController : MonoBehaviour
         }
     }
 
-    void Update()
-    {
-        // Controlla input per entrare nell'hub
-        if (isPlayerInEnterPoint && Input.GetKeyDown(KeyCode.E))
-        {
-            EnterHub();
-        }
-    }
-
     public void OnPlayerEnterArea()
     {
         isPlayerInEnterPoint = true;
@@ -228,7 +219,7 @@ public class HubController : MonoBehaviour
         isAnimating = false;
     }
 
-    private void EnterHub()
+    public void EnterHub()
     {
         if (enableDebug)
             Debug.Log("Player sta entrando nell'hub");
