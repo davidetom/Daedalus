@@ -7,6 +7,8 @@ TagManager:
   - Enemy
   - Coin
   - Tilemap
+  - Building
+  - Enterpoint
   layers:
   - Default
   - TransparentFX
@@ -47,8 +49,14 @@ TagManager:
   - name: Background
     uniqueID: 3021243839
     locked: 0
+  - name: Visuals
+    uniqueID: 2694909005
+    locked: 0
   - name: Player
     uniqueID: 671611815
+    locked: 0
+  - name: Prespective
+    uniqueID: 2802644783
     locked: 0
   m_RenderingLayers:
   - Default

@@ -3486,10 +3486,10 @@ TextureImporter:
       name: Overworld_7
       rect:
         serializedVersion: 2
-        x: 624
-        y: 560
-        width: 16
-        height: 16
+        x: 96
+        y: 544
+        width: 80
+        height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -6968,7 +6968,7 @@ TextureImporter:
         height: 80
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
+      border: {x: 0, y: 48, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []

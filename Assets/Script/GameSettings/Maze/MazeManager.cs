@@ -43,7 +43,7 @@ public class MazeManager : MonoBehaviour
     public GameObject[] uiElementsToDisable;
 
     // Stato interno
-    private bool playerInHub = true;
+    public bool playerInHub = true;
     private bool mazeDoorsOpen = true;
     private bool hasChosenToStay = false;
     private int currentMazeNumber = 1;

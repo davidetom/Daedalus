@@ -268,6 +268,20 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+        // NUOVO: Verifica se c'è un edificio (Building) in quella posizione
+        Collider2D[] buildingColliders = Physics2D.OverlapPointAll(targetPos);
+        foreach (Collider2D collider in buildingColliders)
+        {
+            if (collider.CompareTag("Building"))
+            {
+                if (enableDebug)
+                {
+                    Debug.Log($"Movimento bloccato: edificio rilevato in {targetPos}");
+                }
+                return false;
+            }
+        }
+
         return true;
     }
 
