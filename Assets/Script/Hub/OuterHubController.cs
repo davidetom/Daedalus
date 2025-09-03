@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class HubController : MonoBehaviour
 {
@@ -15,12 +14,19 @@ public class HubController : MonoBehaviour
     private bool isPlayerInEnterPoint = false;
     private bool isAnimating = false;
 
-    [Header("Scene Management")]
-    [SerializeField] private string hubInteriorSceneName = "HubInterior"; // Nome della scena interna dell'hub
-    
     [Header("Riferimenti Sistema")]
     [SerializeField] private PlayerController playerController;
     [SerializeField] private DayNightCycleManager dayNightManager;
+    public GameObject healthBar;
+
+    [Header("Teleportation")]
+    [SerializeField] private Vector3 hubSpawnPosition = new Vector3(406.5f, 153.7f, 0f);
+    [SerializeField] private Vector3 exitSpawnPosition; // Posizione di ritorno nel labirinto
+
+    [Header("Camera Management")]
+    [SerializeField] private Camera mazeCamera;
+    [SerializeField] private Camera hubCamera;
+    private bool playerInHub = false;
 
     [Header("Debug")]
     [SerializeField] private bool enableDebug = false;
@@ -53,7 +59,7 @@ public class HubController : MonoBehaviour
 
         if (doorIndicator == null)
         {
-            Transform doorIndicatorTransform = transform.Find("DoorIndicator");
+            Transform doorIndicatorTransform = transform.Find("OuterDoorIndicator");
             if (doorIndicatorTransform != null)
             {
                 doorIndicator = doorIndicatorTransform.gameObject;
@@ -79,6 +85,33 @@ public class HubController : MonoBehaviour
             dayNightManager = Object.FindFirstObjectByType<DayNightCycleManager>();
         }
 
+        // NUOVO: Trova le telecamere automaticamente se non assegnate
+        if (mazeCamera == null)
+        {
+            GameObject mazeCamObj = GameObject.Find("MazeCamera");
+            if (mazeCamObj != null)
+            {
+                mazeCamera = mazeCamObj.GetComponent<Camera>();
+            }
+            else
+            {
+                Debug.LogWarning("MazeCamera non trovata! Assegnala manualmente nell'inspector.");
+            }
+        }
+
+        if (hubCamera == null)
+        {
+            GameObject hubCamObj = GameObject.Find("HubCamera");
+            if (hubCamObj != null)
+            {
+                hubCamera = hubCamObj.GetComponent<Camera>();
+            }
+            else
+            {
+                Debug.LogWarning("HubCamera non trovata! Assegnala manualmente nell'inspector.");
+            }
+        }
+
         // Verifica che l'EnterPoint sia configurato come trigger
         if (enterPoint != null && !enterPoint.isTrigger)
         {
@@ -94,6 +127,32 @@ public class HubController : MonoBehaviour
             originalIndicatorPosition = doorIndicator.transform.localPosition;
             doorIndicator.SetActive(false); // Inizialmente disattivo
         }
+
+        // NUOVO: Salva la posizione di uscita (posizione attuale dell'hub)
+        exitSpawnPosition = new Vector3(155.5f, 151.7f, 0f);
+
+        // NUOVO: Setup iniziale delle telecamere
+        SetupCameras();
+    }
+
+    private void SetupCameras()
+    {
+        if (mazeCamera != null && hubCamera != null)
+        {
+            // All'inizio il player è nel labirinto
+            mazeCamera.gameObject.SetActive(true);
+            hubCamera.gameObject.SetActive(false);
+            playerInHub = false;
+            
+            if (enableDebug)
+            {
+                Debug.Log("Setup telecamere completato - MazeCamera attiva");
+            }
+        }
+        else
+        {
+            Debug.LogError("Una o entrambe le telecamere non sono assegnate!");
+        }
     }
 
     void Update()
@@ -105,32 +164,7 @@ public class HubController : MonoBehaviour
         }
     }
 
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        // Nota: questo script deve essere sull'oggetto EnterPoint, non sull'Hub principale
-        // Se è sull'Hub principale, devi controllare se il collider che ha fatto trigger è l'EnterPoint
-        
-        if (other.CompareTag("Player"))
-        {
-            if (enableDebug)
-                Debug.Log("Player entrato nell'area dell'hub");
-            
-            OnPlayerEnterArea();
-        }
-    }
-
-    void OnTriggerExit2D(Collider2D other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            if (enableDebug)
-                Debug.Log("Player uscito dall'area dell'hub");
-            
-            OnPlayerExitArea();
-        }
-    }
-
-    private void OnPlayerEnterArea()
+    public void OnPlayerEnterArea()
     {
         isPlayerInEnterPoint = true;
         
@@ -153,7 +187,7 @@ public class HubController : MonoBehaviour
         }
     }
 
-    private void OnPlayerExitArea()
+    public void OnPlayerExitArea()
     {
         isPlayerInEnterPoint = false;
         
@@ -199,13 +233,11 @@ public class HubController : MonoBehaviour
         if (enableDebug)
             Debug.Log("Player sta entrando nell'hub");
 
-        // Pausa il ciclo giorno/notte
-        PauseDayNightCycle();
-        
-        // Carica la scena dell'interno dell'hub
-        LoadHubInteriorScene();
+        // Trasporta il player all'interno dell'hub
+        TeleportToHub();
     }
 
+    /*
     private void PauseDayNightCycle()
     {
         if (dayNightManager != null)
@@ -220,65 +252,102 @@ public class HubController : MonoBehaviour
             Debug.LogWarning("DayNightCycleManager non trovato! Impossibile mettere in pausa il ciclo.");
         }
     }
-
-    private void LoadHubInteriorScene()
+    */
+    
+    private void TeleportToHub()
     {
-        // Salva la posizione attuale del player e altri dati necessari
-        SavePlayerDataBeforeSceneChange();
-        
-        // Carica la scena dell'interno dell'hub
-        if (!string.IsNullOrEmpty(hubInteriorSceneName))
+        if (playerController == null)
         {
+            Debug.LogError("PlayerController non trovato!");
+            return;
+        }
+
+        if (enableDebug)
+            Debug.Log($"Teletrasportando il player all'hub: {hubSpawnPosition}");
+
+        // Usa il metodo SafeTransportTo del PlayerController
+        playerController.SafeTransportTo(hubSpawnPosition);
+
+        // NUOVO: Cambia telecamere
+        SwitchToHubCamera();
+
+        healthBar.SetActive(false);
+
+        // Segna che il player è nell'hub
+        playerInHub = true;
+
+        // Nascondi l'indicatore dopo il teletrasporto
+        OnPlayerExitArea();
+    }
+    
+    public void TeleportOutOfHub()
+    {
+        if (playerController == null)
+        {
+            Debug.LogError("PlayerController non trovato!");
+            return;
+        }
+
+        if (!playerInHub)
+        {
+            Debug.LogWarning("Il player non è nell'hub!");
+            return;
+        }
+
+        if (enableDebug)
+            Debug.Log($"Teletrasportando il player fuori dall'hub: {exitSpawnPosition}");
+
+        // Teletrasporta alla posizione di uscita
+        playerController.SafeTransportTo(exitSpawnPosition);
+
+        // Cambia alla telecamera del labirinto
+        SwitchToMazeCamera();
+
+        healthBar.SetActive(true);
+
+        // Segna che il player non è più nell'hub
+        playerInHub = false;
+    }
+
+    private void SwitchToHubCamera()
+    {
+        if (mazeCamera != null && hubCamera != null)
+        {
+            mazeCamera.gameObject.SetActive(false);
+            hubCamera.gameObject.SetActive(true);
+
             if (enableDebug)
-                Debug.Log($"Caricando scena: {hubInteriorSceneName}");
-                
-            SceneManager.LoadScene(hubInteriorSceneName);
+            {
+                Debug.Log("Switched to HubCamera");
+            }
         }
         else
         {
-            Debug.LogError("Nome della scena dell'hub interno non specificato!");
+            Debug.LogWarning("Non è possibile cambiare telecamera - riferimenti mancanti!");
         }
     }
 
-    private void SavePlayerDataBeforeSceneChange()
+    private void SwitchToMazeCamera()
     {
-        // Qui puoi salvare i dati del player che devono persistere tra le scene
-        // Ad esempio usando PlayerPrefs o un sistema di salvataggio più complesso
-        
-        if (playerController != null)
+        if (mazeCamera != null && hubCamera != null)
         {
-            // Salva posizione del player
-            Vector3 playerPos = playerController.transform.position;
-            PlayerPrefs.SetFloat("PlayerPosX", playerPos.x);
-            PlayerPrefs.SetFloat("PlayerPosY", playerPos.y);
-            PlayerPrefs.SetFloat("PlayerPosZ", playerPos.z);
-            
-            // Salva vita attuale
-            PlayerPrefs.SetFloat("PlayerHealth", playerController.GetCurrentHealth());
-            
-            // Salva stato del ciclo giorno/notte
-            if (dayNightManager != null)
-            {
-                PlayerPrefs.SetFloat("DayTime", dayNightManager.dayTime);
-                PlayerPrefs.SetInt("CurrentPhase", (int)dayNightManager.currentPhase);
-            }
+            hubCamera.gameObject.SetActive(false);
+            mazeCamera.gameObject.SetActive(true);
             
             if (enableDebug)
-                Debug.Log("Dati del player salvati prima del cambio scena");
+            {
+                Debug.Log("Switched to MazeCamera");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Non è possibile cambiare telecamera - riferimenti mancanti!");
         }
     }
 
-    // Metodo pubblico per essere chiamato dal pulsante mobile
-    public void TryEnterHub()
+    public bool IsPlayerInHub()
     {
-        if (isPlayerInEnterPoint)
-        {
-            EnterHub();
-        }
-        else if (enableDebug)
-        {
-            Debug.Log("Player non si trova nell'area di ingresso dell'hub");
-        }
+        return playerInHub;
     }
 
     // Metodi pubblici per debugging

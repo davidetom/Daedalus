@@ -12,18 +12,33 @@ public class DayNightController : MonoBehaviour
     public Gradient NightLightGradient;
 
     public Transform player;
+    
+    [Header("Hub Settings")]
+    public Vector3 defaultHubPosition = new Vector3(155f, 155f, 0f);
+    private HubController hubController;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         UpdateLight(0);
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         player = playerObj.transform;
+        
+        // Trova il HubController
+        hubController = FindFirstObjectByType<HubController>();
     }
 
     void Update()
     {
-        transform.position = player.position;
+        // Se il player è nell'hub, usa la posizione di default
+        if (hubController != null && hubController.IsPlayerInHub())
+        {
+            transform.position = defaultHubPosition;
+        }
+        else
+        {
+            // Altrimenti segui il player normalmente
+            transform.position = player.position;
+        }
     }
 
     public void UpdateLight(float ratio)

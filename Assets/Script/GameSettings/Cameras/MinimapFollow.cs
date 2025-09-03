@@ -4,19 +4,23 @@ using UnityEngine.UI;
 public class MinimapFollow : MonoBehaviour
 {
     [Header("Player Follow")]
-    public Transform player; //Player da seguire
+    public Transform player;
 
     [Header("Camera Settings")]
-    public float cameraHeight = 5f; //Altezza camera orthographic
+    public float cameraHeight = 5f;
 
     [Header("UI References")]
-    public RawImage minimapDisplay; //Rawimage che mostra la minimappa
-    public Image borderFrame; //immagine del bordo
+    public RawImage minimapDisplay;
+    public Image borderFrame;
 
     [Header("Border Customization")]
     public Color borderColor = Color.black;
     public Vector2 minimapSize = new Vector2(200, 200);
     public float borderThickness = 10f;
+    
+    [Header("Hub Settings")]
+    private HubController hubController;
+    private bool wasActiveBeforeHub = true;
 
     private Camera cam;
     private RenderTexture renderTexture;
@@ -26,19 +30,19 @@ public class MinimapFollow : MonoBehaviour
         cam = GetComponent<Camera>();
         cam.orthographic = true;
         cam.orthographicSize = cameraHeight;
-
         cam.rect = new Rect(0, 0, 1, 1);
 
-        // Aspetta un frame per assicurarsi che l'UI sia completamente inizializzata
+        // Trova il HubController
+        hubController = FindFirstObjectByType<HubController>();
+
         StartCoroutine(SetupMinimapDelayed());
     }
 
     System.Collections.IEnumerator SetupMinimapDelayed()
     {
-        // Aspetta più frame per permettere al Canvas Scaler di fare il suo lavoro
         yield return new WaitForEndOfFrame();
         yield return new WaitForEndOfFrame();
-        yield return new WaitForSeconds(0.1f); // Piccolo delay aggiuntivo
+        yield return new WaitForSeconds(0.1f);
 
         SetupMinimapRenderTexture();
         SetupBorder();
@@ -46,21 +50,16 @@ public class MinimapFollow : MonoBehaviour
 
     void SetupMinimapRenderTexture()
     {
-        // Usa le stesse dimensioni del RawImage per evitare scaling issues
         Vector2 actualSize = minimapDisplay.GetComponent<RectTransform>().sizeDelta;
-
-        // Crea la Render Texture con le dimensioni corrette
         renderTexture = new RenderTexture((int)actualSize.x, (int)actualSize.y, 16);
         renderTexture.Create();
 
-        // Assegna la Render Texture alla camera
         cam.targetTexture = renderTexture;
 
-        // Assegna la texture al RawImage UI
         if (minimapDisplay != null)
         {
             minimapDisplay.texture = renderTexture;
-            minimapDisplay.uvRect = new Rect(0, 0, 1, 1); // <-- Aggiungi questa riga
+            minimapDisplay.uvRect = new Rect(0, 0, 1, 1);
 
             Debug.Log($"Render Texture creata: {actualSize.x} x {actualSize.y}");
             Debug.Log($"RawImage size: {minimapDisplay.rectTransform.sizeDelta}");
@@ -71,31 +70,58 @@ public class MinimapFollow : MonoBehaviour
     {
         if (borderFrame != null)
         {
-            // Imposta il colore del bordo
             borderFrame.color = borderColor;
-
-            // Il bordo ha le stesse dimensioni del RawImage + spessore
             Vector2 actualMinimapSize = minimapDisplay.GetComponent<RectTransform>().sizeDelta;
             RectTransform borderRect = borderFrame.GetComponent<RectTransform>();
             borderRect.sizeDelta = actualMinimapSize + Vector2.one * borderThickness * 2;
 
-            // Assicurati che il bordo sia dietro la minimappa nell'ordine di rendering
             borderFrame.transform.SetSiblingIndex(minimapDisplay.transform.GetSiblingIndex() - 1);
         }
     }
 
+    void Update()
+    {
+        // Controlla se il player è nell'hub e gestisci la visibilità della minimappa
+        if (hubController != null)
+        {
+            bool playerInHub = hubController.IsPlayerInHub();
+            
+            if (playerInHub && minimapDisplay.gameObject.activeInHierarchy)
+            {
+                // Player appena entrato nell'hub - nascondi minimappa
+                wasActiveBeforeHub = minimapDisplay.gameObject.activeInHierarchy;
+                SetMinimapVisibility(false);
+            }
+            else if (!playerInHub && !minimapDisplay.gameObject.activeInHierarchy && wasActiveBeforeHub)
+            {
+                // Player appena uscito dall'hub - mostra minimappa
+                SetMinimapVisibility(true);
+            }
+        }
+    }
+
+    void SetMinimapVisibility(bool visible)
+    {
+        if (minimapDisplay != null)
+            minimapDisplay.gameObject.SetActive(visible);
+        
+        if (borderFrame != null)
+            borderFrame.gameObject.SetActive(visible);
+        
+        // Attiva/disattiva anche la camera per risparmiare performance
+        cam.enabled = visible;
+    }
+
     void LateUpdate()
     {
-        if (player != null)
+        if (player != null && cam.enabled)
         {
-            // Centra la minimappa sul Player
             Vector3 newPos = player.position;
-            newPos.z = -10f; // fisso per la camera 2D
+            newPos.z = -10f;
             transform.position = newPos;
         }
     }
 
-    // Metodo per cambiare il colore del bordo a runtime
     public void ChangeBorderColor(Color newColor)
     {
         borderColor = newColor;
@@ -103,7 +129,6 @@ public class MinimapFollow : MonoBehaviour
             borderFrame.color = borderColor;
     }
 
-    // Metodo per cambiare l'altezza della camera
     public void SetCameraHeight(float height)
     {
         cameraHeight = height;
@@ -112,7 +137,6 @@ public class MinimapFollow : MonoBehaviour
 
     void OnDestroy()
     {
-        // Pulisci la Render Texture quando l'oggetto viene distrutto
         if (renderTexture != null)
         {
             renderTexture.Release();

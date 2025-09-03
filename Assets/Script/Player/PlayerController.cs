@@ -16,6 +16,14 @@ public class PlayerController : MonoBehaviour
     public Tilemap tilemap;
     public TileBase muraTile;
 
+    [Header("Hub Tilemap References")]
+    public Tilemap hubBackgroundTilemap;
+    public Tilemap hubSolidObjectsBaseTilemap;
+    public Tilemap hubSolidObjectsTilemap;
+
+    [Header("Hub Controller Reference")]
+    public HubController hubController; // Per verificare se siamo nell'hub
+
     [Header("Map Reference")]
     public MapManager mapManager; // Riferimento al MapManager
     public Vector3 startPos;
@@ -92,6 +100,8 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         currentHealthPoints = maxHealthPoints;
+
+        InitializeHubTilemapReferences();
         
         // AGGIUNTO: Salva il colore originale per il feedback del danno
         if (spriteRenderer != null)
@@ -218,6 +228,11 @@ public class PlayerController : MonoBehaviour
 
     public bool IsWalkable(Vector3 targetPos)
     {
+        if (IsPlayerInHub())
+        {
+            return IsWalkableInHub(targetPos);
+        }
+
         if (mapManager != null && mapManager.wallCalculated)
         {
             Vector2Int arrayPos = mapManager.WorldToArrayCoordinates(targetPos);
@@ -284,6 +299,136 @@ public class PlayerController : MonoBehaviour
 
         return true;
     }
+    
+    private bool IsWalkableInHub(Vector3 targetPos)
+    {
+        // USA IL METODO CORRETTO DELLA TILEMAP PER LA CONVERSIONE
+        Vector3Int cellPosition = hubBackgroundTilemap.WorldToCell(targetPos);
+        
+        // Controllo 1: Deve esistere un tile sulla tilemap Background per essere camminabile
+        bool hasBackgroundTile = false;
+        if (hubBackgroundTilemap != null)
+        {
+            TileBase backgroundTile = hubBackgroundTilemap.GetTile(cellPosition);
+            hasBackgroundTile = backgroundTile != null;
+            
+            if (enableDebug)
+            {
+                Debug.Log($"Hub: Pos world {targetPos} -> Pos cella {cellPosition} -> Tile: {(backgroundTile != null ? backgroundTile.name : "NULL")}");
+            }
+        }
+        
+        if (!hasBackgroundTile)
+        {
+            if (enableDebug)
+            {
+                Debug.Log($"Hub: Nessun tile background alla cella {cellPosition} (world: {targetPos})");
+            }
+            return false;
+        }
+        
+        // Controllo 2: NON deve esserci un tile su SolidObjectsBase
+        if (hubSolidObjectsBaseTilemap != null)
+        {
+            TileBase solidBaseTile = hubSolidObjectsBaseTilemap.GetTile(cellPosition);
+            if (solidBaseTile != null)
+            {
+                if (enableDebug)
+                {
+                    Debug.Log($"Hub: Tile solido base trovato alla cella {cellPosition}");
+                }
+                return false;
+            }
+        }
+        
+        // Controllo 3: NON deve esserci un tile su SolidObjects
+        if (hubSolidObjectsTilemap != null)
+        {
+            TileBase solidTile = hubSolidObjectsTilemap.GetTile(cellPosition);
+            if (solidTile != null)
+            {
+                if (enableDebug)
+                {
+                    Debug.Log($"Hub: Tile solido trovato alla cella {cellPosition}");
+                }
+                return false;
+            }
+        }
+        
+        if (enableDebug)
+        {
+            Debug.Log($"Hub: Posizione {targetPos} (cella {cellPosition}) è camminabile");
+        }
+        
+        return true;
+    }
+
+    private bool IsPlayerInHub()
+    {
+        // Metodo 1: Usa HubController se disponibile
+        if (hubController != null)
+        {
+            return hubController.IsPlayerInHub();
+        }
+        
+        // Metodo 2: Fallback - controlla coordinate
+        Vector3 hubCenter = new Vector3(405f, 160f, 0f);
+        float distanceFromHub = Vector3.Distance(transform.position, hubCenter);
+        return distanceFromHub < 20f; // Raggio arbitrario
+    }
+
+    void InitializeHubTilemapReferences()
+    {
+        // Trova automaticamente le tilemap dell'hub se non assegnate
+        if (hubBackgroundTilemap == null)
+        {
+            GameObject backgroundObj = GameObject.Find("BackGround");
+            if (backgroundObj != null)
+            {
+                hubBackgroundTilemap = backgroundObj.GetComponent<Tilemap>();
+                if (enableDebug && hubBackgroundTilemap != null)
+                {
+                    Debug.Log("Hub BackGround tilemap trovata automaticamente");
+                }
+            }
+        }
+        
+        if (hubSolidObjectsBaseTilemap == null)
+        {
+            GameObject solidBaseObj = GameObject.Find("SolidObjectsBase");
+            if (solidBaseObj != null)
+            {
+                hubSolidObjectsBaseTilemap = solidBaseObj.GetComponent<Tilemap>();
+                if (enableDebug && hubSolidObjectsBaseTilemap != null)
+                {
+                    Debug.Log("Hub SolidObjectsBase tilemap trovata automaticamente");
+                }
+            }
+        }
+        
+        if (hubSolidObjectsTilemap == null)
+        {
+            GameObject solidObj = GameObject.Find("SolidObjects");
+            if (solidObj != null)
+            {
+                hubSolidObjectsTilemap = solidObj.GetComponent<Tilemap>();
+                if (enableDebug && hubSolidObjectsTilemap != null)
+                {
+                    Debug.Log("Hub SolidObjects tilemap trovata automaticamente");
+                }
+            }
+        }
+        
+        // Trova HubController se non assegnato
+        if (hubController == null)
+        {
+            hubController = FindFirstObjectByType<HubController>();
+            if (enableDebug && hubController != null)
+            {
+                Debug.Log("HubController trovato automaticamente");
+            }
+        }
+    }
 
     public void HandleAttack()
     {
@@ -295,7 +440,7 @@ public class PlayerController : MonoBehaviour
 
             // Rileva nemici prima di iniziare l'attacco
             List<GameObject> enemiesInRange = DetectEnemiesTileByTile(lastDirection);
-            
+
             StartCoroutine(Attack(enemiesInRange));
         }
 
@@ -991,6 +1136,7 @@ public class PlayerController : MonoBehaviour
     public bool IsAlive() => !isDead;
     public bool IsTakingDamage() => takingDamage;
     public bool IsInvincible() => isInvincible;
+    public bool InHub => IsPlayerInHub();
 
     // ----------------- Metodi per pulsanti mobile -----------------
     public void MuoviSu() => mobileInput = Vector2.up;
