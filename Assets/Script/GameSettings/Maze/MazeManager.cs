@@ -37,7 +37,7 @@ public class MazeManager : MonoBehaviour
     public GameObject labirintoObject;
     public int maxMazeCount = 4;
     public float mazeChangeDelay = 3f;
-    public Vector2 hubSpawnPosition = new Vector2(155.5f, 151.7f);
+    public Vector2 hubSpawnPosition = new Vector2(155.5f, 149.7f);
 
     [Header("Input Management")]
     public PlayerController playerController;

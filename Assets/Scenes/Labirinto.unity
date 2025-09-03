@@ -10053,6 +10053,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2120444318}
     - target: {fileID: 3894990245822049790, guid: e62c5b2bffbee4dc698712eedb9def82, type: 3}
+      propertyPath: startPos.y
+      value: 149.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 3894990245822049790, guid: e62c5b2bffbee4dc698712eedb9def82, type: 3}
       propertyPath: enableDebug
       value: 0
       objectReference: {fileID: 0}
