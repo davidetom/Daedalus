@@ -4220,7 +4220,6 @@ MonoBehaviour:
   dayCount: 1
   dayTime: 0.25
   isRunning: 1
-  startFromDay: 1
   currentPhase: 1
   phaseTimer: 0
   totalCycleDuration: 0
@@ -6823,6 +6822,7 @@ MonoBehaviour:
   spawnInVisibleCorridors: 1
   mapManager: {fileID: 2120444318}
   player: {fileID: 203791072}
+  gemSpawner: {fileID: 2010772967}
 --- !u!4 &874517013
 Transform:
   m_ObjectHideFlags: 0
@@ -10224,30 +10224,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1f2d602396fe4ab1ab74e020d4a2ef8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enableDebug: 0
+  enableDebug: 1
   mapManager: {fileID: 2120444318}
   dayNightManager: {fileID: 482417671}
   playerController: {fileID: 203791074}
+  coinGenerator: {fileID: 874517012}
   yellowGemPrefab: {fileID: 4836867882308516279, guid: 5a667824764ae44019a314ca35a2d688, type: 3}
   blueGemPrefab: {fileID: 3451288754770322987, guid: b3fdaccb31b494ab5ba181f4748ad903, type: 3}
   greenGemPrefab: {fileID: 2081119407903402551, guid: 89e417930e88d484a8cc9fbe07e1b788, type: 3}
   redGemPrefab: {fileID: 6030542298479483573, guid: a56d1057133764081a7aab58cbde23d5, type: 3}
   grayGemPrefab: {fileID: 6033236750981211623, guid: edd53e1061e55481da906c77cdfb1584, type: 3}
   labyrinthCenter: {x: 155, y: 155, z: 0}
-  yellowGemMinDistance: 30
-  yellowGemMaxDistance: 85
-  maxYellowGemsOnMap: 100
-  yellowGemSpawnDelay: 5
+  yellowGemMinDistance: 25
+  yellowGemMaxDistance: 79
+  maxYellowGemsOnMap: 50
+  yellowGemSpawnDelay: 0
   blueGemMinDistance: 80
-  blueGemMaxDistance: 125
-  maxBlueGemsOnMap: 100
+  blueGemMaxDistance: 119
+  maxBlueGemsOnMap: 120
   blueGemSpawnDelay: 3
   greenGemDropChance: 1
   deathsRequiredForRedGem: 1
   redGemSpawnPosition: {x: 411, y: 159, z: 0}
-  grayGemMinDistance: 130
+  grayGemMinDistance: 120
   grayGemMaxDistance: 150
   fogVisibilityUnlocked: 1
+  maxGrayGemsOnMap: 100
   spawnCheckInterval: 1
   maxSpawnAttempts: 50
 --- !u!1 &2050730943

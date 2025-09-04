@@ -21,6 +21,7 @@ public class DayNightCycleManager : MonoBehaviour
     [Range(0f, 1f)]
     public float dayTime = 0.25f; // Inizia dal giorno (0.25)
     public bool isRunning = true;
+    [System.NonSerialized] // AGGIUNTO: Evita serializzazione ma mantiene pubblico
     public bool startFromDay = true; // Inizia dal giorno al primo avvio
 
     // Enumerazione delle fasi del giorno basata sui tuoi valori
@@ -118,7 +119,7 @@ public class DayNightCycleManager : MonoBehaviour
         if (startFromDay && currentPhase == DayPhase.Day)
         {
             events.OnNewDay?.Invoke(); // Invoca evento nuovo giorno
-            events.OnDayStart?.Invoke();
+            events.OnDayStart?.Invoke(); // AGGIUNTO: Invoca anche OnDayStart per far spawnare le gemme gialle
             yield return StartCoroutine(RunPhase(DayPhase.Day, dayDuration, DAY_START, SUNSET_START));
             startFromDay = false; // Evita di saltare l'alba nei cicli successivi
         }

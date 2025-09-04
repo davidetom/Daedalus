@@ -15,5 +15,29 @@ public class Gem : Collectible
             case GemColor.Blood: player.hasBloodGem = true; break;
             case GemColor.Fog: player.hasFogGem = true; break;
         }
+
+        Destroy(gameObject);
+    }
+
+    public override void NotifyOnPick(GemSpawner gemSpawner)
+    {
+        // MODIFICATO: Usa le coordinate array corrette
+        Vector2Int arrayPos = mapManager != null ?
+            mapManager.WorldToArrayCoordinates(transform.position) :
+            new Vector2Int((int)transform.position.x, (int)transform.position.y);
+
+        GemSpawner.UnregisterOccupiedPosition(arrayPos);
+
+        if (gemSpawner != null)
+        {
+            switch (gemColor)
+            {
+                case GemColor.Light: gemSpawner.OnYellowGemCollected(); break;
+                case GemColor.Night: gemSpawner.OnBlueGemCollected(); break;
+                case GemColor.Zombie: gemSpawner.OnGreenGemCollected(); break;
+                case GemColor.Blood: gemSpawner.OnRedGemCollected(); break;
+                case GemColor.Fog: gemSpawner.OnGrayGemCollected(); break;
+            }
+        }
     }
 }

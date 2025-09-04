@@ -19,6 +19,9 @@ public class DynamicCoinGenerator : MonoBehaviour
     public MapManager mapManager;
     public GameObject player;
     private Transform playerTransform;
+
+    [Header("Collision Detection")]
+    public GemSpawner gemSpawner; // Reference al gem spawner
     
     // Dictionary per tracciare le monete attive
     private Dictionary<Vector2Int, GameObject> activeCoins = new Dictionary<Vector2Int, GameObject>();
@@ -37,6 +40,9 @@ public class DynamicCoinGenerator : MonoBehaviour
         {
             player = GameObject.FindGameObjectWithTag("Player");
         }
+
+        if (gemSpawner == null)
+            gemSpawner = FindFirstObjectByType<GemSpawner>();
 
         playerTransform = player.transform;
         
@@ -94,6 +100,9 @@ public class DynamicCoinGenerator : MonoBehaviour
         {
             if (activeCoins.TryGetValue(posToRemove, out GameObject coinToDestroy))
             {
+                // NUOVO: Libera la posizione prima di distruggere
+                GemSpawner.UnregisterOccupiedPosition(posToRemove);
+                
                 Destroy(coinToDestroy);
                 activeCoins.Remove(posToRemove);
             }
@@ -205,6 +214,10 @@ public class DynamicCoinGenerator : MonoBehaviour
         if (IsPositionVisibleToPlayer(arrayPos))
             return false;
         
+        // NUOVO: La posizione deve essere libera (no collision con gemme)
+        if (!GemSpawner.IsPositionFree(arrayPos))
+            return false;
+        
         return true;
     }
     
@@ -225,6 +238,10 @@ public class DynamicCoinGenerator : MonoBehaviour
         
         // Controlla se è abbastanza vicino all'area visibile
         if (!IsNearVisibleArea(arrayPos))
+            return false;
+        
+        // NUOVO: La posizione deve essere libera (no collision con gemme)
+        if (!GemSpawner.IsPositionFree(arrayPos))
             return false;
         
         return true;
@@ -342,6 +359,13 @@ public class DynamicCoinGenerator : MonoBehaviour
             return;
         }
         
+        // NUOVO: Controllo finale per essere sicuri che la posizione sia libera
+        if (!GemSpawner.IsPositionFree(arrayPos))
+        {
+            Debug.LogWarning($"Tentativo di spawnare moneta in posizione occupata: {arrayPos}");
+            return;
+        }
+        
         // Converti coordinate array in posizione world
         Vector3Int cellPos = new Vector3Int(
             arrayPos.x + mapManager.MapOffset.x,
@@ -358,6 +382,9 @@ public class DynamicCoinGenerator : MonoBehaviour
         
         // Aggiungi alla dictionary
         activeCoins[arrayPos] = newCoin;
+        
+        // NUOVO: Registra la posizione come occupata
+        GemSpawner.RegisterOccupiedPosition(arrayPos, newCoin);
     }
     
     // Metodo pubblico per forzare un aggiornamento (utile per debug)
@@ -377,12 +404,37 @@ public class DynamicCoinGenerator : MonoBehaviour
         {
             if (coinPair.Value != null)
             {
+                // NUOVO: Libera la posizione prima di distruggere
+                GemSpawner.UnregisterOccupiedPosition(coinPair.Key);
+                
                 Destroy(coinPair.Value);
             }
         }
         activeCoins.Clear();
     }
-    
+
+    public void SyncWithGemSystem()
+    {
+        // Registra tutte le monete esistenti nel sistema di collision detection
+        foreach (var coinPair in activeCoins)
+        {
+            if (coinPair.Value != null)
+            {
+                GemSpawner.RegisterOccupiedPosition(coinPair.Key, coinPair.Value);
+            }
+        }
+    }
+
+    public void OnCoinCollected(Vector2Int position)
+    {
+        // Libera la posizione quando una moneta viene raccolta
+        if (activeCoins.ContainsKey(position))
+        {
+            GemSpawner.UnregisterOccupiedPosition(position);
+            activeCoins.Remove(position);
+        }
+    }
+
     // Metodi di debug/statistiche
     public int GetActiveCoinCount()
     {
@@ -401,7 +453,7 @@ public class DynamicCoinGenerator : MonoBehaviour
         }
         return count;
     }
-    
+
     void OnDrawGizmosSelected()
     {
         // Visualizza le monete attive nell'editor
@@ -411,33 +463,51 @@ public class DynamicCoinGenerator : MonoBehaviour
             {
                 Vector2Int coinPos = coinPair.Key;
                 TileType tileType = mapManager.GetTileTypeAtArrayPos(coinPos);
-                
-                // Colore diverso in base al tipo di tile
-                switch (tileType)
+
+                // Colore diverso in base al tipo di tile e alle collision
+                bool isBlocked = !GemSpawner.IsPositionFree(coinPos);
+
+                if (isBlocked)
                 {
-                    case TileType.Corridor:
-                        Gizmos.color = Color.yellow; // Monete su corridoi - OK
-                        break;
-                    case TileType.Grass:
-                        Gizmos.color = Color.red; // Monete su prato - ERRORE!
-                        break;
-                    default:
-                        Gizmos.color = Color.magenta; // Altri tipi - da verificare
-                        break;
+                    Gizmos.color = Color.magenta; // Posizione bloccata da gemma
                 }
-                
+                else
+                {
+                    switch (tileType)
+                    {
+                        case TileType.Corridor:
+                            Gizmos.color = Color.yellow; // Monete su corridoi - OK
+                            break;
+                        case TileType.Grass:
+                            Gizmos.color = Color.red; // Monete su prato - ERRORE!
+                            break;
+                        default:
+                            Gizmos.color = Color.white; // Altri tipi - da verificare
+                            break;
+                    }
+                }
+
                 Vector3Int cellPos = new Vector3Int(
                     coinPos.x + mapManager.MapOffset.x,
                     coinPos.y + mapManager.MapOffset.y,
                     0
                 );
-                
+
                 if (mapManager.tilemap != null)
                 {
                     Vector3 worldPos = mapManager.tilemap.CellToWorld(cellPos);
                     worldPos += new Vector3(0.5f, 0.5f, 0);
-                    Gizmos.DrawWireCube(worldPos, Vector3.one * 0.8f);
-                    
+
+                    if (isBlocked)
+                    {
+                        // Disegna un cubo solido per posizioni bloccate
+                        Gizmos.DrawCube(worldPos, Vector3.one * 0.8f);
+                    }
+                    else
+                    {
+                        Gizmos.DrawWireCube(worldPos, Vector3.one * 0.8f);
+                    }
+
                     // Mostra anche la distanza dal player
                     int distance = mapManager.Distances[coinPos.x, coinPos.y];
                     if (distance > 0)
@@ -448,36 +518,6 @@ public class DynamicCoinGenerator : MonoBehaviour
                     }
                 }
             }
-        }
-        
-        // Visualizza il campo visivo della camera (se disponibile)
-        if (playerCamera != null && mapManager != null)
-        {
-            Gizmos.color = Color.blue;
-            
-            // Calcola i bounds del campo visivo a livello della tilemap
-            if (playerCamera.orthographic)
-            {
-                float height = playerCamera.orthographicSize * 2f;
-                float width = height * playerCamera.aspect;
-                
-                Vector3 cameraPos = playerCamera.transform.position;
-                cameraPos.z = 0;
-                
-                // Buffer visivo
-                width += visibilityBuffer;
-                height += visibilityBuffer;
-                
-                Gizmos.DrawWireCube(cameraPos, new Vector3(width, height, 0));
-            }
-        }
-        
-        // Visualizza statistiche nell'editor
-        if (Application.isPlaying)
-        {
-            int totalCoins = GetActiveCoinCount();
-            int corridorCoins = GetCoinsInCorridors();
-            Debug.Log($"[CoinGenerator] Monete totali: {totalCoins}, Su corridoi: {corridorCoins}, Su altri tile: {totalCoins - corridorCoins}");
         }
     }
 }
