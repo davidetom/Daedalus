@@ -64,6 +64,55 @@ public class InventoryManager : MonoBehaviour
         return null;
     }
 
+    public bool HasItem(Item item)
+    {
+
+        for (int i = 0; i < inventorySlots.Length; i++)
+        {
+            InventorySlot slot = inventorySlots[i];
+            InventoryItem itemInSlot = slot.GetComponentInChildren<InventoryItem>();
+
+            if (itemInSlot == null || itemInSlot.item == null)
+            {
+                continue;
+            }
+            if (item == itemInSlot.item)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void RemoveItem(Item item)
+    {
+        if (item == null) return;
+
+        for (int i = 0; i < inventorySlots.Length; i++)
+        {
+            InventorySlot slot = inventorySlots[i];
+            InventoryItem itemInSlot = slot.GetComponentInChildren<InventoryItem>();
+
+            if (itemInSlot == null || itemInSlot.item == null)
+                continue;
+
+            if (item == itemInSlot.item)
+            {
+                if (itemInSlot.count > 1)
+                {
+                    itemInSlot.count--;
+                    itemInSlot.RefreshCount();
+                }
+                else
+                {
+                    Destroy(itemInSlot.gameObject);
+                }
+
+                return;
+            }
+        }
+    }
+
     #region SAVE AND LOAD
 
     public InventoryData SaveInventory()

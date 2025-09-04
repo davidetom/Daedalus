@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -42,9 +43,10 @@ public class DayNightCycleManager : MonoBehaviour
     private const float SUNSET_START = 0.75f;    // 0.75  
     private const float NIGHT_START = 5f / 6f;     // 0.833
 
-    //PER CAMBIARE COLORE BORDO MINIMAPPA DURANTE LA NOTTE
+    //PER CAMBIARE COLORE BORDO MINIMAPPA E MONETE DURANTE LA NOTTE PER MAGGIORE VISIBILITA'
     [Header("UI Changer")]
     public MinimapFollow minimapBorder;
+    public TextMeshProUGUI coinText;
 
     // Eventi per le varie fasi
     [System.Serializable]
@@ -130,6 +132,7 @@ public class DayNightCycleManager : MonoBehaviour
 
             // FASE NOTTE
             minimapBorder.ChangeBorderColor(Color.white);
+            coinText.color = Color.white;
             currentPhase = DayPhase.Night;
             events.OnNightStart?.Invoke();
             yield return StartCoroutine(RunPhase(DayPhase.Night, nightDuration, NIGHT_START, DAWN_START));
@@ -144,6 +147,7 @@ public class DayNightCycleManager : MonoBehaviour
 
             // FASE GIORNO
             minimapBorder.ChangeBorderColor(Color.black);
+            coinText.color = Color.black;
             currentPhase = DayPhase.Day;
             events.OnNewDay?.Invoke(); // Invoca evento nuovo giorno
             events.OnDayStart?.Invoke();

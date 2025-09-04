@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class OuterHubController : MonoBehaviour
 {
@@ -18,6 +19,8 @@ public class OuterHubController : MonoBehaviour
     [SerializeField] private PlayerController playerController;
     [SerializeField] private DayNightCycleManager dayNightManager;
     public GameObject healthBar;
+    public Button shopButton;
+    public GameObject minimap;
 
     [Header("Teleportation")]
     [SerializeField] private Vector3 hubSpawnPosition = new Vector3(406.5f, 153.7f, 0f);
@@ -269,6 +272,12 @@ public class OuterHubController : MonoBehaviour
 
         // Nascondi l'indicatore dopo il teletrasporto
         OnPlayerExitArea();
+
+        //Accendi il bottone dello shop
+        shopButton.gameObject.SetActive(true);
+
+        //Disattiva la minimappa
+        minimap.SetActive(false);
     }
     
     public void TeleportOutOfHub()
@@ -298,6 +307,12 @@ public class OuterHubController : MonoBehaviour
 
         // Segna che il player non è più nell'hub
         playerInHub = false;
+
+        //Disattiva lo shop fuori da casa
+        shopButton.gameObject.SetActive(false);
+
+        //Riattiva la minimappa
+        minimap.SetActive(true);
     }
 
     private void SwitchToHubCamera()
@@ -373,4 +388,25 @@ public class OuterHubController : MonoBehaviour
         if (bobHeight <= 0)
             bobHeight = 0.3f;
     }
+
+    #region SAVE AND LOAD
+
+    public void Save(ref HubData data)
+    {
+        data.playerInHubData = playerInHub;
+    }
+
+    public void Load(HubData data)
+    {
+        playerInHub = data.playerInHubData;
+    }
+
+
+    #endregion
+}
+
+[System.Serializable]
+public struct HubData
+{
+    public bool playerInHubData;
 }

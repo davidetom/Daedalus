@@ -21,6 +21,9 @@ public class SaveSystem
         public CurrencyData currencyData;
         public InventoryData inventoryData;
         public DayNightSaveData dayNightSaveData;
+        public ShopData shopData;
+        //PROVA SAVE SYSTEM PER HUB
+        public HubData hubData;
         public int sceneIndex;
     }
 
@@ -40,7 +43,7 @@ public class SaveSystem
         return File.Exists(SaveFileName());
     }
 
-    public static void Save(PlayerController player, CoinUIManager coin, InventoryManager inventory, DayNightCycleManager dayNight)
+    public static void Save(PlayerController player, CoinUIManager coin, InventoryManager inventory, DayNightCycleManager dayNight, ShopManager shop, OuterHubController hub)
     {
         try
         {
@@ -48,6 +51,22 @@ public class SaveSystem
             coin.Save(ref _saveData.currencyData);
             _saveData.inventoryData = inventory.SaveInventory();
             dayNight.Save(ref _saveData.dayNightSaveData);
+            hub.Save(ref _saveData.hubData);
+
+            if (shop != null)
+            {
+                shop.Save(ref _saveData.shopData);
+                Debug.Log("Dati shop salvati");
+            }
+            else
+            {
+                ShopManager foundShop = GameObject.FindFirstObjectByType<ShopManager>();
+                if (foundShop != null)
+                {
+                    foundShop.Save(ref _saveData.shopData);
+                    Debug.Log("ShopManager trovato automaticamente e salvato");
+                }
+            }
             _saveData.sceneIndex = SceneManager.GetActiveScene().buildIndex;
 
             string json = JsonUtility.ToJson(_saveData, true);
@@ -58,13 +77,6 @@ public class SaveSystem
 
             //Salvataggio su Firebase
             SaveToFirebase(json);
-
-            /**
-            Debug.Log("=== SALVATAGGIO COMPLETATO ===");
-            Debug.Log("Scena: " + _saveData.sceneIndex);
-            Debug.Log("Monete salvate: " + _saveData.currencyData.CurrencyAmount);
-            Debug.Log("File salvato in: " + SaveFileName());
-            **/
         }
         catch (System.Exception e)
         {
@@ -133,18 +145,22 @@ public class SaveSystem
         PlayerController player = GameObject.FindFirstObjectByType<PlayerController>();
         InventoryManager inventory = GameObject.FindFirstObjectByType<InventoryManager>();
         DayNightCycleManager dayNight = GameObject.FindFirstObjectByType<DayNightCycleManager>();
+        ShopManager shop = GameObject.FindFirstObjectByType<ShopManager>();
+        OuterHubController hub = GameObject.FindFirstObjectByType<OuterHubController>();
 
         Debug.Log("=== TENTATIVO CARICAMENTO COMPONENTI ===");
         Debug.Log("CoinUIManager trovato: " + (coin != null));
         Debug.Log("PlayerController trovato: " + (player != null));
         Debug.Log("DayNightCycleManager trovato: " + (dayNight != null));
 
-        if (player != null && coin != null && dayNight != null)
+        if (player != null && coin != null && dayNight != null && shop != null)
         {
             player.Load(_saveData.playerData);
             coin.Load(_saveData.currencyData);
             inventory.LoadInventory(_saveData.inventoryData);
             dayNight.Load(_saveData.dayNightSaveData);
+            shop.Load(_saveData.shopData);
+            hub.Load(_saveData.hubData);
             Debug.Log("Dati caricati in scena!");
         }
         else

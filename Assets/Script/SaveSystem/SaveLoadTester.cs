@@ -6,7 +6,8 @@ public class SaveLoadTester : MonoBehaviour
     public CoinUIManager coin;
     public InventoryManager inventory;
     public DayNightCycleManager dayNight;
-    
+    public ShopManager shop;
+    public OuterHubController hub;
     public void Load()
     {
         SaveSystem.Load();
@@ -14,6 +15,6 @@ public class SaveLoadTester : MonoBehaviour
 
     public void SaveGame()
     {
-        SaveSystem.Save(player, coin, inventory, dayNight);
+        SaveSystem.Save(player, coin, inventory, dayNight, shop, hub);
     }
 }
