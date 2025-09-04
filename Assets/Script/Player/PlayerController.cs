@@ -78,9 +78,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float currentHealthPoints;
     public bool isDead = false;
 
-    [Header("Coins and Gems")]
+    [Header("Collectibles")]
     public int maxCoinNumber = 9999;
     public int coinsPicked = 0;
+    public bool hasLightGem;
+    public bool hasNightGem;
+    public bool hasZombieGem;
+    public bool hasBloodGem;
+    public bool hasFogGem;
 
     //GAMEOVER UI
     [Header("Defeat UI")]
@@ -749,6 +754,12 @@ public class PlayerController : MonoBehaviour
 
         Debug.Log("Player morto!");
         isDead = true;
+
+        GemSpawner gemSpawner = FindFirstObjectByType<GemSpawner>();
+        if (gemSpawner != null)
+        {
+            gemSpawner.OnPlayerDeath();
+        }
         
         // NUOVO: Ferma anche l'invincibilità
         if (currentInvincibilityCoroutine != null)
@@ -1144,6 +1155,16 @@ public class PlayerController : MonoBehaviour
     public bool IsTakingDamage() => takingDamage;
     public bool IsInvincible() => isInvincible;
     public bool InHub => IsPlayerInHub();
+
+    // Metodi per accesso ai collezionabili
+    public bool HasEnoughCoins(int required) => coinsPicked >= required;
+    public void SubtractCoins(int required) => coinsPicked -= required;
+    public bool HasLightGem() => hasLightGem;
+    public bool HasNightGem() => hasNightGem;
+    public bool HasZombieGem() => hasZombieGem;
+    public bool HasBloodGem() => hasBloodGem;
+    public bool HasFogGem() => hasFogGem;
+    public void KeyPurchased() => hasLightGem = hasNightGem = hasZombieGem = hasBloodGem = hasFogGem = false;
 
     // ----------------- Metodi per pulsanti mobile -----------------
     public void MuoviSu() => mobileInput = Vector2.up;

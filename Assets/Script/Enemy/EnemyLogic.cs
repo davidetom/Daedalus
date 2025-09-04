@@ -477,6 +477,12 @@ public class EnemyLogic : MonoBehaviour
         // Disabilita il collider per evitare ulteriori interazioni
         Collider2D col = GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
+
+        GemSpawner gemSpawner = FindFirstObjectByType<GemSpawner>();
+        if (gemSpawner != null)
+        {
+            gemSpawner.TryDropGreenGem(transform.position);
+        }
         
         // Effetti di morte
         StartCoroutine(DeathSequence());

@@ -5743,6 +5743,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963051146}
   m_CullTransparentMesh: 1
+--- !u!1 &1007126014
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1007126015}
+  m_Layer: 0
+  m_Name: ==== COLLEZIONABILI ====
+  m_TagString: EditorOnly
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1007126015
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1007126014}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1051114642
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8318,6 +8349,76 @@ Tilemap:
   m_CorrespondingSourceObject: {fileID: 6539175327649081373, guid: 7ad4777d33fd66d4d85f5d270deb9170, type: 3}
   m_PrefabInstance: {fileID: 223220262}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2010772965
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2010772966}
+  - component: {fileID: 2010772967}
+  m_Layer: 0
+  m_Name: GemSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2010772966
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2010772965}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2010772967
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2010772965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1f2d602396fe4ab1ab74e020d4a2ef8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableDebug: 0
+  mapManager: {fileID: 2120444318}
+  dayNightManager: {fileID: 482417671}
+  playerController: {fileID: 203791074}
+  yellowGemPrefab: {fileID: 4836867882308516279, guid: 5a667824764ae44019a314ca35a2d688, type: 3}
+  blueGemPrefab: {fileID: 3451288754770322987, guid: b3fdaccb31b494ab5ba181f4748ad903, type: 3}
+  greenGemPrefab: {fileID: 2081119407903402551, guid: 89e417930e88d484a8cc9fbe07e1b788, type: 3}
+  redGemPrefab: {fileID: 6030542298479483573, guid: a56d1057133764081a7aab58cbde23d5, type: 3}
+  grayGemPrefab: {fileID: 6033236750981211623, guid: edd53e1061e55481da906c77cdfb1584, type: 3}
+  labyrinthCenter: {x: 155, y: 155, z: 0}
+  yellowGemMinDistance: 30
+  yellowGemMaxDistance: 85
+  maxYellowGemsOnMap: 100
+  yellowGemSpawnDelay: 5
+  blueGemMinDistance: 80
+  blueGemMaxDistance: 125
+  maxBlueGemsOnMap: 100
+  blueGemSpawnDelay: 3
+  greenGemDropChance: 1
+  deathsRequiredForRedGem: 1
+  redGemSpawnPosition: {x: 411, y: 159, z: 0}
+  grayGemMinDistance: 130
+  grayGemMaxDistance: 150
+  fogVisibilityUnlocked: 1
+  spawnCheckInterval: 1
+  maxSpawnAttempts: 50
 --- !u!1 &2050730943
 GameObject:
   m_ObjectHideFlags: 0
@@ -10209,7 +10310,6 @@ SceneRoots:
   - {fileID: 8842237526359105132}
   - {fileID: 1759522089}
   - {fileID: 881233157}
-  - {fileID: 2140587134}
   - {fileID: 1126371152}
   - {fileID: 699886253}
   - {fileID: 150888673}
@@ -10225,6 +10325,9 @@ SceneRoots:
   - {fileID: 736838688}
   - {fileID: 1723160731}
   - {fileID: 742367399}
+  - {fileID: 1007126015}
+  - {fileID: 2140587134}
+  - {fileID: 2010772966}
   - {fileID: 536992295}
   - {fileID: 719640025}
   - {fileID: 1988953591}
