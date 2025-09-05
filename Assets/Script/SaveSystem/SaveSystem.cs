@@ -198,6 +198,7 @@ public class SaveSystem
         OuterHubController hub = GameObject.FindFirstObjectByType<OuterHubController>();
         //PROVA SAVE PER DIFFICULTY
         DifficultyManager difficultyManager = GameObject.FindFirstObjectByType<DifficultyManager>();
+        GameElementsManager gameElementsManager = GameObject.FindFirstObjectByType<GameElementsManager>();
 
         Debug.Log($"=== CARICAMENTO COMPONENTI PER {GetCurrentUserId()} ===");
         Debug.Log("CoinUIManager trovato: " + (coin != null));
@@ -221,6 +222,9 @@ public class SaveSystem
 
                 yield return new WaitForEndOfFrame();
             }
+
+            gameElementsManager.ConfigureGameElements();
+
             Debug.Log($"Dati caricati in scena per utente {GetCurrentUserId()}!");
         }
         else
