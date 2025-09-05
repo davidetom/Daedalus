@@ -28,7 +28,7 @@ public class GemSpawner : MonoBehaviour
     public Item blueGem;
     public Item greenGem;
     public Item redGem;
-    public Item silverGem;
+    public Item grayGem;
     public Item Goggles;
 
     [Header("Center of Labyrinth")]
@@ -806,6 +806,7 @@ public class GemSpawner : MonoBehaviour
     public void OnYellowGemCollected()
     {
         yellowGemCollected = true;
+        inventoryManager.AddItem(yellowGem);
         DestroyAllGemsOfType(yellowGemPositions, activeYellowGems);
 
         if (enableDebug)
@@ -818,6 +819,7 @@ public class GemSpawner : MonoBehaviour
     public void OnBlueGemCollected()
     {
         blueGemCollected = true;
+        inventoryManager.AddItem(blueGem);
         DestroyAllGemsOfType(blueGemPositions, activeBlueGems);
 
         if (enableDebug)
@@ -830,6 +832,7 @@ public class GemSpawner : MonoBehaviour
     public void OnGreenGemCollected()
     {
         greenGemCollected = true;
+        inventoryManager.AddItem(greenGem);
 
         if (enableDebug)
             Debug.Log("GemSpawner: Gemma verde raccolta - non spawneranno più gemme verdi");
@@ -841,6 +844,7 @@ public class GemSpawner : MonoBehaviour
     public void OnGrayGemCollected()
     {
         grayGemCollected = true;
+        inventoryManager.AddItem(grayGem);
         DestroyAllGemsOfType(grayGemPositions, activeGrayGems);
 
         if (enableDebug)

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ExitPointLogic : MonoBehaviour
+public class BedInteractLogic : MonoBehaviour
 {
     [Header("Hub Controller")]
     public InnerHubController hub;
@@ -12,9 +12,9 @@ public class ExitPointLogic : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             if (enableDebug)
-                Debug.Log("Player entrato nell'area della porta");
+                Debug.Log("Player entrato nell'area del letto");
             
-            hub.OnPlayerEnterDoorArea();
+            hub.OnPlayerEnterBedArea();
         }
     }
 
@@ -23,9 +23,9 @@ public class ExitPointLogic : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             if (enableDebug)
-                Debug.Log("Player uscito dall'area della porta");
+                Debug.Log("Player uscito dall'area del letto");
             
-            hub.OnPlayerExitDoorArea();
+            hub.OnPlayerExitBedArea();
         }
     }
 }

@@ -1152,6 +1152,7 @@ public class PlayerController : MonoBehaviour
     public float GetMaxHealth() => maxHealthPoints;
     public float GetHealthPercentage() => currentHealthPoints / maxHealthPoints;
     public bool IsAlive() => !isDead;
+    public bool IsDead() => isDead;
     public bool IsTakingDamage() => takingDamage;
     public bool IsInvincible() => isInvincible;
     public bool InHub => IsPlayerInHub();
@@ -1178,12 +1179,19 @@ public class PlayerController : MonoBehaviour
         // Prima controlla se siamo nell'inner hub (la priorità più alta)
         if (IsPlayerInHub())                                        // se il player è nell'inner hub
         {
-            if (innerHubController != null && innerHubController.IsPlayerInExitPoint)         
+            if (innerHubController != null && innerHubController.IsPlayerInExitPoint)
             {
                 innerHubController.ExitHub();
+                return;
+            }
+
+            if (innerHubController != null && innerHubController.IsPlayerInBedPoint)
+            {
+                innerHubController.BedSleep();
+                return;
             }
             // Nell'inner hub NON si può attaccare, quindi non aggiungiamo altre azioni
-            return;
+                return;
         }
         
         // Se siamo nell'outer hub (ma non nell'inner hub)
@@ -1213,10 +1221,18 @@ public class PlayerController : MonoBehaviour
         // Prima controlla se siamo nell'inner hub (la priorità più alta)
         if (IsPlayerInHub())                                        // se il player è nell'inner hub
         {
-            if (innerHubController != null && innerHubController.IsPlayerInExitPoint)         
+            if (innerHubController != null && innerHubController.IsPlayerInExitPoint)
             {
                 innerHubController.ExitHub();
+                return;
             }
+
+            if (innerHubController != null && innerHubController.IsPlayerInBedPoint)
+            {
+                innerHubController.BedSleep();
+                return;
+            }
+
             // Nell'inner hub NON si può attaccare, quindi non aggiungiamo altre azioni
             return;
         }

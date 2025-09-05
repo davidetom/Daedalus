@@ -266,31 +266,107 @@ public class DayNightCycleManager : MonoBehaviour
 
     public void ResetToDay()
     {
-        Debug.Log("Reset del ciclo giorno/notte all'inizio del giorno");
+        Debug.Log("Reset del ciclo giorno/notte all'inizio del giorno (da sonno)");
 
         // Ferma il ciclo corrente
         StopAllCoroutines();
 
-        // Reset al giorno
+        // Reset al giorno con i valori corretti
         dayTime = DAY_START; // 0.25
         currentPhase = DayPhase.Day;
         phaseTimer = 0f;
 
-        // NUOVO: Incrementa il day count quando resettiamo al giorno
+        // Incrementa il day count quando resettiamo al giorno
         IncrementDay();
 
-        // Aggiorna immediatamente le luci
+        // Aggiorna colori UI per il giorno
+        if (minimapBorder != null)
+            minimapBorder.ChangeBorderColor(Color.black);
+        if (coinText != null)
+            coinText.color = Color.black;
+
+        // Notifica il MazeManager del reset
+        MazeManager mazeManager = FindFirstObjectByType<MazeManager>();
+        if (mazeManager != null)
+        {
+            mazeManager.HandleSleepReset();
+        }
+
+        // Aggiorna immediatamente le luci con il nuovo dayTime
         UpdateLighting();
 
         // Riavvia il sistema
         isRunning = true;
 
-        // Avvia il nuovo ciclo dal giorno
-        StartCoroutine(DayNightCycleFromDay());
+        // Usa una versione speciale del ciclo per il sonno
+        StartCoroutine(DayNightCycleAfterSleep());
+    }
 
-        // Invoca gli eventi di nuovo giorno e inizio giorno
+    private IEnumerator DayNightCycleAfterSleep()
+    {
+        // Invoca immediatamente gli eventi del nuovo giorno
         events.OnNewDay?.Invoke();
         events.OnDayStart?.Invoke();
+
+        // NUOVO: Attendi un momento per assicurarsi che tutto sia sincronizzato
+        yield return new WaitForSeconds(1f);
+
+        // Ora apri le porte (il labirinto è già cambiato)
+        MazeManager mazeManager = FindFirstObjectByType<MazeManager>();
+        if (mazeManager != null)
+        {
+            mazeManager.OpenMazeDoors();
+            Debug.Log("Porte aperte dopo il sonno");
+        }
+
+        // Attendi un altro secondo prima del maze open warning
+        yield return new WaitForSeconds(1f);
+
+        // Mostra il maze open warning
+        if (mazeManager != null)
+        {
+            mazeManager.ShowMazeOpenWarningAfterSleep();
+        }
+
+        // Continua con il ciclo normale dalla fase giorno
+        yield return StartCoroutine(RunPhase(DayPhase.Day, dayDuration, DAY_START, SUNSET_START));
+
+        // Poi continua con il ciclo normale
+        while (isRunning)
+        {
+            // FASE TRAMONTO
+            minimapBorder.ChangeBorderColor(Color.black);
+            coinText.color = Color.black;
+            currentPhase = DayPhase.Sunset;
+            events.OnSunsetStart?.Invoke();
+            yield return StartCoroutine(RunPhase(DayPhase.Sunset, sunsetDuration, SUNSET_START, NIGHT_START));
+
+            // FASE NOTTE
+            minimapBorder.ChangeBorderColor(Color.white);
+            coinText.color = Color.white;
+            currentPhase = DayPhase.Night;
+            events.OnNightStart?.Invoke();
+            yield return StartCoroutine(RunPhase(DayPhase.Night, nightDuration, NIGHT_START, DAWN_START));
+
+            // FASE ALBA
+            currentPhase = DayPhase.Dawn;
+            events.OnDawnStart?.Invoke();
+            yield return StartCoroutine(RunPhase(DayPhase.Dawn, dawnDuration, DAWN_START, DAY_START));
+
+            // NUOVO GIORNO INIZIA
+            IncrementDay();
+
+            // FASE GIORNO
+            minimapBorder.ChangeBorderColor(Color.black);
+            coinText.color = Color.black;
+            currentPhase = DayPhase.Day;
+            events.OnNewDay?.Invoke();
+            events.OnDayStart?.Invoke();
+            yield return StartCoroutine(RunPhase(DayPhase.Day, dayDuration, DAY_START, SUNSET_START));
+
+            // Ciclo completato
+            events.OnCycleComplete?.Invoke();
+        }
     }
 
     private IEnumerator DayNightCycleFromDay()

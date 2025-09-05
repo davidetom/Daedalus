@@ -31,7 +31,9 @@ public class MazeManager : MonoBehaviour
 
 
     [Header("Zone")]
-    public Collider2D hubZone;
+    public Collider2D hubZoneOutside;
+    public Collider2D hubZoneInside;
+
 
     [Header("Gestione Tilemap Labirinti")]
     public GameObject labirintoObject;
@@ -310,10 +312,11 @@ public class MazeManager : MonoBehaviour
 
         bool wasInHub = playerInHub;
 
-        if (hubZone != null)
+        if (hubZoneOutside != null && hubZoneInside != null)
         {
-            if (hubZone is Collider2D)
-                playerInHub = ((Collider2D)hubZone).bounds.Contains(player.position);
+            if (hubZoneOutside is Collider2D && hubZoneInside is Collider2D)
+                playerInHub = ((Collider2D)hubZoneOutside).bounds.Contains(player.position) ||
+                                ((Collider2D)hubZoneInside).bounds.Contains(player.position);
         }
 
         if (wasInHub != playerInHub)
@@ -336,27 +339,48 @@ public class MazeManager : MonoBehaviour
     {
         Debug.Log("Inizia il GIORNO");
 
-        // NUOVO: Aggiorna stato player - durante il giorno può aprire porte
+        // Aggiorna stato player - durante il giorno può aprire porte
         UpdatePlayerNightTimeState(false);
 
-        // NON aprire le porte qui - saranno aperte dopo il cambio labirinto
-
+        // Pulisci nemici
         if (enemySpawner != null)
             enemySpawner.ClearAllEnemies();
 
-        // NUOVO: Gestione differente per player nell'hub esterno
-        if (IsPlayerInOuterHub())
+        // NUOVO: Controlla se stiamo venendo da un sonno
+        bool comingFromSleep = !dayNightManager.IsInitialized() || dayNightManager.startFromDay;
+
+        if (comingFromSleep)
         {
-            // Se il player è nell'hub, mostra il dawn warning panel e maze open warning
-            ShowDawnWarningsForHubPlayer();
+            Debug.Log("OnDayStart: Avvio normale del gioco o post-sonno");
+            // Per il sonno, le porte e warning sono gestiti da DayNightCycleAfterSleep()
+            // Per l'avvio normale, apri le porte immediatamente
+            if (!dayNightManager.IsInitialized())
+            {
+                OpenMazeDoors();
+            }
+        }
+        else
+        {
+            // Gestione differente per player nell'hub esterno (ciclo normale)
+            if (IsPlayerInOuterHub())
+            {
+                ShowDawnWarningsForHubPlayer();
+            }
+
+            // Aspetta che il cambio labirinto sia completato prima di aprire le porte (ciclo normale)
+            StartCoroutine(DelayedDoorOpening());
         }
 
-        // NON chiamare HideAllWarnings() qui - il dawn panel deve rimanere attivo
         // Nascondi solo il warning panel del tramonto/notte se attivo
         if (warningPanel != null)
             warningPanel.SetActive(false);
 
-        EnablePlayerInputsAndUI();
+        // Non abilitare input qui se stiamo venendo dal sonno (già fatto in HandleSleepReset)
+        if (!comingFromSleep)
+        {
+            EnablePlayerInputsAndUI();
+        }
+
         hasChosenToStay = false;
         isChangingMaze = false;
     }
@@ -452,6 +476,16 @@ public class MazeManager : MonoBehaviour
 
         if (enemySpawner != null)
             enemySpawner.ClearAllEnemies();
+    }
+
+    IEnumerator DelayedDoorOpening()
+    {
+        // Aspetta un momento per assicurarsi che il cambio labirinto sia completato
+        yield return new WaitForSeconds(1f);
+
+        // Ora apri le porte
+        OpenMazeDoors();
+        Debug.Log("Porte aperte dopo sincronizzazione");
     }
 
     // NUOVO: Gestione specifica per il cambio maze quando il player è nell'hub esterno
@@ -564,6 +598,14 @@ public class MazeManager : MonoBehaviour
         }
     }
 
+    private bool IsPlayerDead()
+    {
+        if (player == null) return false;
+        
+        PlayerController playerController = player.GetComponent<PlayerController>();
+        return playerController != null && playerController.isDead;
+    }
+
     // NUOVO: Mostra maze closed warnings per player nell'hub (senza good luck)
     IEnumerator ShowMazeClosedWarningsForHubPlayer()
     {
@@ -602,12 +644,19 @@ public class MazeManager : MonoBehaviour
 
     IEnumerator HandleMazeChangeWithWarnings()
     {
-        bool shouldTransportPlayer = !playerInHub;
+        // NUOVO: Verifica se il player è morto - se sì, consideralo come se fosse nell'hub
+        bool isPlayerDeadOrInHub = playerInHub || IsPlayerDead();
+        bool shouldTransportPlayer = !isPlayerDeadOrInHub;
+
+        if (IsPlayerDead())
+        {
+            Debug.Log("Player morto durante l'alba - saltando teletrasporto e considerandolo nell'hub");
+        }
 
         // Dopo 3 secondi: nasconde SOLO il warning di trasporto se presente
         yield return new WaitForSeconds(3f);
 
-        // Trasporta il player se non è nell'hub
+        // Trasporta il player solo se non è morto e non è nell'hub
         if (shouldTransportPlayer && player != null)
         {
             Debug.Log("Trasportando il player nell'hub dopo 3 secondi");
@@ -661,6 +710,15 @@ public class MazeManager : MonoBehaviour
                 Debug.Log("Warning di trasporto nascosto dopo trasporto");
             }
         }
+        else if (IsPlayerDead())
+        {
+            // Se il player è morto, nascondi comunque il warning di trasporto
+            if (toHubWarningText != null)
+            {
+                toHubWarningText.gameObject.SetActive(false);
+                Debug.Log("Warning di trasporto nascosto - player morto");
+            }
+        }
 
         // Il dawn warning text rimane attivo per altri 2 secondi
         yield return new WaitForSeconds(2f);
@@ -694,7 +752,6 @@ public class MazeManager : MonoBehaviour
         // TERZA: Mostra il maze open warning
         yield return StartCoroutine(ShowMazeOpenWarningSequence());
     }
-
 
     IEnumerator ShowMazeOpenWarningSequence()
     {
@@ -759,15 +816,19 @@ public class MazeManager : MonoBehaviour
                 dawnWarningText.gameObject.SetActive(true);
             }
 
-            // Mostra il warning di trasporto solo se il player è nel labirinto
+            // MODIFICATO: Mostra il warning di trasporto solo se il player è nel labirinto E non è morto
             if (toHubWarningText != null)
             {
-                bool showTransportWarning = !playerInHub;
+                bool showTransportWarning = !playerInHub && !IsPlayerDead();
                 toHubWarningText.gameObject.SetActive(showTransportWarning);
 
                 if (showTransportWarning)
                 {
-                    Debug.Log("Player nel labirinto: mostro warning di trasporto all'hub");
+                    Debug.Log("Player nel labirinto e vivo: mostro warning di trasporto all'hub");
+                }
+                else if (IsPlayerDead())
+                {
+                    Debug.Log("Player morto: nascondo warning di trasporto");
                 }
             }
         }
@@ -977,7 +1038,7 @@ public class MazeManager : MonoBehaviour
         // che verranno gestiti da HandleSunsetToNightTransition
     }
 
-    void OpenMazeDoors()
+    public void OpenMazeDoors()
     {
         mazeDoorsOpen = true;
         foreach (GameObject doorObj in mazeDoors)
@@ -1097,19 +1158,98 @@ public class MazeManager : MonoBehaviour
 
     IEnumerator SleepSequence()
     {
+        // 1. Ferma il ciclo attuale del day/night manager
         if (dayNightManager != null)
         {
-            dayNightManager.ForceToDawn();
+            dayNightManager.PauseSystem();
+            Debug.Log("Sistema day/night messo in pausa per il sonno");
         }
 
-        ShowMazeChangeWarning();
-        yield return new WaitForSeconds(mazeChangeDelay);
+        // 2. Nascondi tutti i warning attuali
         HideAllWarnings();
+
+        // 3. Disabilita input del player durante il sonno
+        DisablePlayerInputsAndUI();
+
+        Debug.Log("Player inizia a dormire - cambio labirinto in corso...");
+
+        // 4. PRIMA: Cambia il labirinto mentre il player "dorme"
         ChangeMazeTilemap();
 
+        // 5. Attesa simulazione sonno (qui potrai aggiungere animazione)
+        yield return new WaitForSeconds(3f); // Tempo del "sonno"
+
+        // 6. DOPO: Usa ResetToDay() che ora non cambierà più il labirinto
         if (dayNightManager != null)
         {
-            dayNightManager.ForceToDay();
+            Debug.Log("Risveglio - resettando il ciclo al giorno");
+            dayNightManager.ResetToDay();
+        }
+
+        Debug.Log("Sequenza del sonno completata - nuovo giorno iniziato");
+    }
+
+    public void HandleSleepReset()
+    {
+        Debug.Log("Gestendo reset completo dopo il sonno");
+
+        // Assicurati che i nemici siano puliti
+        if (enemySpawner != null)
+            enemySpawner.ClearAllEnemies();
+
+        // Aggiorna posizione player
+        UpdatePlayerPosition();
+
+        // Assicurati che le porte siano chiuse inizialmente
+        CloseMazeDoorsImmediately();
+
+        // NON cambiare più il labirinto qui - è già stato cambiato in SleepSequence()
+        // ChangeMazeTilemap(); // RIMOSSO
+
+        // Riabilita input del player
+        EnablePlayerInputsAndUI();
+
+        Debug.Log("Reset post-sonno completato, labirinto già cambiato");
+    }
+
+    public void ShowMazeOpenWarningAfterSleep()
+    {
+        if (mazeOpenWarningText != null && dawnWarningPanel != null)
+        {
+            // Attiva il dawn warning panel
+            dawnWarningPanel.SetActive(true);
+
+            // Nascondi tutti gli altri warning
+            if (dawnWarningText != null)
+                dawnWarningText.gameObject.SetActive(false);
+            if (toHubWarningText != null)
+                toHubWarningText.gameObject.SetActive(false);
+            if (mazeClosedWarningText != null)
+                mazeClosedWarningText.gameObject.SetActive(false);
+
+            // Mostra solo il maze open warning
+            mazeOpenWarningText.gameObject.SetActive(true);
+            Debug.Log("Mostro maze open warning dopo il sonno");
+
+            // Nascondi il warning dopo 3 secondi
+            StartCoroutine(HideMazeOpenWarningAfterSleep());
+        }
+    }
+
+    IEnumerator HideMazeOpenWarningAfterSleep()
+    {
+        yield return new WaitForSeconds(3f);
+
+        if (mazeOpenWarningText != null)
+        {
+            mazeOpenWarningText.gameObject.SetActive(false);
+            Debug.Log("Maze open warning nascosto dopo il sonno");
+        }
+
+        if (dawnWarningPanel != null)
+        {
+            dawnWarningPanel.SetActive(false);
+            Debug.Log("Dawn warning panel disattivato dopo il sonno");
         }
     }
 
