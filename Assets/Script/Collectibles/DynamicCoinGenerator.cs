@@ -430,6 +430,10 @@ public class DynamicCoinGenerator : MonoBehaviour
         // Libera la posizione quando una moneta viene raccolta
         if (activeCoins.ContainsKey(position))
         {
+            // NUOVO: Se la moneta esiste fisicamente, distruggila
+            if (activeCoins[position] != null)
+                Destroy(activeCoins[position]);
+            
             GemSpawner.UnregisterOccupiedPosition(position);
             activeCoins.Remove(position);
         }

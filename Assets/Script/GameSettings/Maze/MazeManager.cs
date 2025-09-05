@@ -407,6 +407,9 @@ public class MazeManager : MonoBehaviour
             Debug.Log("Nessuna scelta fatta durante il tramonto - player rimane nel labirinto");
             hasChosenToStay = true;
             sunsetChoiceMade = true; // Importante: imposta anche questo flag
+
+            // FIX: Riabilita input e UI se erano stati disabilitati
+            EnablePlayerInputsAndUI();
         }
 
         StartCoroutine(HandleSunsetToNightTransition());
@@ -516,6 +519,7 @@ public class MazeManager : MonoBehaviour
         {
             HideSunsetWarningTexts();
             MakeWarningPanelTransparent();
+            // FIX: Riabilita input anche qui per sicurezza (già fatto in OnNightStart, ma per robustezza)
             EnablePlayerInputsAndUI();
         }
 
@@ -540,6 +544,19 @@ public class MazeManager : MonoBehaviour
             if (playerInHub && warningPanel != null && !warningPanel.activeInHierarchy)
             {
                 warningPanel.SetActive(true);
+                MakeWarningPanelTransparent();
+                HideSunsetWarningTexts();
+            }
+            // FIX: Se il player non è nell'hub ma il warning panel non è attivo, attivalo e rendilo trasparente
+            else if (!playerInHub && warningPanel != null && !warningPanel.activeInHierarchy)
+            {
+                warningPanel.SetActive(true);
+                MakeWarningPanelTransparent();
+                HideSunsetWarningTexts();
+            }
+            // FIX: Se il player non è nell'hub e il warning panel è già attivo, assicurati che sia trasparente
+            else if (!playerInHub && warningPanel != null && warningPanel.activeInHierarchy)
+            {
                 MakeWarningPanelTransparent();
                 HideSunsetWarningTexts();
             }

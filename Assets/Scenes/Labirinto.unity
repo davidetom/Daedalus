@@ -6384,6 +6384,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1723160730}
     - target: {fileID: 3635365256390158844, guid: e4fbdb983a3f3490c925fdca43dde851, type: 3}
+      propertyPath: mostraDebugInfo
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3635365256390158844, guid: e4fbdb983a3f3490c925fdca43dde851, type: 3}
       propertyPath: labirintoTilemap
       value: 
       objectReference: {fileID: 683472590}
@@ -10237,21 +10241,24 @@ MonoBehaviour:
   labyrinthCenter: {x: 155, y: 155, z: 0}
   yellowGemMinDistance: 25
   yellowGemMaxDistance: 79
-  maxYellowGemsOnMap: 50
+  maxYellowGemsOnMap: 75
   yellowGemSpawnDelay: 0
   blueGemMinDistance: 80
   blueGemMaxDistance: 119
-  maxBlueGemsOnMap: 120
+  maxBlueGemsOnMap: 150
   blueGemSpawnDelay: 3
   greenGemDropChance: 1
   deathsRequiredForRedGem: 1
-  redGemSpawnPosition: {x: 411, y: 159, z: 0}
+  redGemSpawnPosition: {x: 410.5, y: 158.5, z: 0}
   grayGemMinDistance: 120
   grayGemMaxDistance: 150
-  fogVisibilityUnlocked: 1
+  fogVisibilityUnlocked: 0
   maxGrayGemsOnMap: 100
   spawnCheckInterval: 1
   maxSpawnAttempts: 50
+  gemSpawnDistance: 15
+  gemDespawnDistance: 20
+  lodUpdateInterval: 0.5
 --- !u!1 &2050730943
 GameObject:
   m_ObjectHideFlags: 0
@@ -12042,6 +12049,10 @@ PrefabInstance:
       propertyPath: gameOverCanvas
       value: 
       objectReference: {fileID: 1540123437}
+    - target: {fileID: 3894990245822049790, guid: e62c5b2bffbee4dc698712eedb9def82, type: 3}
+      propertyPath: maxHealthPoints
+      value: 100
+      objectReference: {fileID: 0}
     - target: {fileID: 3894990245822049790, guid: e62c5b2bffbee4dc698712eedb9def82, type: 3}
       propertyPath: dayNightCycleManager
       value: 
