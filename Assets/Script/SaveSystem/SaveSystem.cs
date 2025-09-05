@@ -22,8 +22,9 @@ public class SaveSystem
         public InventoryData inventoryData;
         public DayNightSaveData dayNightSaveData;
         public ShopData shopData;
-        //PROVA SAVE SYSTEM PER HUB
         public HubData hubData;
+        //PROVA SAVE PER DIFFICULTY
+        public DifficultyData difficultyData;
         public int sceneIndex;
     }
 
@@ -90,6 +91,20 @@ public class SaveSystem
                 }
             }
 
+            //PROVA SAVE DIFFICULTY
+            DifficultyManager difficultyManager = GameObject.FindFirstObjectByType<DifficultyManager>();
+            if(difficultyManager != null)
+            {
+                difficultyManager.Save(ref currentSaveData.difficultyData);
+                Debug.Log("Difficoltà salvata!");
+            }
+            else
+            {
+                //DifficultyManager non trovato, salva a normal di default
+                currentSaveData.difficultyData.difficultyLevel = (int)DifficultyLevel.Normal;
+            }
+            //FINE PROVA
+
             currentSaveData.sceneIndex = SceneManager.GetActiveScene().buildIndex;
 
             // Aggiorna i dati in memoria per l'utente corrente
@@ -103,6 +118,10 @@ public class SaveSystem
 
             // Salvataggio su Firebase
             SaveToFirebase(json);
+
+            //Torna al menù principale
+            SceneManager.LoadScene("MainMenu");
+            Time.timeScale = 1f;
         }
         catch (System.Exception e)
         {
@@ -177,6 +196,8 @@ public class SaveSystem
         DayNightCycleManager dayNight = GameObject.FindFirstObjectByType<DayNightCycleManager>();
         ShopManager shop = GameObject.FindFirstObjectByType<ShopManager>();
         OuterHubController hub = GameObject.FindFirstObjectByType<OuterHubController>();
+        //PROVA SAVE PER DIFFICULTY
+        DifficultyManager difficultyManager = GameObject.FindFirstObjectByType<DifficultyManager>();
 
         Debug.Log($"=== CARICAMENTO COMPONENTI PER {GetCurrentUserId()} ===");
         Debug.Log("CoinUIManager trovato: " + (coin != null));
@@ -191,6 +212,15 @@ public class SaveSystem
             dayNight.Load(currentUserData.dayNightSaveData);
             shop.Load(currentUserData.shopData);
             hub.Load(currentUserData.hubData);
+
+            //PROVA DIFFICULTY
+            if(difficultyManager != null)
+            {
+                difficultyManager.Load(currentUserData.difficultyData);
+                Debug.Log("Difficoltà caricata!");
+
+                yield return new WaitForEndOfFrame();
+            }
             Debug.Log($"Dati caricati in scena per utente {GetCurrentUserId()}!");
         }
         else
@@ -309,5 +339,7 @@ public class SaveSystem
         Debug.Log("SaveSystem: tutti i dati in memoria azzerati");
     }
 }
+
+
 
 

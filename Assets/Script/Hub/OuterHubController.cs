@@ -276,8 +276,12 @@ public class OuterHubController : MonoBehaviour
         //Accendi il bottone dello shop
         shopButton.gameObject.SetActive(true);
 
-        //Disattiva la minimappa
-        minimap.SetActive(false);
+        //Disattiva la minimappa se la difficoltà non è Hard
+        DifficultyLevel currentDifficulty = DifficultyManager.Instance.GetCurrentDifficulty();
+        if (currentDifficulty != DifficultyLevel.Hard)
+        {
+            minimap.SetActive(false);
+        }
     }
     
     public void TeleportOutOfHub()
@@ -311,8 +315,12 @@ public class OuterHubController : MonoBehaviour
         //Disattiva lo shop fuori da casa
         shopButton.gameObject.SetActive(false);
 
-        //Riattiva la minimappa
-        minimap.SetActive(true);
+        //Riattiva la minimappa se la difficoltà non è Hard
+        DifficultyLevel currentDifficulty = DifficultyManager.Instance.GetCurrentDifficulty();
+        if (currentDifficulty != DifficultyLevel.Hard)
+        {
+            minimap.SetActive(true);
+        }
     }
 
     private void SwitchToHubCamera()

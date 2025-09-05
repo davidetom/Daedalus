@@ -92,6 +92,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject gameUICanvas;
     [SerializeField] private GameObject gameButtons;
     [SerializeField] private GameObject gameOverCanvas;
+    [SerializeField] private GameObject inventoryUI;
+    [SerializeField] private GameObject saveUI;
+    [SerializeField] private GameObject sunsetPanel;
+    [SerializeField] private GameObject sunrisePanel;
 
     // INPUT SETTINGS
     private Vector2 input;
@@ -817,6 +821,26 @@ public class PlayerController : MonoBehaviour
             gameButtons.SetActive(false);
         }
 
+        if (inventoryUI != null)
+        {
+            inventoryUI.SetActive(false);
+        }
+
+        if (saveUI != null)
+        {
+            saveUI.SetActive(false);
+        }
+
+        if (sunsetPanel != null)
+        {
+            sunsetPanel.SetActive(false);
+        }
+
+        if (sunrisePanel != null)
+        {
+            sunrisePanel.SetActive(false);
+        }
+
         if (gameOverCanvas != null)
         {
             gameOverCanvas.SetActive(true);
@@ -834,6 +858,26 @@ public class PlayerController : MonoBehaviour
         if (gameButtons != null)
         {
             gameButtons.SetActive(true);
+        }
+
+        if (inventoryUI != null)
+        {
+            inventoryUI.SetActive(true);
+        }
+
+        if (saveUI != null)
+        {
+            saveUI.SetActive(true);
+        }
+
+        if (sunsetPanel != null)
+        {
+            sunsetPanel.SetActive(true);
+        }
+
+        if (sunrisePanel != null)
+        {
+            sunrisePanel.SetActive(true);
         }
 
         if (gameOverCanvas != null)
