@@ -352,12 +352,13 @@ public class MazeManager : MonoBehaviour
         if (comingFromSleep)
         {
             Debug.Log("OnDayStart: Avvio normale del gioco o post-sonno");
-            // Per il sonno, le porte e warning sono gestiti da DayNightCycleAfterSleep()
-            // Per l'avvio normale, apri le porte immediatamente
+            // Per il sonno, le porte sono gestite da HandleSleepReset()
+            // Per l'avvio normale del gioco, apri le porte immediatamente (primo avvio)
             if (!dayNightManager.IsInitialized())
             {
                 OpenMazeDoors();
             }
+            // Se viene dal sonno, NON aprire le porte qui - sono gestite da HandleSleepReset
         }
         else
         {
@@ -367,8 +368,8 @@ public class MazeManager : MonoBehaviour
                 ShowDawnWarningsForHubPlayer();
             }
 
-            // Aspetta che il cambio labirinto sia completato prima di aprire le porte (ciclo normale)
-            StartCoroutine(DelayedDoorOpening());
+            // NON aprire più le porte qui - saranno aperte dopo il cambio labirinto
+            // StartCoroutine(DelayedDoorOpening()); // RIMOSSO
         }
 
         // Nascondi solo il warning panel del tramonto/notte se attivo
@@ -477,30 +478,22 @@ public class MazeManager : MonoBehaviour
         if (enemySpawner != null)
             enemySpawner.ClearAllEnemies();
     }
-
-    IEnumerator DelayedDoorOpening()
-    {
-        // Aspetta un momento per assicurarsi che il cambio labirinto sia completato
-        yield return new WaitForSeconds(1f);
-
-        // Ora apri le porte
-        OpenMazeDoors();
-        Debug.Log("Porte aperte dopo sincronizzazione");
-    }
-
+    
     // NUOVO: Gestione specifica per il cambio maze quando il player è nell'hub esterno
     IEnumerator HandleMazeChangeForHubPlayer()
     {
         // Attende il delay normale per il cambio labirinto
         yield return new WaitForSeconds(mazeChangeDelay);
 
-        // Cambia il labirinto
+        // PRIMA: Cambia il labirinto e ATTENDI che sia completato
+        Debug.Log("Iniziando cambio labirinto per player nell'hub...");
         ChangeMazeTilemap();
 
-        // Attesa di 1 secondo prima di aprire le porte
-        yield return new WaitForSeconds(1f);
+        // NUOVO: Attendi che il cambio labirinto sia completamente processato
+        yield return StartCoroutine(WaitForMazeChangeCompletion());
 
-        // Apri le porte
+        // SECONDA: Ora apri le porte (SOLO dopo che il labirinto è cambiato)
+        Debug.Log("Cambio labirinto completato, aprendo le porte per player nell'hub...");
         OpenMazeDoors();
 
         Debug.Log("Cambio labirinto completato per player nell'hub esterno");
@@ -661,20 +654,14 @@ public class MazeManager : MonoBehaviour
         {
             Debug.Log("Trasportando il player nell'hub dopo 3 secondi");
 
-            // NUOVO: Ferma completamente il movimento del player prima del trasporto
+            // Ferma completamente il movimento del player prima del trasporto
             PlayerController playerController = player.GetComponent<PlayerController>();
             if (playerController != null)
             {
-                // Ferma tutte le coroutine (inclusa Move())
                 playerController.StopAllCoroutines();
-
-                // Reset degli stati di movimento
                 playerController.isMoving = false;
-
-                // Reset dell'input mobile se attivo
                 playerController.StopMovimento();
 
-                // Forza il reset delle animazioni
                 Animator playerAnimator = player.GetComponent<Animator>();
                 if (playerAnimator != null)
                 {
@@ -686,24 +673,18 @@ public class MazeManager : MonoBehaviour
                 Debug.Log("Movimento player fermato prima del trasporto");
             }
 
-            // Aspetta un frame per assicurarsi che tutto sia fermato
             yield return null;
 
-            // Ora trasporta il player
             player.position = hubSpawnPosition;
 
-            // NUOVO: Dopo il trasporto, correggi la posizione sulla griglia
             if (playerController != null)
             {
-                // Chiama il nuovo metodo pubblico per il trasporto sicuro
                 playerController.SafeTransportTo(hubSpawnPosition);
-
                 Debug.Log($"Player trasportato e posizione corretta a: {player.position}");
             }
 
             UpdatePlayerPosition();
 
-            // Nasconde SOLO il warning di trasporto dopo il trasporto
             if (toHubWarningText != null)
             {
                 toHubWarningText.gameObject.SetActive(false);
@@ -712,7 +693,6 @@ public class MazeManager : MonoBehaviour
         }
         else if (IsPlayerDead())
         {
-            // Se il player è morto, nascondi comunque il warning di trasporto
             if (toHubWarningText != null)
             {
                 toHubWarningText.gameObject.SetActive(false);
@@ -723,7 +703,6 @@ public class MazeManager : MonoBehaviour
         // Il dawn warning text rimane attivo per altri 2 secondi
         yield return new WaitForSeconds(2f);
 
-        // Ora nasconde anche il dawn warning text
         if (dawnWarningText != null)
         {
             dawnWarningText.gameObject.SetActive(false);
@@ -737,19 +716,21 @@ public class MazeManager : MonoBehaviour
             yield return new WaitForSeconds(remainingDelay);
         }
 
-        // PRIMA: Cambia il labirinto
+        // PRIMA: Cambia il labirinto e ATTENDI che sia completato
+        Debug.Log("Iniziando cambio labirinto...");
         ChangeMazeTilemap();
 
-        // Attesa di 1 secondo prima di aprire le porte
-        yield return new WaitForSeconds(1f);
+        // NUOVO: Attendi che il cambio labirinto sia completamente processato
+        yield return StartCoroutine(WaitForMazeChangeCompletion());
 
-        // SECONDA: Apri le porte
+        // SECONDA: Ora apri le porte (SOLO dopo che il labirinto è cambiato)
+        Debug.Log("Cambio labirinto completato, aprendo le porte...");
         OpenMazeDoors();
 
-        // Attesa di 1.5 secondi prima del warning
+        // TERZA: Attendi un momento prima del warning
         yield return new WaitForSeconds(1f);
 
-        // TERZA: Mostra il maze open warning
+        // QUARTA: Mostra il maze open warning
         yield return StartCoroutine(ShowMazeOpenWarningSequence());
     }
 
@@ -1203,13 +1184,46 @@ public class MazeManager : MonoBehaviour
         // Assicurati che le porte siano chiuse inizialmente
         CloseMazeDoorsImmediately();
 
-        // NON cambiare più il labirinto qui - è già stato cambiato in SleepSequence()
-        // ChangeMazeTilemap(); // RIMOSSO
+        // Il labirinto è già stato cambiato in SleepSequence()
+        // Ora dobbiamo aspettare che sia completamente processato prima di aprire le porte
+
+        // NUOVO: Avvia la sequenza di apertura porte post-sonno
+        StartCoroutine(HandlePostSleepDoorOpening());
 
         // Riabilita input del player
         EnablePlayerInputsAndUI();
 
-        Debug.Log("Reset post-sonno completato, labirinto già cambiato");
+        Debug.Log("Reset post-sonno avviato");
+    }
+
+    IEnumerator HandlePostSleepDoorOpening()
+    {
+        // Attendi che il cambio labirinto sia completamente processato
+        Debug.Log("Attendendo completamento processamento labirinto post-sonno...");
+        yield return StartCoroutine(WaitForMazeChangeCompletion());
+
+        // Ora apri le porte
+        Debug.Log("Processamento labirinto completato, aprendo le porte post-sonno...");
+        OpenMazeDoors();
+
+        // Attendi un momento prima del warning
+        yield return new WaitForSeconds(1f);
+
+        // Mostra il maze open warning
+        ShowMazeOpenWarningAfterSleep();
+    }
+
+    IEnumerator WaitForMazeChangeCompletion()
+    {
+        Debug.Log("Attendendo completamento cambio labirinto...");
+
+        // Attendi che il MapManager e BFS siano processati
+        yield return StartCoroutine(RegenerateMapAfterFrame());
+
+        // Attendi un frame aggiuntivo per sicurezza
+        yield return null;
+
+        Debug.Log("Cambio labirinto completamente processato");
     }
 
     public void ShowMazeOpenWarningAfterSleep()
