@@ -22,6 +22,8 @@ public class FirebaseAuthManager : MonoBehaviour
     {
         auth = FirebaseAuth.DefaultInstance;
         db = FirebaseFirestore.DefaultInstance;
+
+        auth.StateChanged += OnAuthStateChanged;
     }
 
     // --- LOGIN ---
@@ -202,5 +204,29 @@ public class FirebaseAuthManager : MonoBehaviour
     public void onClickBackButton()
     {
         SceneManager.LoadScene("MainMenu");
+    }
+
+    //Per gestire il cambio account
+    private void OnAuthStateChanged(object sender, System.EventArgs eventArgs)
+    {
+        if (auth.CurrentUser != null)
+        {
+            Debug.Log("Utente autenticato: " + auth.CurrentUser.UserId);
+        }
+        else
+        {
+            Debug.Log("Utente disconnesso");
+            // Pulisci i dati quando l'utente si disconnette
+            SaveSystem.ClearCurrentUserData();
+        }
+    }
+
+    //Pulisci quando il componente viene distrutto
+    void OnDestroy()
+    {
+        if (auth != null)
+        {
+            auth.StateChanged -= OnAuthStateChanged;
+        }
     }
 }

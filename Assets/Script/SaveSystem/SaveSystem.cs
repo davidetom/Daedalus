@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 public class SaveSystem
 {
-    public static SaveData _saveData = new SaveData();
+    private static Dictionary<string, SaveData> _userSaveData = new Dictionary<string, SaveData>();
 
     [System.Serializable]
     public struct SaveData
@@ -27,35 +27,57 @@ public class SaveSystem
         public int sceneIndex;
     }
 
-    //Nome file locale personalizzato per utente
+    private static string GetCurrentUserId()
+    {
+        return FirebaseAuth.DefaultInstance.CurrentUser?.UserId ?? "guest_" + SystemInfo.deviceUniqueIdentifier;
+    }
+
+    private static SaveData GetCurrentUserSaveData()
+    {
+        string userId = GetCurrentUserId();
+        if (!_userSaveData.ContainsKey(userId))
+        {
+            _userSaveData[userId] = new SaveData();
+        }
+        return _userSaveData[userId];
+    }
+
+    // Imposta i dati di salvataggio per l'utente corrente
+    private static void SetCurrentUserSaveData(SaveData data)
+    {
+        string userId = GetCurrentUserId();
+        _userSaveData[userId] = data;
+    }
+
+    // Nome file locale personalizzato per utente
     public static string SaveFileName()
     {
-        //string saveFile = Application.persistentDataPath + "/save" + ".save";
-        //return saveFile;
-        //NEW FOR FIREBASE
-        string userId = FirebaseAuth.DefaultInstance.CurrentUser?.UserId ?? "guest";
+        string userId = GetCurrentUserId();
         return Application.persistentDataPath + "/save_" + userId + ".save";
     }
 
-    //Controlla se esiste un salvataggio in locale
+    // Controlla se esiste un salvataggio locale per l'utente corrente
     public static bool SaveExists()
     {
         return File.Exists(SaveFileName());
     }
 
-    public static void Save(PlayerController player, CoinUIManager coin, InventoryManager inventory, DayNightCycleManager dayNight, ShopManager shop, OuterHubController hub)
+    public static void Save(PlayerController player, CoinUIManager coin, InventoryManager inventory,
+                       DayNightCycleManager dayNight, ShopManager shop, OuterHubController hub)
     {
         try
         {
-            player.Save(ref _saveData.playerData);
-            coin.Save(ref _saveData.currencyData);
-            _saveData.inventoryData = inventory.SaveInventory();
-            dayNight.Save(ref _saveData.dayNightSaveData);
-            hub.Save(ref _saveData.hubData);
+            SaveData currentSaveData = GetCurrentUserSaveData();
+
+            player.Save(ref currentSaveData.playerData);
+            coin.Save(ref currentSaveData.currencyData);
+            currentSaveData.inventoryData = inventory.SaveInventory();
+            dayNight.Save(ref currentSaveData.dayNightSaveData);
+            hub.Save(ref currentSaveData.hubData);
 
             if (shop != null)
             {
-                shop.Save(ref _saveData.shopData);
+                shop.Save(ref currentSaveData.shopData);
                 Debug.Log("Dati shop salvati");
             }
             else
@@ -63,19 +85,23 @@ public class SaveSystem
                 ShopManager foundShop = GameObject.FindFirstObjectByType<ShopManager>();
                 if (foundShop != null)
                 {
-                    foundShop.Save(ref _saveData.shopData);
+                    foundShop.Save(ref currentSaveData.shopData);
                     Debug.Log("ShopManager trovato automaticamente e salvato");
                 }
             }
-            _saveData.sceneIndex = SceneManager.GetActiveScene().buildIndex;
 
-            string json = JsonUtility.ToJson(_saveData, true);
+            currentSaveData.sceneIndex = SceneManager.GetActiveScene().buildIndex;
 
-            //Salvataggio in locale
+            // Aggiorna i dati in memoria per l'utente corrente
+            SetCurrentUserSaveData(currentSaveData);
+
+            string json = JsonUtility.ToJson(currentSaveData, true);
+
+            // Salvataggio locale
             File.WriteAllText(SaveFileName(), json);
-            Debug.Log("Salvataggio locale completato in: " + SaveFileName());
+            Debug.Log($"Salvataggio locale completato per utente {GetCurrentUserId()}: {SaveFileName()}");
 
-            //Salvataggio su Firebase
+            // Salvataggio su Firebase
             SaveToFirebase(json);
         }
         catch (System.Exception e)
@@ -84,42 +110,45 @@ public class SaveSystem
         }
     }
 
-    //Prima prova Load dal cloud
+    // Carica prima dal cloud, poi dal locale se necessario
     public static void Load()
     {
         LoadFromFirebase(success =>
         {
             if (!success)
             {
-                Debug.LogWarning("Caricamento dal cloud fallito, provo dal locale...");
+                Debug.LogWarning($"Caricamento dal cloud fallito per {GetCurrentUserId()}, provo dal locale...");
                 LoadLocal();
             }
         });
     }
 
-
     public static void LoadLocal()
     {
         if (!SaveExists())
         {
-            Debug.LogWarning("Nessun file di salvataggio trovato!");
+            Debug.LogWarning($"Nessun file di salvataggio trovato per {GetCurrentUserId()}!");
             return;
         }
+
         try
         {
             string saveContent = File.ReadAllText(SaveFileName());
-            _saveData = JsonUtility.FromJson<SaveData>(saveContent);
+            SaveData loadedData = JsonUtility.FromJson<SaveData>(saveContent);
 
-            Debug.Log("=== CARICAMENTO INIZIATO ===");
-            Debug.Log("Dati caricati - Monete: " + _saveData.currencyData.CurrencyAmount);
-            Debug.Log("Scena da caricare: " + _saveData.sceneIndex);
+            // Memorizza i dati per l'utente corrente
+            SetCurrentUserSaveData(loadedData);
+
+            Debug.Log($"=== CARICAMENTO LOCALE INIZIATO PER {GetCurrentUserId()} ===");
+            Debug.Log("Dati caricati - Monete: " + loadedData.currencyData.CurrencyAmount);
+            Debug.Log("Scena da caricare: " + loadedData.sceneIndex);
 
             SceneManager.sceneLoaded += OnSceneLoaded;
-            SceneManager.LoadScene(_saveData.sceneIndex);
+            SceneManager.LoadScene(loadedData.sceneIndex);
         }
         catch (System.Exception e)
         {
-            Debug.LogError("Errore durante il caricamento: " + e.Message);
+            Debug.LogError("Errore durante il caricamento locale: " + e.Message);
         }
     }
 
@@ -127,7 +156,6 @@ public class SaveSystem
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
 
-        // Usa una coroutine per aspettare che gli oggetti siano pronti
         MonoBehaviour anyMonoBehaviour = GameObject.FindFirstObjectByType<MonoBehaviour>();
         if (anyMonoBehaviour != null)
         {
@@ -137,9 +165,11 @@ public class SaveSystem
 
     private static IEnumerator LoadDataAfterDelay()
     {
-        // Aspetta qualche frame per essere sicuri che tutto sia inizializzato
         yield return new WaitForEndOfFrame();
         yield return new WaitForEndOfFrame();
+
+        // Ottieni i dati per l'utente corrente
+        SaveData currentUserData = GetCurrentUserSaveData();
 
         CoinUIManager coin = GameObject.FindFirstObjectByType<CoinUIManager>();
         PlayerController player = GameObject.FindFirstObjectByType<PlayerController>();
@@ -148,20 +178,20 @@ public class SaveSystem
         ShopManager shop = GameObject.FindFirstObjectByType<ShopManager>();
         OuterHubController hub = GameObject.FindFirstObjectByType<OuterHubController>();
 
-        Debug.Log("=== TENTATIVO CARICAMENTO COMPONENTI ===");
+        Debug.Log($"=== CARICAMENTO COMPONENTI PER {GetCurrentUserId()} ===");
         Debug.Log("CoinUIManager trovato: " + (coin != null));
         Debug.Log("PlayerController trovato: " + (player != null));
         Debug.Log("DayNightCycleManager trovato: " + (dayNight != null));
 
         if (player != null && coin != null && dayNight != null && shop != null)
         {
-            player.Load(_saveData.playerData);
-            coin.Load(_saveData.currencyData);
-            inventory.LoadInventory(_saveData.inventoryData);
-            dayNight.Load(_saveData.dayNightSaveData);
-            shop.Load(_saveData.shopData);
-            hub.Load(_saveData.hubData);
-            Debug.Log("Dati caricati in scena!");
+            player.Load(currentUserData.playerData);
+            coin.Load(currentUserData.currencyData);
+            inventory.LoadInventory(currentUserData.inventoryData);
+            dayNight.Load(currentUserData.dayNightSaveData);
+            shop.Load(currentUserData.shopData);
+            hub.Load(currentUserData.hubData);
+            Debug.Log($"Dati caricati in scena per utente {GetCurrentUserId()}!");
         }
         else
         {
@@ -169,7 +199,7 @@ public class SaveSystem
         }
     }
 
-    //SALVA SU FIREBASE
+    // Salva su Firebase
     private static void SaveToFirebase(string json)
     {
         FirebaseUser user = FirebaseAuth.DefaultInstance.CurrentUser;
@@ -182,19 +212,26 @@ public class SaveSystem
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference docRef = db.Collection("users").Document(user.UserId);
 
-        docRef.UpdateAsync(new Dictionary<string, object>
+        var updateData = new Dictionary<string, object>
         {
-            {"gameSave", json }
-        }).ContinueWithOnMainThread(task =>
+            {"gameSave", json},
+            {"lastSaveTime", Timestamp.GetCurrentTimestamp()} // Aggiungi timestamp
+        };
+
+        docRef.UpdateAsync(updateData).ContinueWithOnMainThread(task =>
         {
-            if (task.IsCompleted)
-                Debug.Log("Salvataggio su Firebase completato");
+            if (task.IsCompleted && !task.IsFaulted)
+            {
+                Debug.Log($"Salvataggio su Firebase completato per {user.UserId}");
+            }
             else
-                Debug.LogError("Errore salvataggio su Firebase: " + task.Exception);
+            {
+                Debug.LogError($"Errore salvataggio su Firebase per {user.UserId}: " + task.Exception);
+            }
         });
     }
 
-    //LOAD FROM FIREBASE
+    // Carica da Firebase
     private static void LoadFromFirebase(Action<bool> onComplete)
     {
         FirebaseUser user = FirebaseAuth.DefaultInstance.CurrentUser;
@@ -210,38 +247,66 @@ public class SaveSystem
 
         docRef.GetSnapshotAsync().ContinueWithOnMainThread(task =>
         {
-            if (task.IsCompleted)
+            if (task.IsCompleted && !task.IsFaulted)
             {
                 DocumentSnapshot snapshot = task.Result;
                 if (snapshot.Exists && snapshot.ContainsField("gameSave"))
                 {
                     string json = snapshot.GetValue<string>("gameSave");
-                    _saveData = JsonUtility.FromJson<SaveData>(json);
+                    SaveData loadedData = JsonUtility.FromJson<SaveData>(json);
 
-                    Debug.Log("Dati caricati da Firebase");
+                    // Memorizza i dati per l'utente corrente
+                    SetCurrentUserSaveData(loadedData);
+
+                    Debug.Log($"Dati caricati da Firebase per {user.UserId}");
                     SceneManager.sceneLoaded += OnSceneLoaded;
-                    SceneManager.LoadScene(_saveData.sceneIndex);
+                    SceneManager.LoadScene(loadedData.sceneIndex);
                     onComplete(true);
                 }
                 else
                 {
-                    Debug.Log("Nessun salvataggio cloud trovato");
+                    Debug.Log($"Nessun salvataggio cloud trovato per {user.UserId}");
                     onComplete(false);
                 }
             }
             else
             {
-                Debug.LogError("Errore caricamento da Firebase: " + task.Exception);
+                Debug.LogError($"Errore caricamento da Firebase per {user.UserId}: " + task.Exception);
                 onComplete(false);
             }
         });
     }
 
-    //Metodo per resettare i dati quando l'utente non è loggato
-    public static void ClearData()
+    // Metodo per pulire i dati quando l'utente fa logout
+    public static void ClearCurrentUserData()
     {
-        _saveData = new SaveData();
-        Debug.Log("SaveSystem: dati in memoria azzerati");
+        string userId = GetCurrentUserId();
+        if (_userSaveData.ContainsKey(userId))
+        {
+            _userSaveData.Remove(userId);
+            Debug.Log($"SaveSystem: dati rimossi dalla memoria per {userId}");
+        }
+
+        // Rimuovi anche il file locale se esiste
+        if (SaveExists())
+        {
+            try
+            {
+                File.Delete(SaveFileName());
+                Debug.Log($"File locale rimosso per {userId}");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Errore rimozione file locale: {e.Message}");
+            }
+        }
+    }
+
+    // Metodo per pulire TUTTI i dati (per debug o reset completo)
+    public static void ClearAllData()
+    {
+        _userSaveData.Clear();
+        Debug.Log("SaveSystem: tutti i dati in memoria azzerati");
     }
 }
 

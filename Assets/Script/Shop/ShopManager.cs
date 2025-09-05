@@ -35,8 +35,7 @@ public class ShopManager : MonoBehaviour
         {
             int index = i;
             shopItems[i].purchaseButton.onClick.AddListener(() => PurchaseItem(index));
-            //shopItems[i].priceText.text = shopItems[i].price.ToString();
-
+           
             if (shopItems[i].isPurchased)
             {
                 HandlePurchasedItem(shopItems[i]);
@@ -62,7 +61,6 @@ public class ShopManager : MonoBehaviour
             }
 
             item.isPurchased = true;
-            item.ItemOnTable.SetActive(true);
 
             //Aggiungi all'inventario
             if (inventoryManager != null)
@@ -111,8 +109,7 @@ public class ShopManager : MonoBehaviour
         for (int i = 0; i < item.requiredGems.Length; i++)
         {
             Item requiredGem = item.requiredGems[i];
-            //int requiredAmount = i < item.requiredAmounts.Length ? item.requiredAmounts[i] : 1;
-
+            
             if (!inventoryManager.HasItem(requiredGem))
             {
                 Debug.Log("Inventory doesn't have the " + requiredGem.name);
@@ -138,6 +135,7 @@ public class ShopManager : MonoBehaviour
     {
         item.purchaseButton.gameObject.SetActive(false);
         item.soldButton.gameObject.SetActive(true);
+        item.ItemOnTable.gameObject.SetActive(true);
     }
 
     private void ShowInsufficientFundsMessage()
@@ -206,6 +204,13 @@ public class ShopManager : MonoBehaviour
                 {
                     HandlePurchasedItem(shopItems[i]);
                 }
+                else
+                {
+                    if (shopItems[i].ItemOnTable != null)
+                    {
+                        shopItems[i].ItemOnTable.SetActive(false);
+                    }
+                }
             }
             coinUIManager.UpdateCoinDisplay();
             Debug.Log("Shop data loaded - Items: " + data.purchasedItems.Length);
@@ -229,7 +234,6 @@ public class ShopItem
     [Header("Special Purchase Type")]
     public bool requiresGems = false;
     public Item[] requiredGems;
-    //public int[] requiredAmounts;
 }
 
 //FOR SAVE AND LOAD

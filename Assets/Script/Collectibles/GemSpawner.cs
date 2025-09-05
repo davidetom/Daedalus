@@ -11,6 +11,7 @@ public class GemSpawner : MonoBehaviour
     public MapManager mapManager;
     public DayNightCycleManager dayNightManager;
     public PlayerController playerController;
+    public InventoryManager inventoryManager;
 
     [Header("Collision Detection")]
     public DynamicCoinGenerator coinGenerator; // Reference al coin generator
@@ -21,6 +22,14 @@ public class GemSpawner : MonoBehaviour
     public GameObject greenGemPrefab;  // Gemma degli Zombie (droppata dai nemici)
     public GameObject redGemPrefab;    // Gemma del Sangue (dopo 5 morti)
     public GameObject grayGemPrefab;   // Gemma della Nebbia (visibile solo con powerup)
+
+    [Header("Item References")]
+    public Item yellowGem;
+    public Item blueGem;
+    public Item greenGem;
+    public Item redGem;
+    public Item silverGem;
+    public Item Goggles;
 
     [Header("Center of Labyrinth")]
     public Vector3 labyrinthCenter = new Vector3(155f, 155f, 0f);
@@ -844,6 +853,7 @@ public class GemSpawner : MonoBehaviour
     public void OnRedGemCollected()
     {
         redGemCollected = true;
+        inventoryManager.AddItem(redGem);
 
         if (enableDebug)
             Debug.Log("GemSpawner: Gemma rossa raccolta - non spawneranno più gemme rosse");

@@ -399,6 +399,15 @@ public class OuterHubController : MonoBehaviour
     public void Load(HubData data)
     {
         playerInHub = data.playerInHubData;
+        if (playerInHub)
+        {
+            shopButton.gameObject.SetActive(true);
+            SwitchToHubCamera();
+        }
+        else
+        {
+            shopButton.gameObject.SetActive(false);
+        }
     }
 
 
