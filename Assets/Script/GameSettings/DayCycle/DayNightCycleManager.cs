@@ -285,13 +285,6 @@ public class DayNightCycleManager : MonoBehaviour
         if (coinText != null)
             coinText.color = Color.black;
 
-        // Notifica il MazeManager del reset
-        MazeManager mazeManager = FindFirstObjectByType<MazeManager>();
-        if (mazeManager != null)
-        {
-            mazeManager.HandleSleepReset();
-        }
-
         // Aggiorna immediatamente le luci con il nuovo dayTime
         UpdateLighting();
 
@@ -317,15 +310,6 @@ public class DayNightCycleManager : MonoBehaviour
         {
             mazeManager.OpenMazeDoors();
             Debug.Log("Porte aperte dopo il sonno");
-        }
-
-        // Attendi un altro secondo prima del maze open warning
-        yield return new WaitForSeconds(1f);
-
-        // Mostra il maze open warning
-        if (mazeManager != null)
-        {
-            mazeManager.ShowMazeOpenWarningAfterSleep();
         }
 
         // Continua con il ciclo normale dalla fase giorno

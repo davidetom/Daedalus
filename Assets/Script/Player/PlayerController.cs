@@ -1243,7 +1243,7 @@ public class PlayerController : MonoBehaviour
         }
         
         // Se siamo nell'outer hub (ma non nell'inner hub)
-        if (mazeManager.IsPlayerInHub)                              // se il player è nell'outer hub
+        if (mazeManager.IsPlayerInOuterHub)                              // se il player è nell'outer hub
         {
             if (outerHubController != null && outerHubController.IsPlayerInEnterPoint)        
             {
@@ -1286,7 +1286,7 @@ public class PlayerController : MonoBehaviour
         }
         
         // Se siamo nell'outer hub (ma non nell'inner hub)
-        if (mazeManager.IsPlayerInHub)                              // se il player è nell'outer hub
+        if (mazeManager.IsPlayerInOuterHub)                              // se il player è nell'outer hub
         {
             if (outerHubController != null && outerHubController.IsPlayerInEnterPoint)        
             {
