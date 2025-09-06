@@ -30,13 +30,15 @@ public class DoorController : MonoBehaviour
         // Calcola quale porta è "quella giusta" oggi (solo per outer doors)
         int correctDoor = GetDoorOfTheDay();
 
-        if (player.hasKey && doorID == correctDoor)
+        //if (player.hasKey && doorID == correctDoor)
+        if (player.CheckForKey() && doorID == correctDoor)
         {
             // MODIFICA: Apri tutte le porte con lo stesso doorID
             OpenAllDoorsWithSameID();
             Debug.Log("Porte " + doorID + " aperte con successo!");
         }
-        else if (!player.hasKey)
+        //else if (!player.hasKey)
+        else if (!player.CheckForKey()) 
         {
             Debug.Log("Hai bisogno di una chiave per aprire questa porta!");
         }

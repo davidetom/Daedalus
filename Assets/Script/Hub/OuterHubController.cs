@@ -401,21 +401,31 @@ public class OuterHubController : MonoBehaviour
 
     public void Save(ref HubData data)
     {
-        data.playerInHubData = playerInHub;
+        data.playerInHubData = true;
     }
 
     public void Load(HubData data)
     {
+        //PROVA RESPAWN SEMPRE IN CASA
+        playerInHub = data.playerInHubData;
+        SwitchToHubCamera();
+        playerController.SafeTransportTo(playerController.savePos);
+        shopButton.gameObject.SetActive(true);
+        
+
+        /**
         playerInHub = data.playerInHubData;
         if (playerInHub)
         {
             shopButton.gameObject.SetActive(true);
             SwitchToHubCamera();
+            playerController.transform.position = playerController.savePos;
         }
         else
         {
             shopButton.gameObject.SetActive(false);
         }
+        **/
     }
 
 

@@ -3639,7 +3639,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 203791076}
-  cameraHeight: 6
+  cameraHeight: 8
   minimapDisplay: {fileID: 237777237}
   borderFrame: {fileID: 963051148}
   borderColor: {r: 0, g: 0, b: 0, a: 1}
@@ -4363,7 +4363,7 @@ MonoBehaviour:
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -4759,8 +4759,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -180, y: -22.1}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: -425, y: -55.001}
+  m_SizeDelta: {x: 290, y: 290}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &817216465
 MonoBehaviour:
@@ -5056,7 +5056,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &881233154
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6048,8 +6048,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0.06666667}
-  m_AnchoredPosition: {x: 0, y: 30}
-  m_SizeDelta: {x: 200, y: 0}
+  m_AnchoredPosition: {x: 0.000024796, y: 14}
+  m_SizeDelta: {x: 487.6444, y: 1.116}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1190184672
 MonoBehaviour:
@@ -7976,7 +7976,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.25}
   m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: 0.57360077, y: 0}
+  m_AnchoredPosition: {x: 0.5736084, y: 0}
   m_SizeDelta: {x: -8.8529, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1885800212
@@ -8215,8 +8215,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -767, y: -32}
-  m_SizeDelta: {x: 200, y: 200}
+  m_AnchoredPosition: {x: -1833, y: -88.001}
+  m_SizeDelta: {x: 570, y: 570}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1933661729
 GameObject:
@@ -8640,8 +8640,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 10}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: 2.4986, y: 53.769}
+  m_SizeDelta: {x: 482.65, y: 50.9246}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2050730945
 MonoBehaviour:
@@ -8690,8 +8690,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 74.63
+  m_fontSizeBase: 74.63
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -8777,8 +8777,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -203, y: -14.099976}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: -474, y: -33}
+  m_SizeDelta: {x: 397.8307, y: 110.0012}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &2075018361
 MonoBehaviour:
@@ -8827,8 +8827,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 90
+  m_fontSizeBase: 90
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -10403,9 +10403,21 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 418113678}
     - target: {fileID: 3894990245822049790, guid: e62c5b2bffbee4dc698712eedb9def82, type: 3}
+      propertyPath: keyItem
+      value: 
+      objectReference: {fileID: 11400000, guid: d71e42d627d917f4095e6e227892b472, type: 2}
+    - target: {fileID: 3894990245822049790, guid: e62c5b2bffbee4dc698712eedb9def82, type: 3}
       propertyPath: tilemap
       value: 
       objectReference: {fileID: 683472590}
+    - target: {fileID: 3894990245822049790, guid: e62c5b2bffbee4dc698712eedb9def82, type: 3}
+      propertyPath: savePos.x
+      value: 400.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3894990245822049790, guid: e62c5b2bffbee4dc698712eedb9def82, type: 3}
+      propertyPath: savePos.y
+      value: 158.7
+      objectReference: {fileID: 0}
     - target: {fileID: 3894990245822049790, guid: e62c5b2bffbee4dc698712eedb9def82, type: 3}
       propertyPath: mapManager
       value: 

@@ -28,6 +28,8 @@ public class PlayerController : MonoBehaviour
     [Header("Map Reference")]
     public MapManager mapManager; // Riferimento al MapManager
     public Vector3 startPos;
+    //Prova respawn dopo salvataggio sempre davanti al letto
+    public Vector3 savePos; 
 
     [Header("Cycle Management")]
     public DayNightCycleManager dayNightCycleManager;
@@ -41,6 +43,7 @@ public class PlayerController : MonoBehaviour
     public float interactRange = 1f; // distanza massima per interagire con la porta
     public KeyCode interactKey = KeyCode.E;
     public bool hasKey = false; //all'inizio non ha la chiave
+    public Item keyItem;
 
     [Header("Attack Settings")]
     public float attackDamage = 25f;
@@ -1303,18 +1306,27 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    //Metodo per cambiare valore a hasKey
+    public bool CheckForKey()
+    {
+        InventoryManager inventoryManager = GameObject.FindFirstObjectByType<InventoryManager>();
+        if(inventoryManager != null)
+        {
+            return inventoryManager.HasItem(keyItem);
+        }
+        return false;
+    }
+
     //FOR SAVE AND LOAD DATA
     #region Save and Load
 
     public void Save(ref PlayerSaveData data)
     {
-        data.Position = transform.position;
         data.HealthPoints = currentHealthPoints;
     }
 
     public void Load(PlayerSaveData data)
     {
-        transform.position = data.Position;
         this.currentHealthPoints = data.HealthPoints;
     }
 
@@ -1325,6 +1337,5 @@ public class PlayerController : MonoBehaviour
 [System.Serializable]
 public struct PlayerSaveData
 {
-    public Vector3 Position;
     public float HealthPoints;
 }
