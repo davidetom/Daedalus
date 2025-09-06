@@ -676,6 +676,7 @@ public class MazeManager : MonoBehaviour
             yield return null;
 
             player.position = hubSpawnPosition;
+            hubController.UpdateStatusWithPlayerInHub();
 
             if (playerController != null)
             {
@@ -979,7 +980,7 @@ public class MazeManager : MonoBehaviour
         }
     }
 
-    void ReturnToHub()
+    public void ReturnToHub()
     {
         Debug.Log("Player ha scelto di tornare all'hub");
         sunsetChoiceMade = true;
@@ -991,6 +992,7 @@ public class MazeManager : MonoBehaviour
             if (playerController != null)
             {
                 playerController.SafeTransportTo(hubSpawnPosition);
+                hubController.UpdateStatusWithPlayerInHub();
             }
             UpdatePlayerPosition();
         }
@@ -1000,7 +1002,7 @@ public class MazeManager : MonoBehaviour
         EnablePlayerInputsAndUI();
     }
 
-    void StayInMaze()
+    public void StayInMaze()
     {
         Debug.Log("Player ha scelto di affrontare la notte");
         sunsetChoiceMade = true;

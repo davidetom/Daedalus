@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,6 +22,7 @@ public class OuterHubController : MonoBehaviour
     public GameObject healthBar;
     public Button shopButton;
     public GameObject minimap;
+    public TextMeshProUGUI healthText;
 
     [Header("Teleportation")]
     [SerializeField] private Vector3 hubSpawnPosition = new Vector3(406.5f, 153.7f, 0f);
@@ -143,9 +145,9 @@ public class OuterHubController : MonoBehaviour
         if (mazeCamera != null && hubCamera != null)
         {
             // All'inizio il player è nel labirinto
-            mazeCamera.gameObject.SetActive(true);
-            hubCamera.gameObject.SetActive(false);
-            playerInHub = false;
+            mazeCamera.gameObject.SetActive(false);
+            hubCamera.gameObject.SetActive(true);
+            playerInHub = true;
             
             if (enableDebug)
             {
@@ -231,23 +233,6 @@ public class OuterHubController : MonoBehaviour
         TeleportToHub();
     }
 
-    /*
-    private void PauseDayNightCycle()
-    {
-        if (dayNightManager != null)
-        {
-            dayNightManager.PauseSystem();
-            
-            if (enableDebug)
-                Debug.Log("Ciclo giorno/notte messo in pausa");
-        }
-        else
-        {
-            Debug.LogWarning("DayNightCycleManager non trovato! Impossibile mettere in pausa il ciclo.");
-        }
-    }
-    */
-    
     private void TeleportToHub()
     {
         if (playerController == null)
@@ -262,28 +247,9 @@ public class OuterHubController : MonoBehaviour
         // Usa il metodo SafeTransportTo del PlayerController
         playerController.SafeTransportTo(hubSpawnPosition);
 
-        // NUOVO: Cambia telecamere
-        SwitchToHubCamera();
-
-        healthBar.SetActive(false);
-
-        // Segna che il player è nell'hub
-        playerInHub = true;
-
-        // Nascondi l'indicatore dopo il teletrasporto
-        OnPlayerExitArea();
-
-        //Accendi il bottone dello shop
-        shopButton.gameObject.SetActive(true);
-
-        //Disattiva la minimappa se la difficoltà non è Hard
-        DifficultyLevel currentDifficulty = DifficultyManager.Instance.GetCurrentDifficulty();
-        if (currentDifficulty != DifficultyLevel.Hard)
-        {
-            minimap.SetActive(false);
-        }
+        UpdateStatusWithPlayerInHub();
     }
-    
+
     public void TeleportOutOfHub()
     {
         if (playerController == null)
@@ -304,10 +270,39 @@ public class OuterHubController : MonoBehaviour
         // Teletrasporta alla posizione di uscita
         playerController.SafeTransportTo(exitSpawnPosition);
 
-        // Cambia alla telecamera del labirinto
+        UpdateStatusWithoutPlayerInHub();
+    }
+
+    public void UpdateStatusWithPlayerInHub()
+    {
+        SwitchToHubCamera();
+
+        healthBar.SetActive(false);
+        healthText.gameObject.SetActive(true);
+
+        // Segna che il player è nell'hub
+        playerInHub = true;
+
+        // Nascondi l'indicatore dopo il teletrasporto
+        OnPlayerExitArea();
+
+        //Accendi il bottone dello shop
+        shopButton.gameObject.SetActive(true);
+
+        //Disattiva la minimappa se la difficoltà non è Hard
+        DifficultyLevel currentDifficulty = DifficultyManager.Instance.GetCurrentDifficulty();
+        if (currentDifficulty != DifficultyLevel.Hard)
+        {
+            minimap.SetActive(false);
+        }
+    }
+
+    public void UpdateStatusWithoutPlayerInHub()
+    {
         SwitchToMazeCamera();
 
         healthBar.SetActive(true);
+        healthText.gameObject.SetActive(false);
 
         // Segna che il player non è più nell'hub
         playerInHub = false;

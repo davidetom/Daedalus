@@ -927,6 +927,7 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("isAttacking", false);
         animator.SetBool("isMoving", false);
         transform.position = startPos;
+        outerHubController.UpdateStatusWithPlayerInHub();
 
         // NUOVO: Cambia labirinto prima di riavviare il giorno
         if (mazeManager != null)
