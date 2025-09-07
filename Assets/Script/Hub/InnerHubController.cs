@@ -6,7 +6,7 @@ public class InnerHubController : MonoBehaviour
     [Header("Riferimenti Oggetti Figli")]
     [SerializeField] private Collider2D exitPoint;
     [SerializeField] private GameObject doorIndicator;
-    [SerializeField] private GameObject bedIndicator;
+    [SerializeField] public GameObject bedIndicator;
 
     [Header("Animazione Freccia")]
     [SerializeField] private float bobSpeed = 2f;
@@ -217,7 +217,7 @@ public class InnerHubController : MonoBehaviour
         isAnimatingDoor = false;
     }
 
-    private IEnumerator AnimateBedIndicator()
+    public IEnumerator AnimateBedIndicator()
     {
         isAnimatingBed = true;
 

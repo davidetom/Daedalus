@@ -15,6 +15,7 @@ public class MazeManager : MonoBehaviour
     public MapManager mapManager;
     public SpawnPointGenerator spawnPointGenerator;
     public OuterHubController hubController;
+    public InnerHubController innerHub;
 
     [Header("UI")]
     public GameObject warningPanel;
@@ -56,6 +57,7 @@ public class MazeManager : MonoBehaviour
     private bool inputsDisabled = false;
     private bool originalCanAttackWhileMoving;
     private bool sunsetChoiceMade = false;
+    private bool playerSleeping = false;
 
     // Riferimenti tilemap
     private GameObject[] tilemapPrefabs;
@@ -91,8 +93,11 @@ public class MazeManager : MonoBehaviour
             spawnPointGenerator = FindFirstObjectByType<SpawnPointGenerator>();
 
         if (hubController == null)
-            hubController = Object.FindFirstObjectByType<OuterHubController>();
+            hubController = FindFirstObjectByType<OuterHubController>();
 
+        if (innerHub == null)
+            innerHub = FindFirstObjectByType<InnerHubController>();
+        
         LoadTilemapPrefabs();
 
         if (dayNightManager != null)
@@ -283,7 +288,7 @@ public class MazeManager : MonoBehaviour
         {
             // Chiamata diretta al metodo pubblico RecalculateMap()
             mapManager.RecalculateMap();
-
+            HideAllWarnings();
             Debug.Log($"MapManager aggiornato con successo per il labirinto {currentMazeNumber}");
 
             if (player != null)
@@ -372,104 +377,8 @@ public class MazeManager : MonoBehaviour
         if (enemySpawner != null)
             enemySpawner.ClearAllEnemies();
 
-        // NUOVO: Controlla se stiamo venendo da un sonno
-        bool comingFromSleep = !dayNightManager.IsInitialized() || dayNightManager.startFromDay;
-
-        if (comingFromSleep)
-        {
-            Debug.Log("OnDayStart: Avvio normale del gioco o post-sonno");
-            // Per il sonno, le porte sono gestite da HandleSleepReset()
-            // Per l'avvio normale del gioco, apri le porte immediatamente (primo avvio)
-            if (!dayNightManager.IsInitialized())
-            {
-                OpenMazeDoors();
-            }
-        }
-        else
-        {
-            // Gestione differente per player nell'hub (ciclo normale)
-            if (playerInOuterHub || playerInInnerHub)
-            {
-                ShowDawnWarningsForHubPlayer();
-            }
-        }
-
-        // Nascondi solo il warning panel del tramonto/notte e il mazeClosed panel se attivi
-        if (warningPanel != null)
-            warningPanel.SetActive(false);
-        if (mazeClosedPanel != null)
-            mazeClosedPanel.SetActive(false);
-
-        // Non abilitare input qui se stiamo venendo dal sonno (già fatto in HandleSleepReset)
-        if (!comingFromSleep)
-        {
-            EnablePlayerInputsAndUI();
-        }
-
         hasChosenToStay = false;
         isChangingMaze = false;
-    }
-
-    // Mostra dawn warning per player nell'hub
-    void ShowDawnWarningsForHubPlayer()
-    {
-        if (dawnWarningPanel != null)
-        {
-            dawnWarningPanel.SetActive(true);
-
-            // Mostra solo il maze open warning, non gli altri
-            if (dawnWarningText != null)
-                dawnWarningText.gameObject.SetActive(false);
-            if (toHubWarningText != null)
-                toHubWarningText.gameObject.SetActive(false);
-            if (mazeOpenWarningText != null)
-                mazeOpenWarningText.gameObject.SetActive(true);
-
-            Debug.Log("Mostro maze open warning per player nell'hub");
-
-            // Nascondi il warning dopo 3 secondi
-            StartCoroutine(HideMazeOpenWarningForHubPlayer());
-        }
-    }
-
-    // Nascondi il maze open warning per player nell'hub
-    IEnumerator HideMazeOpenWarningForHubPlayer()
-    {
-        yield return new WaitForSeconds(3f);
-
-        if (mazeOpenWarningText != null)
-            mazeOpenWarningText.gameObject.SetActive(false);
-
-        if (dawnWarningPanel != null)
-            dawnWarningPanel.SetActive(false);
-    }
-
-    void EnablePlayerInputsAndUI()
-    {
-        if (!inputsDisabled) return; // Non era disabilitato
-
-        inputsDisabled = false;
-
-        // Riabilita input del player
-        if (playerController != null)
-        {
-            // Ripristina le impostazioni originali
-            playerController.canAttackWhileMoving = originalCanAttackWhileMoving;
-            playerController.canAttack = true;
-
-            Debug.Log("Input del player riabilitati");
-        }
-
-        // Riabilita elementi UI
-        foreach (GameObject uiElement in uiElementsToDisable)
-        {
-            if (uiElement != null)
-            {
-                uiElement.SetActive(true);
-            }
-        }
-
-        Debug.Log($"Riabilitati {uiElementsToDisable.Length} elementi UI");
     }
 
     #endregion
@@ -570,6 +479,34 @@ public class MazeManager : MonoBehaviour
         }
 
         Debug.Log($"Disabilitati {uiElementsToDisable.Length} elementi UI");
+    }
+
+    void EnablePlayerInputsAndUI()
+    {
+        if (!inputsDisabled) return; // Non era disabilitato
+
+        inputsDisabled = false;
+
+        // Riabilita input del player
+        if (playerController != null)
+        {
+            // Ripristina le impostazioni originali
+            playerController.canAttackWhileMoving = originalCanAttackWhileMoving;
+            playerController.canAttack = true;
+
+            Debug.Log("Input del player riabilitati");
+        }
+
+        // Riabilita elementi UI
+        foreach (GameObject uiElement in uiElementsToDisable)
+        {
+            if (uiElement != null)
+            {
+                uiElement.SetActive(true);
+            }
+        }
+
+        Debug.Log($"Riabilitati {uiElementsToDisable.Length} elementi UI");
     }
 
     public void ReturnToHub()
@@ -714,7 +651,7 @@ public class MazeManager : MonoBehaviour
         if (isChangingMaze) return;
         isChangingMaze = true;
 
-        if (!IsPlayerDead())
+        if (!IsPlayerDead() && !playerSleeping)
             StartCoroutine(HandleReturnToHubAndWarnings());
 
         if (enemySpawner != null)
@@ -884,41 +821,58 @@ public class MazeManager : MonoBehaviour
 
     IEnumerator SleepSequence()
     {
-        // 1. Ferma il ciclo attuale del day/night manager
+        Debug.Log("=== INIZIO SEQUENZA SONNO ===");
+
+        playerSleeping = true;
+        innerHub.StopAllCoroutines();
+        innerHub.bedIndicator.gameObject.SetActive(false);
+
+        // 1. Ferma il ciclo attuale del day/night manager IMMEDIATAMENTE
         if (dayNightManager != null)
         {
             dayNightManager.PauseSystem();
             Debug.Log("Sistema day/night messo in pausa per il sonno");
         }
 
-        // 2. Nascondi tutti i warning attuali
-        HideAllWarnings();
-
         // 3. Disabilita input del player durante il sonno
         DisablePlayerInputsAndUI();
 
         Debug.Log("Player inizia a dormire - cambio labirinto in corso...");
 
-        // 4. PRIMA: Cambia il labirinto mentre il player "dorme"
-        ChangeMazeTilemap();
+        // 4. PRIORITÀ: Cambia il labirinto il più velocemente possibile
+        yield return StartCoroutine(FastMazeChangeForSleep());
 
-        // 5. Attesa simulazione sonno (aspetto la fine effettiva del cambio labirinto)
-        yield return StartCoroutine(WaitForMazeChangeCompletion()); // Tempo del "sonno"
+        Debug.Log("Cambio labirinto completato durante il sonno");
 
-        // 6. DOPO: Usa ResetToDay() che ora non cambierà più il labirinto
+        // 5. Breve pausa per simulare il "sonno" (opzionale)
+        yield return new WaitForSecondsRealtime(6f);
+
+        playerSleeping = false;
+
+        // 6. DOPO il cambio labirinto: Resetta al giorno
         if (dayNightManager != null)
         {
             Debug.Log("Risveglio - resettando il ciclo al giorno");
             dayNightManager.ResetToDay();
         }
+
         // 7. Riabilita input del player dopo il sonno
         EnablePlayerInputsAndUI();
 
-        // 8. Apri le porte e mostro il mazeOpenWarning
-        OpenMazeDoors();
-        StartCoroutine(ShowMazeOpenWarningSequence());
+        Debug.Log("=== SEQUENZA SONNO COMPLETATA ===");
+    }
 
-        Debug.Log("Sequenza del sonno completata - nuovo giorno iniziato");
+    IEnumerator FastMazeChangeForSleep()
+    {
+        Debug.Log("=== CAMBIO LABIRINTO VELOCE PER SONNO ===");
+
+        // Cambia il labirinto immediatamente
+        ChangeMazeTilemap();
+
+        // Attendi SOLO che il cambio sia processato correttamente
+        yield return StartCoroutine(WaitForMazeChangeCompletion());
+
+        Debug.Log("Cambio labirinto per sonno completato");
     }
 
     #endregion

@@ -855,6 +855,14 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1941301482}
     - target: {fileID: 4165367637683053420, guid: 7ad4777d33fd66d4d85f5d270deb9170, type: 3}
+      propertyPath: bobSpeed
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 4165367637683053420, guid: 7ad4777d33fd66d4d85f5d270deb9170, type: 3}
+      propertyPath: bobHeight
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4165367637683053420, guid: 7ad4777d33fd66d4d85f5d270deb9170, type: 3}
       propertyPath: exitPoint
       value: 
       objectReference: {fileID: 1977103645}
@@ -877,6 +885,22 @@ PrefabInstance:
     - target: {fileID: 4190420426053165524, guid: 7ad4777d33fd66d4d85f5d270deb9170, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4279931346668310291, guid: 7ad4777d33fd66d4d85f5d270deb9170, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4279931346668310291, guid: 7ad4777d33fd66d4d85f5d270deb9170, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4279931346668310291, guid: 7ad4777d33fd66d4d85f5d270deb9170, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4279931346668310291, guid: 7ad4777d33fd66d4d85f5d270deb9170, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 180
       objectReference: {fileID: 0}
     - target: {fileID: 4463990963988504068, guid: 7ad4777d33fd66d4d85f5d270deb9170, type: 3}
       propertyPath: m_IsActive
@@ -2350,10 +2374,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 837bfaae6ccf7416d817e977ec95d867, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dawnDuration: 6
-  dayDuration: 36
-  sunsetDuration: 6
-  nightDuration: 24
+  dawnDuration: 3
+  dayDuration: 18
+  sunsetDuration: 3
+  nightDuration: 12
   lightController: {fileID: 506153019}
   dayCount: 1
   dayTime: 0.25
@@ -2723,6 +2747,7 @@ MonoBehaviour:
   mapManager: {fileID: 2120444318}
   spawnPointGenerator: {fileID: 742367400}
   hubController: {fileID: 150888675}
+  innerHub: {fileID: 0}
   warningPanel: {fileID: 1745792816}
   warningText: {fileID: 1745792815}
   returnToHubButton: {fileID: 1745792814}

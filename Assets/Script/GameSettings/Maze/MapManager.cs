@@ -397,7 +397,7 @@ public class MapManager : MonoBehaviour
     public void RecalculateMap()
     {
         wallCalculated = false;
-        CalculateMapDimensions();
+        //CalculateMapDimensions();
         InitializeArrays();
         CalculateTileTypeMatrix();
         wallCalculated = true;
