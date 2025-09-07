@@ -103,6 +103,12 @@ public class PlayerController : MonoBehaviour
     // INPUT SETTINGS
     private Vector2 input;
     private Vector2 mobileInput = Vector2.zero; // Nuova variabile per mobile input
+    
+    //METODO PER IL JOYSTICK DI ATTACCO
+    public void SetAttackDirection(Vector2 direction)
+    {
+        lastDirection = direction;
+    }
 
     private void Awake()
     {
