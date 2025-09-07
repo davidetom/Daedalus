@@ -66,6 +66,7 @@ public class ShopManager : MonoBehaviour
             if (inventoryManager != null)
             {
                 inventoryManager.AddItem(item.itemData);
+                playerController.PowerUpEnabled();
             }
 
             //Aggiorna UI monete

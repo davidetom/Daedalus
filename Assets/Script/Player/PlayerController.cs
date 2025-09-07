@@ -3,7 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using UnityEngine.EventSystems; // serve per i pulsanti mobile
+using UnityEngine.EventSystems;
+using TMPro; // serve per i pulsanti mobile
 
 public class PlayerController : MonoBehaviour
 {
@@ -100,6 +101,18 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject sunsetPanel;
     [SerializeField] private GameObject sunrisePanel;
     [SerializeField] private GameObject gemCollectedPanel;
+
+    [Header("Item References")]
+    public Item boots;
+    public Item goggles;
+    public Item binocular;
+    public Item potion;
+    public Item sword;
+
+    [Header("Inventory and UI Reference")]
+    public InventoryManager inventory;
+    public CoinUIManager healthText1;
+    public TextMeshProUGUI healthBarText;
 
     // INPUT SETTINGS
     private Vector2 input;
@@ -1058,8 +1071,7 @@ public class PlayerController : MonoBehaviour
 
         foreach (var door in doors)
         {
-            float distance = Vector3.Distance(transform.position, door.transform.position);
-            if (distance <= interactRange)
+            if(door.isPlayerOnDoor)
             {
                 // NUOVO: Solo le outer doors possono essere aperte dal player
                 if (door.IsOuterDoor())
@@ -1339,6 +1351,30 @@ public class PlayerController : MonoBehaviour
             return inventoryManager.HasItem(keyItem);
         }
         return false;
+    }
+
+    //METODO PER POWERUP
+    public void PowerUpEnabled()
+    {
+        if (inventory.HasItem(boots))
+        {
+            Debug.Log("SPEED BOOST APPLIED");
+            moveSpeed = moveSpeed * 2;
+        }
+
+        if (inventory.HasItem(potion)){
+            Debug.Log("HEALTH BOOST APPLIED");
+            maxHealthPoints = maxHealthPoints * 2;
+            healthText1.healthSuffix = "/200";
+            healthText1.healthText.text = "200/200";
+            healthBarText.text = "200/200";
+        }
+
+        if (inventory.HasItem(sword))
+        {
+            Debug.Log("ATTACK BOOST APPLIED");
+            attackDamage = attackDamage * 2;
+        }
     }
 
     //FOR SAVE AND LOAD DATA

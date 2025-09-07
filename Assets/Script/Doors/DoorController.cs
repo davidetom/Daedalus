@@ -16,18 +16,14 @@ public class DoorController : MonoBehaviour
     public float durationMessage = 6f;
     public string sceneToLoad = "MainMenu";
 
+    [Header("Collider Check")]
+    public bool isPlayerOnDoor = false;
+
     void Awake()
     {
         animator = GetComponent<Animator>();
         dayNightManager = UnityEngine.Object.FindFirstObjectByType<DayNightCycleManager>();
 
-        /**
-        BoxCollider2D collider = GetComponent<BoxCollider2D>();
-        if(collider != null && IsOuterDoor())
-        {
-            collider.isTrigger = true;
-        }
-        **/
         if(victoryCanvas != null)
         {
             victoryCanvas.gameObject.SetActive(false);
@@ -36,9 +32,6 @@ public class DoorController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-
-        Debug.Log($"Trigger rilevato su porta {doorID}");
-
         if (other.CompareTag("Player"))
         {
             PlayerController player = other.GetComponent<PlayerController>();
@@ -85,14 +78,16 @@ public class DoorController : MonoBehaviour
         // Calcola quale porta è "quella giusta" oggi (solo per outer doors)
         int correctDoor = GetDoorOfTheDay();
 
-        //if (player.hasKey && doorID == correctDoor)
-        if (player.CheckForKey() && doorID == correctDoor)
+        Debug.Log("VALORE ATTUALE ISPLAYERONDOOR: " + isPlayerOnDoor);
+
+        if (isPlayerOnDoor && player.CheckForKey() && doorID == correctDoor)
         {
             // MODIFICA: Apri tutte le porte con lo stesso doorID
             OpenAllDoorsWithSameID();
+            isPlayerOnDoor = false;
+
             Debug.Log("Porte " + doorID + " aperte con successo!");
         }
-        //else if (!player.hasKey)
         else if (!player.CheckForKey()) 
         {
             Debug.Log("Hai bisogno di una chiave per aprire questa porta!");
@@ -174,9 +169,14 @@ public class DoorController : MonoBehaviour
         
         // Cicla tra le porte 1-8 basandosi sui giorni di gioco
         int doorOfTheDay = ((gameDay - 1) % 8) + 1;
-        
+
         Debug.Log($"Giorno di gioco: {gameDay}, Porta del giorno: {doorOfTheDay}");
         
         return doorOfTheDay;
+    }
+
+    public void OnPlayerEnterArea()
+    {
+        isPlayerOnDoor = true;
     }
 }
