@@ -25,11 +25,14 @@ public class MazeManager : MonoBehaviour
     public GameObject dawnWarningPanel;
     public TextMeshProUGUI dawnWarningText;
     public TextMeshProUGUI toHubWarningText;
+    public GameObject mazeChangedPanel;
+    public TextMeshProUGUI mazeChangedWarningText;
     public GameObject mazeOpenPanel;
     public TextMeshProUGUI mazeOpenWarningText;
     public GameObject mazeClosedPanel;
     public TextMeshProUGUI mazeClosedWarningText;
     public TextMeshProUGUI goodLuckText;
+    public GameObject gemCollectedPanel;
 
 
     [Header("Zone")]
@@ -47,6 +50,9 @@ public class MazeManager : MonoBehaviour
     public PlayerController playerController;
     public GameObject[] uiElementsToDisable;
 
+    [Header("Camera Control")]
+    public CameraMovement cameraController;
+
     // Stato interno
     public bool playerInOuterHub = false;
     public bool playerInInnerHub = true;
@@ -58,6 +64,7 @@ public class MazeManager : MonoBehaviour
     private bool originalCanAttackWhileMoving;
     private bool sunsetChoiceMade = false;
     private bool playerSleeping = false;
+    private Camera mainCamera;
 
     // Riferimenti tilemap
     private GameObject[] tilemapPrefabs;
@@ -97,7 +104,7 @@ public class MazeManager : MonoBehaviour
 
         if (innerHub == null)
             innerHub = FindFirstObjectByType<InnerHubController>();
-        
+
         LoadTilemapPrefabs();
 
         if (dayNightManager != null)
@@ -117,6 +124,56 @@ public class MazeManager : MonoBehaviour
         UpdatePlayerPosition();
         OpenMazeDoors();
         HideAllWarnings();
+        InitializeCameraControl();
+    }
+
+    void InitializeCameraControl()
+    {
+        // Trova la telecamera specifica per il labirinto se non assegnata manualmente
+        if (cameraController == null)
+        {
+            // Cerca tutte le telecamere con tag MainCamera
+            GameObject[] cameraObjects = GameObject.FindGameObjectsWithTag("MainCamera");
+
+            foreach (GameObject cameraObj in cameraObjects)
+            {
+                CameraMovement cameraMovement = cameraObj.GetComponent<CameraMovement>();
+                if (cameraMovement != null)
+                {
+                    // Questa è la telecamera del labirinto (quella con CameraMovement)
+                    cameraController = cameraMovement;
+                    Debug.Log($"Trovata telecamera labirinto: {cameraObj.name}");
+                    break;
+                }
+            }
+
+            // Fallback: cerca per nome se non trovata
+            if (cameraController == null)
+            {
+                GameObject mazeCamera = GameObject.Find("MazeCamera"); // Sostituisci con il nome della tua telecamera
+                if (mazeCamera != null)
+                {
+                    cameraController = mazeCamera.GetComponent<CameraMovement>();
+                }
+            }
+        }
+
+        if (cameraController == null)
+        {
+            Debug.LogWarning("CameraMovement per il labirinto non trovato! Assegna manualmente la telecamera nell'Inspector del MazeManager.");
+        }
+        else
+        {
+            Debug.Log($"CameraMovement collegato: {cameraController.gameObject.name}");
+            // Attiva i vincoli inizialmente se le porte sono chiuse
+            if (!mazeDoorsOpen)
+            {
+                cameraController.SetConstraintsActive(true);
+            }
+
+            // Assegna la stessa telecamera anche a mainCamera per coerenza
+            mainCamera = cameraController.GetComponent<Camera>();
+        }
     }
 
     void HideAllWarnings()
@@ -125,10 +182,12 @@ public class MazeManager : MonoBehaviour
             warningPanel.SetActive(false);
         if (dawnWarningPanel != null)
             dawnWarningPanel.SetActive(false);
-        if (mazeOpenPanel != null)
-            mazeOpenPanel.SetActive(false);
+        if (mazeChangedPanel != null)
+            mazeChangedPanel.SetActive(false);
         if (mazeClosedPanel != null)
             mazeClosedPanel.SetActive(false);
+        if (mazeOpenPanel != null)
+            mazeOpenPanel.SetActive(false);
     }
 
     void LoadTilemapPrefabs()
@@ -409,6 +468,10 @@ public class MazeManager : MonoBehaviour
             // Comportamento originale se il player è nel labirinto
             sunsetChoiceMade = false; // Reset del flag
             hasChosenToStay = false;  // Reset del flag
+
+            if (gemCollectedPanel != null)
+                gemCollectedPanel.SetActive(false);
+            
             ShowSunsetWarning();
             DisablePlayerInputsAndUI();
         }
@@ -528,6 +591,11 @@ public class MazeManager : MonoBehaviour
             UpdatePlayerPosition();
         }
 
+        if (cameraController != null)
+        {
+            cameraController.SetConstraintsActive(true);
+        }
+
         EnablePlayerInputsAndUI();
     }
 
@@ -565,15 +633,18 @@ public class MazeManager : MonoBehaviour
         // Aggiorna stato player - durante la notte può attaccare
         UpdatePlayerNightTimeState(true);
 
-        if (!playerInOuterHub && !playerInInnerHub && !sunsetChoiceMade)
-        {
-            Debug.Log("Nessuna scelta fatta durante il tramonto - player rimane nel labirinto");
-            hasChosenToStay = true;
-            sunsetChoiceMade = true;
+        if ((playerInInnerHub || playerInOuterHub) && cameraController != null)
+            cameraController.SetConstraintsActive(true);
 
-            HideSunsetWarnings();
-            EnablePlayerInputsAndUI();
-        }
+        if (!playerInOuterHub && !playerInInnerHub && !sunsetChoiceMade)
+            {
+                Debug.Log("Nessuna scelta fatta durante il tramonto - player rimane nel labirinto");
+                hasChosenToStay = true;
+                sunsetChoiceMade = true;
+
+                HideSunsetWarnings();
+                EnablePlayerInputsAndUI();
+            }
 
         StartCoroutine(ShowMazeClosedWarnings());
 
@@ -722,20 +793,33 @@ public class MazeManager : MonoBehaviour
         // Attende il delay normale per il cambio labirinto
         yield return new WaitForSeconds(mazeChangeDelay);
 
-        // PRIMA: Cambia il labirinto e ATTENDI che sia completato
-        Debug.Log("Iniziando cambio labirinto per player nell'hub...");
-        ChangeMazeTilemap();
+        // NUOVO: Controlla se dobbiamo cambiare il labirinto in base alla difficoltà
+        if (ShouldChangeMaze())
+        {
+            // PRIMA: Cambia il labirinto e ATTENDI che sia completato
+            Debug.Log("Iniziando cambio labirinto per player nell'hub...");
+            ChangeMazeTilemap();
 
-        // Attendi che il cambio labirinto sia completamente processato
-        yield return StartCoroutine(WaitForMazeChangeCompletion());
+            // Attendi che il cambio labirinto sia completamente processato
+            yield return StartCoroutine(WaitForMazeChangeCompletion());
 
-        // SECONDA: Ora apri le porte (SOLO dopo che il labirinto è cambiato)
-        Debug.Log("Cambio labirinto completato, aprendo le porte per player nell'hub...");
-        OpenMazeDoors();
+            // SECONDA: Ora apri le porte (SOLO dopo che il labirinto è cambiato)
+            Debug.Log("Cambio labirinto completato, aprendo le porte per player nell'hub...");
+            OpenMazeDoors();
 
-        Debug.Log("Cambio labirinto completato per player nell'hub esterno");
+            Debug.Log("Cambio labirinto completato per player nell'hub esterno");
 
-        StartCoroutine(ShowMazeOpenWarningSequence());
+            StartCoroutine(ShowMazeOpenWarningSequence());
+        }
+        else
+        {
+            // In difficoltà facile: solo apri le porte senza cambiare labirinto
+            Debug.Log("Modalità facile: solo apertura porte senza cambio labirinto");
+            OpenMazeDoors();
+
+            // Non mostrare warning di cambio labirinto in modalità facile
+            StartCoroutine(ShowEasyModeOpenWarning());
+        }
     }
 
     void ChangeMazeTilemap()
@@ -782,30 +866,91 @@ public class MazeManager : MonoBehaviour
             }
         }
         Debug.Log("Porte interne del labirinto aperte");
+
+        // Gestisci la telecamera quando le porte si aprono
+        if (cameraController != null)
+        {
+            // Prima disattiva i vincoli
+            cameraController.SetConstraintsActive(false);
+
+            // Poi avvia la transizione dolce verso il player
+            cameraController.OnMazeDoorsOpened();
+        }
     }
 
     IEnumerator ShowMazeOpenWarningSequence()
     {
         // Mostra il maze open warning per 3 secondi
-        if (mazeOpenPanel != null)
-            mazeOpenPanel.SetActive(true);
+        if (mazeChangedPanel != null)
+            mazeChangedPanel.SetActive(true);
             
-        if (mazeOpenWarningText != null)
+        if (mazeChangedWarningText != null)
         {
-            mazeOpenWarningText.gameObject.SetActive(true);
+            mazeChangedWarningText.gameObject.SetActive(true);
             Debug.Log("Mostro warning: labirinto aperto dopo cambio maze");
 
             yield return new WaitForSeconds(3f);
 
-            mazeOpenWarningText.gameObject.SetActive(false);
+            mazeChangedWarningText.gameObject.SetActive(false);
             Debug.Log("Warning labirinto aperto nascosto");
         }
 
         // INFINE: Disattiva completamente il dawn warning panel
+        if (mazeChangedPanel != null)
+        {
+            mazeChangedPanel.SetActive(false);
+            Debug.Log("MazeOpen panel completamente disattivato");
+        }
+    }
+
+    #endregion
+
+
+    #region LOGICA PER DIFFICOLTA' FACILE
+
+    bool ShouldChangeMaze()
+    {
+        // Controlla se il DifficultyManager è disponibile
+        if (DifficultyManager.Instance != null)
+        {
+            // Se è in modalità facile, non cambiare il labirinto
+            if (DifficultyManager.Instance.IsEasy())
+            {
+                Debug.Log("Difficoltà facile: il labirinto non verrà cambiato");
+                return false;
+            }
+        }
+        else
+        {
+            Debug.LogWarning("DifficultyManager non disponibile, usando comportamento normale");
+        }
+
+        // Comportamento normale per difficoltà normale/difficile o quando DifficultyManager non è disponibile
+        return true;
+    }
+
+    IEnumerator ShowEasyModeOpenWarning()
+    {
+        Debug.Log("Modalità facile: mostrando warning di apertura labirinto");
+
+        if (mazeOpenPanel != null)
+            mazeOpenPanel.SetActive(true);
+
+        if (mazeOpenWarningText != null)
+        {
+            mazeOpenWarningText.gameObject.SetActive(true);
+            Debug.Log("Mostro warning: labirinto aperto (modalità facile)");
+
+            yield return new WaitForSeconds(3f);
+
+            mazeOpenWarningText.gameObject.SetActive(false);
+            Debug.Log("Warning labirinto aperto nascosto (modalità facile)");
+        }
+
         if (mazeOpenPanel != null)
         {
             mazeOpenPanel.SetActive(false);
-            Debug.Log("MazeOpen panel completamente disattivato");
+            Debug.Log("MazeOpen panel disattivato (modalità facile)");
         }
     }
 
@@ -866,13 +1011,23 @@ public class MazeManager : MonoBehaviour
     {
         Debug.Log("=== CAMBIO LABIRINTO VELOCE PER SONNO ===");
 
-        // Cambia il labirinto immediatamente
-        ChangeMazeTilemap();
+        // NUOVO: Controlla se dobbiamo cambiare il labirinto anche durante il sonno
+        if (ShouldChangeMaze())
+        {
+            // Cambia il labirinto immediatamente
+            ChangeMazeTilemap();
 
-        // Attendi SOLO che il cambio sia processato correttamente
-        yield return StartCoroutine(WaitForMazeChangeCompletion());
+            // Attendi SOLO che il cambio sia processato correttamente
+            yield return StartCoroutine(WaitForMazeChangeCompletion());
 
-        Debug.Log("Cambio labirinto per sonno completato");
+            Debug.Log("Cambio labirinto per sonno completato");
+        }
+        else
+        {
+            Debug.Log("Modalità facile: nessun cambio labirinto durante il sonno");
+            // Attendi comunque un frame per mantenere la coerenza
+            yield return null;
+        }
     }
 
     #endregion

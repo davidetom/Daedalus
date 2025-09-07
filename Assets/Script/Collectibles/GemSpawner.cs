@@ -123,6 +123,8 @@ public class GemSpawner : MonoBehaviour
     private List<GameObject> activeYellowGems = new List<GameObject>();
     private List<GameObject> activeBlueGems = new List<GameObject>();
     private List<GameObject> activeGrayGems = new List<GameObject>();
+    private List<GameObject> activeGreenGems = new List<GameObject>();
+
 
     private Coroutine spawnCoroutine;
     private Coroutine lodCoroutine;
@@ -222,22 +224,69 @@ public class GemSpawner : MonoBehaviour
         }
     }
 
-    // NUOVO: Metodo principale per gestione LOD - MODIFICATO
     void UpdateGemLOD()
     {
+        if (playerController == null || mapManager == null)
+            return;
+
         Vector2Int playerPos = mapManager.WorldToArrayCoordinates(playerController.transform.position);
+
+        // NUOVO: Controlla se il player è nell'inner hub (fuori dai bounds del labirinto)
+        bool playerInInnerHub = !mapManager.IsValidArrayCoordinate(playerPos);
 
         // Aggiorna LOD per gemme gialle solo durante il giorno
         if (!yellowGemCollected && yellowGemPositions.Count > 0 && dayNightManager != null && dayNightManager.IsDay)
-            UpdateGemTypeLOD(yellowGemPositions, yellowGemPrefab, activeYellowGems, playerPos);
+        {
+            UpdateGemTypeLODWithHubCheck(yellowGemPositions, yellowGemPrefab, activeYellowGems, playerPos, playerInInnerHub);
+        }
 
         // Aggiorna LOD per gemme blu solo durante la notte
         if (!blueGemCollected && blueGemPositions.Count > 0 && dayNightManager != null && !dayNightManager.IsDay)
-            UpdateGemTypeLOD(blueGemPositions, blueGemPrefab, activeBlueGems, playerPos);
+        {
+            UpdateGemTypeLODWithHubCheck(blueGemPositions, blueGemPrefab, activeBlueGems, playerPos, playerInInnerHub);
+        }
 
         // Aggiorna LOD per gemme grigie (sempre attive se sbloccate)
         if (!grayGemCollected && grayGemPositions.Count > 0 && fogVisibilityUnlocked)
             UpdateGemTypeLOD(grayGemPositions, grayGemPrefab, activeGrayGems, playerPos);
+    }
+
+    void UpdateGemTypeLODWithHubCheck(List<GemSpawnData> gemPositions, GameObject gemPrefab, List<GameObject> activeGems, Vector2Int playerPos, bool playerInInnerHub)
+    {
+        if (playerInInnerHub)
+        {
+            // Se il player è nell'inner hub (fuori dal labirinto), non spawnare nessuna gemma
+            // e despawna tutte quelle attive
+            for (int i = 0; i < gemPositions.Count; i++)
+            {
+                GemSpawnData gemData = gemPositions[i];
+                if (gemData.IsInstanced)
+                {
+                    DestroyGem(gemData, activeGems);
+                }
+            }
+            return;
+        }
+
+        // Comportamento normale quando il player è nel labirinto
+        for (int i = 0; i < gemPositions.Count; i++)
+        {
+            GemSpawnData gemData = gemPositions[i];
+
+            // Ottieni distanza BFS dalla posizione della gemma
+            int distance = GetBFSDistance(gemData.arrayPosition);
+
+            // Se la gemma non è istanziata ma è abbastanza vicina, istanziala
+            if (!gemData.IsInstanced && distance != -1 && distance <= gemSpawnDistance)
+            {
+                InstantiateGem(gemData, gemPrefab, activeGems);
+            }
+            // Se la gemma è istanziata ma troppo lontana, distruggila
+            else if (gemData.IsInstanced && (distance == -1 || distance > gemDespawnDistance))
+            {
+                DestroyGem(gemData, activeGems);
+            }
+        }
     }
 
     // NUOVO: Gestione LOD per un tipo specifico di gemma
@@ -291,10 +340,14 @@ public class GemSpawner : MonoBehaviour
         }
     }
 
-    // NUOVO: Ottieni distanza BFS per una posizione
     int GetBFSDistance(Vector2Int arrayPos)
     {
         if (mapManager == null || !mapManager.IsValidArrayCoordinate(arrayPos))
+            return -1;
+
+        // NUOVO: Controllo aggiuntivo per evitare IndexOutOfRangeException
+        if (arrayPos.x < 0 || arrayPos.x >= mapManager.Distances.GetLength(0) ||
+            arrayPos.y < 0 || arrayPos.y >= mapManager.Distances.GetLength(1))
             return -1;
 
         return mapManager.Distances[arrayPos.x, arrayPos.y];
@@ -367,6 +420,7 @@ public class GemSpawner : MonoBehaviour
         activeYellowGems.RemoveAll(gem => gem == null);
         activeBlueGems.RemoveAll(gem => gem == null);
         activeGrayGems.RemoveAll(gem => gem == null);
+        activeGreenGems.RemoveAll(gem => gem == null);
 
         // NUOVO: Pulisci anche i riferimenti nelle liste posizioni
         CleanupGemPositionsList(yellowGemPositions, activeYellowGems);
@@ -391,17 +445,20 @@ public class GemSpawner : MonoBehaviour
     void OnDayStart()
     {
         if (enableDebug)
-            Debug.Log("GemSpawner: Giorno iniziato - rimuovendo gemme blu e generando posizioni gemme gialle");
+            Debug.Log("GemSpawner: Giorno iniziato - rimuovendo gemme blu e verdi, gestendo posizioni gemme gialle");
 
         // Rimuovi tutte le gemme blu quando inizia il giorno
         DestroyAllGemsOfType(blueGemPositions, activeBlueGems);
         // AGGIUNTO: Pulisci anche le posizioni blu per rigenerarle alla prossima notte
         blueGemPositions.Clear();
 
+        // NUOVO: Rimuovi tutte le gemme verdi attive quando inizia il giorno
+        DestroyAllActiveGreenGems();
+
         // Genera posizioni gemme gialle se non sono state raccolte
         if (!yellowGemCollected)
         {
-            // MODIFICATO: Se è il primissimo avvio (startFromDay), genera immediatamente
+            // MODIFICATO: Se Ã¨ il primissimo avvio (startFromDay), genera immediatamente
             if (dayNightManager != null && dayNightManager.startFromDay)
             {
                 GenerateYellowGemPositions(); // Generazione immediata
@@ -499,7 +556,7 @@ public class GemSpawner : MonoBehaviour
         if (greenGemPrefab == null || greenGemCollected)
         {
             if (enableDebug && greenGemCollected)
-                Debug.Log("GemSpawner: Gemma verde già raccolta - skip drop");
+                Debug.Log("GemSpawner: Gemma verde giÃ  raccolta - skip drop");
             return;
         }
 
@@ -511,11 +568,14 @@ public class GemSpawner : MonoBehaviour
             {
                 Vector2Int arrayPos = mapManager.WorldToArrayCoordinates(dropPosition);
 
-                // Controlla se c'è una moneta da rimuovere
+                // Controlla se c'Ã¨ una moneta da rimuovere
                 RemoveCoinAtPosition(arrayPos);
 
                 // Spawna la gemma verde
                 GameObject gem = Instantiate(greenGemPrefab, dropPosition, Quaternion.identity);
+
+                // NUOVO: Aggiungi alla lista delle gemme verdi attive
+                activeGreenGems.Add(gem);
 
                 // Registra la posizione come occupata
                 RegisterOccupiedPosition(arrayPos, gem);
@@ -868,10 +928,11 @@ public class GemSpawner : MonoBehaviour
     {
         greenGemCollected = true;
         inventoryManager.AddItem(greenGem);
+        DestroyAllActiveGreenGems();
         StartCoroutine(ShowGemCollected(ZombieGemText));
 
         if (enableDebug)
-            Debug.Log("GemSpawner: Gemma verde raccolta - non spawneranno più gemme verdi");
+            Debug.Log("GemSpawner: Gemma verde raccolta - tutte le altre gemme verdi rimosse");
     }
 
     /// <summary>
@@ -936,6 +997,25 @@ public class GemSpawner : MonoBehaviour
         }
     }
 
+    void DestroyAllActiveGreenGems()
+    {
+        for (int i = activeGreenGems.Count - 1; i >= 0; i--)
+        {
+            if (activeGreenGems[i] != null)
+            {
+                // Libera la posizione occupata
+                Vector2Int arrayPos = mapManager.WorldToArrayCoordinates(activeGreenGems[i].transform.position);
+                UnregisterOccupiedPosition(arrayPos);
+
+                Destroy(activeGreenGems[i]);
+            }
+        }
+        activeGreenGems.Clear();
+
+        if (enableDebug && activeGreenGems.Count > 0)
+            Debug.Log("GemSpawner: Tutte le gemme verdi attive sono state distrutte");
+    }
+
     IEnumerator ShowGemCollected(TextMeshProUGUI gemText)
     {
         gemCollectedPanel.SetActive(true);
@@ -973,6 +1053,9 @@ public class GemSpawner : MonoBehaviour
         DestroyAllGemsOfType(blueGemPositions, activeBlueGems);
         DestroyAllGemsOfType(grayGemPositions, activeGrayGems);
 
+        // NUOVO: Rimuovi anche tutte le gemme verdi
+        DestroyAllActiveGreenGems();
+
         // Pulisci completamente le liste posizioni
         yellowGemPositions.Clear();
         blueGemPositions.Clear();
@@ -981,7 +1064,7 @@ public class GemSpawner : MonoBehaviour
         ClearAllOccupiedPositions();
 
         if (enableDebug)
-            Debug.Log("GemSpawner: Reset completato con ottimizzazione LOD");
+            Debug.Log("GemSpawner: Reset completato con ottimizzazione LOD e gestione gemme verdi");
     }
 
     /// <summary>
@@ -1015,10 +1098,10 @@ public class GemSpawner : MonoBehaviour
             if (pos.IsInstanced) grayInstanced++;
 
         return $"Posizioni Generate - Gialle: {yellowGemPositions.Count}, Blu: {blueGemPositions.Count}, Grigie: {grayGemPositions.Count}\n" +
-               $"Gemme Istanziate - Gialle: {yellowInstanced}, Blu: {blueInstanced}, Grigie: {grayInstanced}\n" +
+               $"Gemme Istanziate - Gialle: {yellowInstanced}, Blu: {blueInstanced}, Grigie: {grayInstanced}, Verdi: {activeGreenGems.Count}\n" +
                $"Morti Player: {currentPlayerDeaths}/{deathsRequiredForRedGem}, " +
                $"Gemma Rossa: {(redGemSpawned ? "Spawnata" : "Non Spawnata")}, " +
-               $"Visibilità Nebbia: {(fogVisibilityUnlocked ? "Sbloccata" : "Bloccata")}\n" +
+               $"VisibilitÃ  Nebbia: {(fogVisibilityUnlocked ? "Sbloccata" : "Bloccata")}\n" +
                $"Gemme Raccolte - G:{yellowGemCollected}, B:{blueGemCollected}, V:{greenGemCollected}, Gr:{grayGemCollected}, R:{redGemCollected}";
     }
 

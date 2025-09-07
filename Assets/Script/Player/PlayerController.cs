@@ -99,6 +99,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject saveUI;
     [SerializeField] private GameObject sunsetPanel;
     [SerializeField] private GameObject sunrisePanel;
+    [SerializeField] private GameObject gemCollectedPanel;
 
     // INPUT SETTINGS
     private Vector2 input;
@@ -820,10 +821,13 @@ public class PlayerController : MonoBehaviour
         //FERMA IL GIOCO
         Time.timeScale = 0f;
 
+        if (gemCollectedPanel != null)
+            gemCollectedPanel.SetActive(false);
+
         if (gameUICanvas != null)
-        {
-            gameUICanvas.SetActive(false);
-        }
+            {
+                gameUICanvas.SetActive(false);
+            }
 
         if (gameButtons != null)
         {
