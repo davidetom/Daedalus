@@ -9,6 +9,7 @@ public class SaveLoadTester : MonoBehaviour
     public DayNightCycleManager dayNight;
     public ShopManager shop;
     public OuterHubController hub;
+    public GemSpawner gem;
     public void Load()
     {
         SaveSystem.Load();
@@ -16,7 +17,7 @@ public class SaveLoadTester : MonoBehaviour
 
     public void SaveGame()
     {
-        SaveSystem.Save(player, coin, inventory, dayNight, shop, hub);
+        SaveSystem.Save(player, coin, inventory, dayNight, shop, hub, gem);
 
     }
 }

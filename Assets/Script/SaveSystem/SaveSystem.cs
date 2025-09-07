@@ -12,6 +12,9 @@ using System.Collections.Generic;
 using NUnit.Framework;
 public class SaveSystem
 {
+    //Iniziata nuova partita o caricamento salvataggio?
+    public static bool isNewGame = false;
+
     private static Dictionary<string, SaveData> _userSaveData = new Dictionary<string, SaveData>();
 
     [System.Serializable]
@@ -23,8 +26,8 @@ public class SaveSystem
         public DayNightSaveData dayNightSaveData;
         public ShopData shopData;
         public HubData hubData;
-        //PROVA SAVE PER DIFFICULTY
         public DifficultyData difficultyData;
+        public GemData gemData;
         public int sceneIndex;
     }
 
@@ -64,7 +67,7 @@ public class SaveSystem
     }
 
     public static void Save(PlayerController player, CoinUIManager coin, InventoryManager inventory,
-                       DayNightCycleManager dayNight, ShopManager shop, OuterHubController hub)
+                       DayNightCycleManager dayNight, ShopManager shop, OuterHubController hub, GemSpawner gem)
     {
         try
         {
@@ -91,7 +94,6 @@ public class SaveSystem
                 }
             }
 
-            //PROVA SAVE DIFFICULTY
             DifficultyManager difficultyManager = GameObject.FindFirstObjectByType<DifficultyManager>();
             if(difficultyManager != null)
             {
@@ -103,7 +105,8 @@ public class SaveSystem
                 //DifficultyManager non trovato, salva a normal di default
                 currentSaveData.difficultyData.difficultyLevel = (int)DifficultyLevel.Normal;
             }
-            //FINE PROVA
+
+            gem.Save(ref currentSaveData.gemData);
 
             currentSaveData.sceneIndex = SceneManager.GetActiveScene().buildIndex;
 
@@ -152,6 +155,8 @@ public class SaveSystem
 
         try
         {
+            isNewGame = false;
+
             string saveContent = File.ReadAllText(SaveFileName());
             SaveData loadedData = JsonUtility.FromJson<SaveData>(saveContent);
 
@@ -196,9 +201,9 @@ public class SaveSystem
         DayNightCycleManager dayNight = GameObject.FindFirstObjectByType<DayNightCycleManager>();
         ShopManager shop = GameObject.FindFirstObjectByType<ShopManager>();
         OuterHubController hub = GameObject.FindFirstObjectByType<OuterHubController>();
-        //PROVA SAVE PER DIFFICULTY
         DifficultyManager difficultyManager = GameObject.FindFirstObjectByType<DifficultyManager>();
         GameElementsManager gameElementsManager = GameObject.FindFirstObjectByType<GameElementsManager>();
+        GemSpawner gemSpawner = GameObject.FindFirstObjectByType<GemSpawner>();
 
         Debug.Log($"=== CARICAMENTO COMPONENTI PER {GetCurrentUserId()} ===");
         Debug.Log("CoinUIManager trovato: " + (coin != null));
@@ -214,7 +219,6 @@ public class SaveSystem
             shop.Load(currentUserData.shopData);
             hub.Load(currentUserData.hubData);
 
-            //PROVA DIFFICULTY
             if(difficultyManager != null)
             {
                 difficultyManager.Load(currentUserData.difficultyData);
@@ -224,6 +228,7 @@ public class SaveSystem
             }
 
             gameElementsManager.ConfigureGameElements();
+            gemSpawner.Load(currentUserData.gemData);
 
             Debug.Log($"Dati caricati in scena per utente {GetCurrentUserId()}!");
         }
@@ -341,6 +346,15 @@ public class SaveSystem
     {
         _userSaveData.Clear();
         Debug.Log("SaveSystem: tutti i dati in memoria azzerati");
+    }
+
+    //Se nuova partita
+    public static void NewGame()
+    {
+        isNewGame = true;
+
+        //Carica scena di gioco
+        SceneManager.LoadScene("Labirinto");
     }
 }
 

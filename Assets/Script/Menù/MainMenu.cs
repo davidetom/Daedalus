@@ -43,7 +43,7 @@ public class MainMenu : MonoBehaviour
             manager.SetDifficulty(difficulty);
         }
 
-        SceneManager.LoadScene(gameScene);
+        SaveSystem.NewGame();
     }
 
     // Metodi alternativi richiamabili direttamente dall'Inspector

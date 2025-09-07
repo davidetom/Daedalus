@@ -1143,4 +1143,43 @@ public class GemSpawner : MonoBehaviour
             TryDropGreenGem(playerController.transform.position);
         }
     }
+
+    #region SAVE AND LOAD
+
+    public void Save(ref GemData data)
+    {
+        data.hasYellowGem = yellowGemCollected;
+        data.hasBlueGem = blueGemCollected;
+        data.hasGreenGem = greenGemCollected;
+        data.hasGrayGem = grayGemCollected;
+        data.hasRedGem = redGemCollected;
+    }
+
+    public void Load(GemData data)
+    {
+        yellowGemCollected = data.hasYellowGem;
+        blueGemCollected = data.hasBlueGem;
+        greenGemCollected = data.hasGreenGem;
+        grayGemCollected = data.hasGrayGem;
+        redGemCollected = data.hasRedGem;
+        playerController.hasLightGem = data.hasYellowGem;
+        playerController.hasNightGem = data.hasBlueGem;
+        playerController.hasZombieGem = data.hasGreenGem;
+        playerController.hasFogGem = data.hasGrayGem;
+        playerController.hasBloodGem = data.hasRedGem;
+    }
+
+    #endregion
+
+}
+
+//SAVE AND LOAD
+[System.Serializable]
+public struct GemData
+{
+    public bool hasYellowGem;
+    public bool hasBlueGem;
+    public bool hasGreenGem;
+    public bool hasGrayGem;
+    public bool hasRedGem;
 }

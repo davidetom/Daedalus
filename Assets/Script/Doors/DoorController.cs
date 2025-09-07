@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class DoorController : MonoBehaviour
 {
@@ -9,15 +11,68 @@ public class DoorController : MonoBehaviour
     // Riferimento al DayNightCycleManager per ottenere il day count
     private DayNightCycleManager dayNightManager;
 
+    [Header("Game Win UI")]
+    public Canvas victoryCanvas;
+    public float durationMessage = 6f;
+    public string sceneToLoad = "MainMenu";
+
     void Awake()
     {
         animator = GetComponent<Animator>();
         dayNightManager = UnityEngine.Object.FindFirstObjectByType<DayNightCycleManager>();
 
+        /**
+        BoxCollider2D collider = GetComponent<BoxCollider2D>();
+        if(collider != null && IsOuterDoor())
+        {
+            collider.isTrigger = true;
+        }
+        **/
+        if(victoryCanvas != null)
+        {
+            victoryCanvas.gameObject.SetActive(false);
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+
+        Debug.Log($"Trigger rilevato su porta {doorID}");
+
+        if (other.CompareTag("Player"))
+        {
+            PlayerController player = other.GetComponent<PlayerController>();
+
+            if(doorID == GetDoorOfTheDay() && isOpen)
+            {
+                StartCoroutine(HandleGameWin(player));
+                return;
+            }
+            TryOpen(player);
+        }
+    }
+
+    IEnumerator HandleGameWin(PlayerController player)
+    {
+        Debug.Log("Player ha attraversato l'uscita! Gioco completato!");
+
+        //Disabilita il movimento del player
+        if(player != null)
+        {
+            player.enabled = false;
+        }
+
+        victoryCanvas.gameObject.SetActive(true);
+
+        yield return new WaitForSeconds(durationMessage);
+
+        SceneManager.LoadScene(sceneToLoad);
     }
 
     public void TryOpen(PlayerController player)
     {
+        Debug.Log($"TryOpen chiamato su porta {doorID}");
+
         // Le inner doors (ID -1) non possono essere aperte dal player
         if (doorID == -1)
         {
