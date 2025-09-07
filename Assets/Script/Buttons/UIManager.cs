@@ -20,35 +20,22 @@ public class UIManager : MonoBehaviour
 
     public void DisableMinimapCanvas()
     {
-        if (DifficultyManager.Instance == null)
-        {
-            Debug.Log("Difficulty Manager non trovato!");
-        }
-        DifficultyLevel currentDifficulty = DifficultyManager.Instance.GetCurrentDifficulty();
-        if (currentDifficulty != DifficultyLevel.Hard)
-        {
-            minimapCanvas.gameObject.SetActive(false);
-        }
-        else
-        {
-            return;
-        }
+        minimapCanvas.gameObject.SetActive(false);
     }
 
     public void ActivateMinimapCanvas()
     {
         if (DifficultyManager.Instance == null)
         {
-            Debug.Log("Difficulty Manager non trovato!");
+            Debug.LogWarning("DifficultyManager non trovato! Attivando minimappa di default.");
+            minimapCanvas.gameObject.SetActive(true);
+            return;
         }
+
         DifficultyLevel currentDifficulty = DifficultyManager.Instance.GetCurrentDifficulty();
         if (currentDifficulty != DifficultyLevel.Hard)
         {
             minimapCanvas.gameObject.SetActive(true);
-        }
-        else
-        {
-            return;
         }
     }
 }

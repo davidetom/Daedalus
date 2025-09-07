@@ -3583,7 +3583,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1492322513
-  m_SortingLayer: 5
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: -5552291726514319404, guid: cb3a56e86b2bb9c4991509ad74cde6ad, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -9466,6 +9466,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2309142587195084051, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2309142587195084051, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 576610989}
@@ -9607,6 +9611,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8624910136924004015, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
       propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885816375080760707, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8885816375080760707, guid: e1878633d730c48c7b70c7210faaa667, type: 3}

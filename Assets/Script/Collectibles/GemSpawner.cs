@@ -182,7 +182,7 @@ public class GemSpawner : MonoBehaviour
         }
 
         if (gemCollectedPanel != null)
-            gemCollectedPanel.SetActive(true);
+            gemCollectedPanel.SetActive(false);
 
         if (LightGemText != null)
             LightGemText.gameObject.SetActive(false);
@@ -938,6 +938,8 @@ public class GemSpawner : MonoBehaviour
 
     IEnumerator ShowGemCollected(TextMeshProUGUI gemText)
     {
+        gemCollectedPanel.SetActive(true);
+
         if (gemText != null)
         {
             gemText.gameObject.SetActive(true);
@@ -946,6 +948,8 @@ public class GemSpawner : MonoBehaviour
 
             gemText.gameObject.SetActive(false);
         }
+
+        gemCollectedPanel.SetActive(false);
     }
 
     /// <summary>
