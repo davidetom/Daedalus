@@ -9,6 +9,7 @@ TagManager:
   - Tilemap
   - Building
   - Enterpoint
+  - EnemySpawn
   layers:
   - Default
   - TransparentFX

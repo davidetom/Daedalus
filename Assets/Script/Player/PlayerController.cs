@@ -1238,8 +1238,15 @@ public class PlayerController : MonoBehaviour
                 innerHubController.BedSleep();
                 return;
             }
-            // Nell'inner hub NON si può attaccare, quindi non aggiungiamo altre azioni
+
+            if (innerHubController != null && innerHubController.IsPlayerInAltarPoint)
+            {
+                innerHubController.InteractWithAltar();
                 return;
+            }
+
+            // Nell'inner hub NON si può attaccare, quindi non aggiungiamo altre azioni
+            return;
         }
         
         // Se siamo nell'outer hub (ma non nell'inner hub)
@@ -1278,6 +1285,12 @@ public class PlayerController : MonoBehaviour
             if (innerHubController != null && innerHubController.IsPlayerInBedPoint)
             {
                 innerHubController.BedSleep();
+                return;
+            }
+
+            if (innerHubController != null && innerHubController.IsPlayerInAltarPoint)
+            {
+                innerHubController.InteractWithAltar();
                 return;
             }
 

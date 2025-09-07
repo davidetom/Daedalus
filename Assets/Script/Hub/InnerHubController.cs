@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 
 public class InnerHubController : MonoBehaviour
@@ -7,20 +8,28 @@ public class InnerHubController : MonoBehaviour
     [SerializeField] private Collider2D exitPoint;
     [SerializeField] private GameObject doorIndicator;
     [SerializeField] public GameObject bedIndicator;
+    [SerializeField] private GameObject altarIndicator;
 
     [Header("Animazione Freccia")]
     [SerializeField] private float bobSpeed = 2f;
     [SerializeField] private float bobHeight = 0.3f;
-    private Vector3 originalIndicatorPosition;
     private bool isPlayerInExitPoint = false;
     private bool isPlayerInBedPoint = false;
+    private bool isPlayerInAltarPoint = false;
     private bool isAnimatingDoor = false;
     private bool isAnimatingBed = false;
+    private bool isAnimatingAltar = false;
 
     [Header("Riferimenti Sistema")]
     [SerializeField] private PlayerController playerController;
     [SerializeField] private OuterHubController outerHubController;
     [SerializeField] private BedLogic bed;
+    [SerializeField] private GemSpawner gemSpawner;
+    [SerializeField] private GameObject bloodOffersPanel;
+    [SerializeField] private TextMeshProUGUI bloodOffersText;
+    private string altarPrefix = "THE ALTAR AWAITS ";
+    private string altarSuffix1 = " MORE BLOOD OFFERINGS...";
+    private string altarSuffix2 = " MORE BLOOD OFFERING...";
 
     [Header("Debug")]
     [SerializeField] private bool enableDebug = false;
@@ -64,15 +73,41 @@ public class InnerHubController : MonoBehaviour
             }
         }
 
-        // Trova automaticamente i componenti del sistema se non assegnati
-        if (playerController == null)
+        if (bedIndicator == null)
         {
-            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null)
+            Transform bedIndicatorTransform = transform.Find("BedIndicator");
+            if (bedIndicatorTransform != null)
             {
-                playerController = playerObj.GetComponent<PlayerController>();
+                bedIndicator = bedIndicatorTransform.gameObject;
+            }
+            else
+            {
+                Debug.LogError("Oggetto figlio 'BedIndicator' non trovato!");
             }
         }
+
+        if (altarIndicator == null)
+        {
+            Transform altarIndicatorTransform = transform.Find("AltarIndicator");
+            if (altarIndicatorTransform != null)
+            {
+                altarIndicator = altarIndicatorTransform.gameObject;
+            }
+            else
+            {
+                Debug.LogError("Oggetto figlio 'AltarIndicator' non trovato!");
+            }
+        }
+
+        // Trova automaticamente i componenti del sistema se non assegnati
+            if (playerController == null)
+            {
+                GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+                if (playerObj != null)
+                {
+                    playerController = playerObj.GetComponent<PlayerController>();
+                }
+            }
 
         // Trova automaticamente l'OuterHubController se non assegnato
         if (outerHubController == null)
@@ -93,6 +128,15 @@ public class InnerHubController : MonoBehaviour
             }
         }
 
+        if (gemSpawner == null)
+        {
+            gemSpawner = FindFirstObjectByType<GemSpawner>();
+            if (gemSpawner != null && enableDebug)
+            {
+                Debug.Log("GemSpawner trovato automaticamente");
+            }
+        }
+
         // Verifica che l'ExitPoint sia configurato come trigger
             if (exitPoint != null && !exitPoint.isTrigger)
             {
@@ -102,17 +146,28 @@ public class InnerHubController : MonoBehaviour
 
     void SetupInitialState()
     {
+        if (bloodOffersPanel != null)
+            bloodOffersPanel.SetActive(false);
+
+        if (bloodOffersText != null)
+            bloodOffersText.gameObject.SetActive(false);
+            
         // Salva la posizione originale dell'indicatore della porta
         if (doorIndicator != null)
         {
-            originalIndicatorPosition = doorIndicator.transform.localPosition;
             doorIndicator.SetActive(false); // Inizialmente disattivo
         }
 
-        // NUOVO: Setup per il bed indicator
+        // Setup per il bed indicator
         if (bedIndicator != null)
         {
             bedIndicator.SetActive(false); // Inizialmente disattivo
+        }
+
+        // Setup per il bed indicator
+        if (altarIndicator != null)
+        {
+            altarIndicator.SetActive(false); // Inizialmente disattivo
         }
     }
 
@@ -190,9 +245,48 @@ public class InnerHubController : MonoBehaviour
         isAnimatingBed = false;
     }
 
+    public void OnPlayerEnterAltarArea()
+    {
+        isPlayerInAltarPoint = true;
+
+        // Attiva il bed indicator
+        if (altarIndicator != null)
+        {
+            altarIndicator.SetActive(true);
+
+            // Avvia l'animazione di movimento su e giù
+            if (!isAnimatingAltar)
+            {
+                StartCoroutine(AnimateAltarIndicator());
+            }
+        }
+
+        // Notifica al player che può interagire (opzionale)
+        if (playerController != null && enableDebug)
+        {
+            Debug.Log("Premi E per interagire");
+        }
+    }
+
+    public void OnPlayerExitAltarArea()
+    {
+        isPlayerInAltarPoint = false;
+
+        // Disattiva il bed indicator
+        if (altarIndicator != null)
+        {
+            altarIndicator.SetActive(false);
+        }
+
+        // Ferma l'animazione
+        isAnimatingAltar = false;
+    }
+
     private IEnumerator AnimateDoorIndicator()
     {
         isAnimatingDoor = true;
+
+        Vector3 originalDoorPosition = doorIndicator.transform.localPosition;
 
         while (isPlayerInExitPoint && doorIndicator != null && doorIndicator.activeInHierarchy)
         {
@@ -200,7 +294,7 @@ public class InnerHubController : MonoBehaviour
             float yOffset = Mathf.Sin(Time.time * bobSpeed) * bobHeight;
 
             // Applica il movimento alla posizione originale
-            Vector3 newPosition = originalIndicatorPosition;
+            Vector3 newPosition = originalDoorPosition;
             newPosition.y += yOffset;
 
             doorIndicator.transform.localPosition = newPosition;
@@ -211,7 +305,7 @@ public class InnerHubController : MonoBehaviour
         // Ripristina la posizione originale quando finisce l'animazione
         if (doorIndicator != null)
         {
-            doorIndicator.transform.localPosition = originalIndicatorPosition;
+            doorIndicator.transform.localPosition = originalDoorPosition;
         }
 
         isAnimatingDoor = false;
@@ -247,6 +341,36 @@ public class InnerHubController : MonoBehaviour
         isAnimatingBed = false;
     }
 
+    public IEnumerator AnimateAltarIndicator()
+    {
+        isAnimatingAltar = true;
+
+        // Salva la posizione originale del bed indicator se non già fatto
+        Vector3 originalAltarPosition = altarIndicator.transform.localPosition;
+
+        while (isPlayerInAltarPoint && altarIndicator != null && altarIndicator.activeInHierarchy)
+        {
+            // Calcola il movimento su e giù usando sin
+            float yOffset = Mathf.Sin(Time.time * bobSpeed) * bobHeight;
+
+            // Applica il movimento alla posizione originale
+            Vector3 newPosition = originalAltarPosition;
+            newPosition.y += yOffset;
+
+            altarIndicator.transform.localPosition = newPosition;
+
+            yield return null;
+        }
+
+        // Ripristina la posizione originale quando finisce l'animazione
+        if (altarIndicator != null)
+        {
+            altarIndicator.transform.localPosition = originalAltarPosition;
+        }
+
+        isAnimatingAltar = false;
+    }
+
     public void ExitHub()
     {
         if (enableDebug)
@@ -275,6 +399,49 @@ public class InnerHubController : MonoBehaviour
             bed.TrySleep();
     }
 
+    public void InteractWithAltar()
+    {
+        if (enableDebug)
+            Debug.Log("Player sta provando ad interagire con l'altare");
+
+        if (gemSpawner.currentPlayerDeaths < gemSpawner.deathsRequiredForRedGem)
+            StartCoroutine(AltarInteraction());
+        else
+        {
+            gemSpawner.OnRedGemCollected();
+            playerController.hasBloodGem = true;
+        }
+    }
+
+    IEnumerator AltarInteraction()
+    {
+        if (bloodOffersPanel != null)
+        {
+            bloodOffersPanel.SetActive(true);
+
+            if (bloodOffersText != null)
+            {
+                int deathsRemaining = gemSpawner.deathsRequiredForRedGem -
+                                        gemSpawner.currentPlayerDeaths;
+                string altarSuffix;
+                
+                if (deathsRemaining > 1)
+                    altarSuffix = altarSuffix1;
+                else
+                    altarSuffix = altarSuffix2;
+
+                bloodOffersText.text = altarPrefix + deathsRemaining.ToString() + altarSuffix;
+
+                bloodOffersText.gameObject.SetActive(true);
+            }
+
+            yield return new WaitForSeconds(3f);
+
+            bloodOffersPanel.SetActive(false);
+            bloodOffersText.gameObject.SetActive(false);
+        }
+    }
+
     // Metodi pubblici per debugging
     [ContextMenu("Test Exit Hub")]
     public void TestExitHub()
@@ -297,6 +464,7 @@ public class InnerHubController : MonoBehaviour
     // Proprietà pubbliche per accesso esterno
     public bool IsPlayerInExitPoint => isPlayerInExitPoint;
     public bool IsPlayerInBedPoint => isPlayerInBedPoint;
+    public bool IsPlayerInAltarPoint => isPlayerInAltarPoint;
     public bool IsIndicatorActive => doorIndicator != null && doorIndicator.activeInHierarchy;
 
     void OnValidate()

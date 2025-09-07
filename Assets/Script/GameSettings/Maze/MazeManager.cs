@@ -680,7 +680,7 @@ public class MazeManager : MonoBehaviour
         if (toHubWarningText != null)
             toHubWarningText.gameObject.SetActive(false);
 
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(1f);
 
         if (dawnWarningPanel != null)
         {
@@ -712,7 +712,7 @@ public class MazeManager : MonoBehaviour
             }
         }
 
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(2f);
     }
 
     // QUA INSERIRE LOGICA PER IMPOSTARE IL CAMBIO LABIRINTO A FALSE PER MODALITA' FACILE
@@ -845,7 +845,7 @@ public class MazeManager : MonoBehaviour
         Debug.Log("Cambio labirinto completato durante il sonno");
 
         // 5. Breve pausa per simulare il "sonno" (opzionale)
-        yield return new WaitForSecondsRealtime(6f);
+        yield return new WaitForSecondsRealtime(4f);
 
         playerSleeping = false;
 

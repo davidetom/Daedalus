@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: d4f62e0b29d1d9d4caccaac4de7bccb8
+guid: 0ba724327172441e4ba67dbd90bee45c
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 3902781597982265494
-    second: arrow_basic_n_0
+      213: -2961463332538773305
+    second: bottomAltar 1_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -97,32 +97,6 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: Android
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: iOS
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
     buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -139,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: arrow_basic_n_0
+      name: bottomAltar 1_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 59
         y: 0
-        width: 32
-        height: 32
+        width: 182
+        height: 121
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -154,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6901aaf7f27792630800000000000000
-      internalID: 3902781597982265494
+      spriteID: 7c09ea02ac4c6e6d0800000000000000
+      internalID: -2961463332538773305
       vertices: []
       indices: 
       edges: []
@@ -174,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      arrow_basic_n_0: 3902781597982265494
+      bottomAltar 1_0: -2961463332538773305
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

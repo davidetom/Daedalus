@@ -18,10 +18,11 @@ public class CoinUIManager : MonoBehaviour
         // Aggiorna subito il testo
         UpdateCoinDisplay();
     }
-    
+
     void Update()
     {
         UpdateCoinDisplay();
+        UpdateHealthDisplay();
     }
     
     public void UpdateCoinDisplay()
@@ -36,10 +37,7 @@ public class CoinUIManager : MonoBehaviour
     {
         if (healthText != null && player != null)
         {
-            if (healthText.gameObject.activeInHierarchy)
-            {
-                healthText.text = player.GetCurrentHealth().ToString() + healthSuffix;
-            }
+            healthText.text = player.GetCurrentHealth().ToString() + healthSuffix;
         }
     }
     //SAVE AND LOAD

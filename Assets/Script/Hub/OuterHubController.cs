@@ -289,12 +289,7 @@ public class OuterHubController : MonoBehaviour
         //Accendi il bottone dello shop
         shopButton.gameObject.SetActive(true);
 
-        //Disattiva la minimappa se la difficoltà non è Hard
-        DifficultyLevel currentDifficulty = DifficultyManager.Instance.GetCurrentDifficulty();
-        if (currentDifficulty != DifficultyLevel.Hard)
-        {
-            minimap.SetActive(false);
-        }
+        minimap.SetActive(false);
     }
 
     public void UpdateStatusWithoutPlayerInHub()
@@ -311,11 +306,16 @@ public class OuterHubController : MonoBehaviour
         shopButton.gameObject.SetActive(false);
 
         //Riattiva la minimappa se la difficoltà non è Hard
-        DifficultyLevel currentDifficulty = DifficultyManager.Instance.GetCurrentDifficulty();
-        if (currentDifficulty != DifficultyLevel.Hard)
+        if (DifficultyManager.Instance != null)
         {
-            minimap.SetActive(true);
+            DifficultyLevel currentDifficulty = DifficultyManager.Instance.GetCurrentDifficulty();
+            if (currentDifficulty != DifficultyLevel.Hard)
+            {
+                minimap.SetActive(true);
+            }
         }
+        else
+            minimap.SetActive(true);
     }
 
     private void SwitchToHubCamera()

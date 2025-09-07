@@ -29,12 +29,12 @@ public class GameElementsManager : MonoBehaviour
     {
         if(DifficultyManager.Instance == null)
         {
-            Debug.LogWarning("DifficultyManager non trovato! Usando difficoltà Normal di default.");
+            Debug.Log("DifficultyManager non trovato! Usando difficoltÃ  Normal di default.");
             return;
         }
 
         DifficultyLevel currentDifficulty = DifficultyManager.Instance.GetCurrentDifficulty();
-        Debug.Log($"Configurando elementi per difficoltà: {currentDifficulty}");
+        Debug.Log($"Configurando elementi per difficoltï¿½: {currentDifficulty}");
 
         //Gestisci elementi specifici
         ConfigureSpecificElements(currentDifficulty);
