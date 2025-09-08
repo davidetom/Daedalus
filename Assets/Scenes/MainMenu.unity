@@ -355,16 +355,16 @@ MonoBehaviour:
   gemPickup: {fileID: 8300000, guid: c4aaf6a33be67a44bbf882cfa3590728, type: 3}
   itemPurchase: {fileID: 8300000, guid: b25011dc828c8e1408142861dec6d0f3, type: 3}
   walking: {fileID: 0}
-  healing: {fileID: 8300000, guid: 2ebdad4c83efba441bbb8a0c311c1cc4, type: 3}
+  healing: {fileID: 0}
   damageTaken: {fileID: 8300000, guid: 4d449a27d8faf5a4aad743552bd4abc6, type: 3}
   death: {fileID: 8300000, guid: c123b69bdaec8484a8c114f95ec254f4, type: 3}
-  doorOpen: {fileID: 0}
-  doorClose: {fileID: 0}
-  nightIsComing: {fileID: 0}
+  doorOpen: {fileID: 8300000, guid: 824eeeed90adf3045862f9c4283b3f4c, type: 3}
+  doorClose: {fileID: 8300000, guid: 0c0d8acd26003664895c80773f8c1e7e, type: 3}
+  nightIsComing: {fileID: 8300000, guid: 99fc868c283765346b7b64b1d5250e41, type: 3}
   buttonClick: {fileID: 8300000, guid: 3ef142c0f8f6fe748a3d9cd13d9aa7bc, type: 3}
   enemyShout: {fileID: 8300000, guid: c19b9e20257149b43a3d5c7cfdcb4443, type: 3}
-  victory: {fileID: 0}
-  mainMenuMusic: {fileID: 8300000, guid: 51e7edfcfa9cbd34ba874ff3cd66cd02, type: 3}
+  victory: {fileID: 8300000, guid: 070a980609194f54f8f7308980b5f6b9, type: 3}
+  mainMenuMusic: {fileID: 8300000, guid: 80932f622561f1646a4ee2f8e9a7b767, type: 3}
   gameMusic: {fileID: 0}
 --- !u!4 &60442933
 Transform:

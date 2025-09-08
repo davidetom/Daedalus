@@ -88,13 +88,21 @@ public class DoorController : MonoBehaviour
 
             Debug.Log("Porte " + doorID + " aperte con successo!");
         }
-        else if (!player.CheckForKey()) 
+        else if (!player.CheckForKey())
         {
             Debug.Log("Hai bisogno di una chiave per aprire questa porta!");
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayDoorClose();
+            }
         }
         else
         {
             Debug.Log("La porta " + doorID + " non è quella giusta per oggi! Oggi si apre la porta " + correctDoor);
+             if (AudioManager.Instance != null)
+                {
+                 AudioManager.Instance.PlayDoorClose();
+                }
         }
     }
 
@@ -102,6 +110,10 @@ public class DoorController : MonoBehaviour
     {
         isOpen = true;
         animator.SetBool("isOpen", true);
+         if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayDoorOpen();
+        }
         Debug.Log("Porta " + doorID + " aperta!");
     }
     
