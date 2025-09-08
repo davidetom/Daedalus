@@ -635,6 +635,8 @@ public class MazeManager : MonoBehaviour
 
         if ((playerInInnerHub || playerInOuterHub) && cameraController != null)
             cameraController.SetConstraintsActive(true);
+        if (playerInOuterHub)
+            cameraController.OnNightStart();
 
         if (!playerInOuterHub && !playerInInnerHub && !sunsetChoiceMade)
             {

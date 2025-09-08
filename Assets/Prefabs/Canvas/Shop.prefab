@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7450753928155646409}
   - component: {fileID: 1514572118211625720}
   m_Layer: 0
-  m_Name: Icon (2)
+  m_Name: GemIcon_3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 4007060148189524512}
   - component: {fileID: 6441111306783298754}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: LensesPrice
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -223,7 +223,7 @@ GameObject:
   - component: {fileID: 6727789417139098116}
   - component: {fileID: 8210879376128966293}
   m_Layer: 0
-  m_Name: Name
+  m_Name: KeyName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -465,7 +465,7 @@ GameObject:
   - component: {fileID: 6589075491135251566}
   - component: {fileID: 513614866815165988}
   m_Layer: 0
-  m_Name: Icon
+  m_Name: CoinIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -540,7 +540,7 @@ GameObject:
   - component: {fileID: 5728584612098899488}
   - component: {fileID: 2080964547076923287}
   m_Layer: 0
-  m_Name: Description (1)
+  m_Name: SwordDescription
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -562,7 +562,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 105.7, y: -0.000030518}
+  m_AnchoredPosition: {x: 105.7, y: -5}
   m_SizeDelta: {x: 353.7679, y: 121}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5728584612098899488
@@ -593,7 +593,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Visual range increased
+  m_text: BOOSTS DAMAGE
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f54487c76c163c84b8fef7ae3c38fee0, type: 2}
   m_sharedMaterial: {fileID: -9116426184656833220, guid: f54487c76c163c84b8fef7ae3c38fee0, type: 2}
@@ -620,8 +620,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 60
-  m_fontSizeBase: 60
+  m_fontSize: 61.5
+  m_fontSizeBase: 61.5
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -677,7 +677,7 @@ GameObject:
   - component: {fileID: 5062407172154541085}
   - component: {fileID: 2842233637726135662}
   m_Layer: 0
-  m_Name: Purchase
+  m_Name: LensesPurchase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -822,7 +822,7 @@ GameObject:
   - component: {fileID: 3996319223587663882}
   - component: {fileID: 561325168550156040}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -958,7 +958,7 @@ GameObject:
   - component: {fileID: 7268316457318876435}
   - component: {fileID: 1651552849511923552}
   m_Layer: 0
-  m_Name: Icon
+  m_Name: CoinIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1033,7 +1033,7 @@ GameObject:
   - component: {fileID: 7624778081210773499}
   - component: {fileID: 9068380088926091723}
   m_Layer: 0
-  m_Name: Image
+  m_Name: BootsImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1108,7 +1108,7 @@ GameObject:
   - component: {fileID: 1917866378389373815}
   - component: {fileID: 8464730818108978354}
   m_Layer: 0
-  m_Name: Icon
+  m_Name: CoinIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1183,7 +1183,7 @@ GameObject:
   - component: {fileID: 2168148389445664564}
   - component: {fileID: 5326505320263945281}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: SwordPrice
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1322,7 +1322,7 @@ GameObject:
   - component: {fileID: 1012067570884406858}
   - component: {fileID: 4874495177875108359}
   m_Layer: 0
-  m_Name: Purchase (1)
+  m_Name: SwordPurchase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1467,7 +1467,7 @@ GameObject:
   - component: {fileID: 8697603180387665654}
   - component: {fileID: 8784827630314485682}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1678,7 +1678,7 @@ GameObject:
   - component: {fileID: 3832635346613261529}
   - component: {fileID: 66709865191873748}
   m_Layer: 0
-  m_Name: Image
+  m_Name: SwordImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1691,16 +1691,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1831781123846377386}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 5325279188026903570}
+  m_Father: {fileID: 585362194517687938}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -189, y: 32.001}
+  m_AnchoredPosition: {x: -178, y: 31}
   m_SizeDelta: {x: 189.2581, y: 163.4202}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3832635346613261529
@@ -1754,7 +1754,7 @@ GameObject:
   - component: {fileID: 5921841613858307266}
   - component: {fileID: 9052453599707400771}
   m_Layer: 0
-  m_Name: Obtained (4)
+  m_Name: VisorsObtained
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1874,7 +1874,7 @@ GameObject:
   - component: {fileID: 3157376368206241247}
   - component: {fileID: 3036172170217275200}
   m_Layer: 0
-  m_Name: Icon (1)
+  m_Name: GemIcon_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2075,7 +2075,7 @@ GameObject:
   - component: {fileID: 7694418282807072539}
   - component: {fileID: 5115683014362406431}
   m_Layer: 0
-  m_Name: Image
+  m_Name: PotionImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2150,7 +2150,7 @@ GameObject:
   - component: {fileID: 2159301828788197562}
   - component: {fileID: 6667915864708053768}
   m_Layer: 0
-  m_Name: Name
+  m_Name: VisorsName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2203,7 +2203,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: FIRE SWORD
+  m_text: FOGBREAKER VISORS
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f54487c76c163c84b8fef7ae3c38fee0, type: 2}
   m_sharedMaterial: {fileID: -9116426184656833220, guid: f54487c76c163c84b8fef7ae3c38fee0, type: 2}
@@ -2230,8 +2230,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 68
-  m_fontSizeBase: 68
+  m_fontSize: 66.3
+  m_fontSizeBase: 66.3
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2468,7 +2468,7 @@ GameObject:
   - component: {fileID: 5296629702627909204}
   - component: {fileID: 3523043007982881695}
   m_Layer: 0
-  m_Name: Obtained (5)
+  m_Name: KeyObtained
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2588,7 +2588,7 @@ GameObject:
   - component: {fileID: 3503991111223253691}
   - component: {fileID: 3015932492853932205}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: BackText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2668,8 +2668,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 76.8
-  m_fontSizeBase: 76.8
+  m_fontSize: 91.3
+  m_fontSizeBase: 91.3
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2706,7 +2706,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: -7.9782104, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -2724,7 +2724,7 @@ GameObject:
   - component: {fileID: 4701092573193249400}
   - component: {fileID: 6063672529945181381}
   m_Layer: 0
-  m_Name: Description
+  m_Name: KeyDescription
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2996,7 +2996,7 @@ GameObject:
   - component: {fileID: 5446850771840863536}
   - component: {fileID: 7547454159553875912}
   m_Layer: 0
-  m_Name: Item (3)
+  m_Name: Visors
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3014,7 +3014,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2168276954544174819}
+  - {fileID: 2760768673772343202}
   - {fileID: 5250963537094913655}
   - {fileID: 6214202950686975280}
   - {fileID: 4114255316154404409}
@@ -3076,7 +3076,7 @@ GameObject:
   - component: {fileID: 7323656298177469360}
   - component: {fileID: 4471518759276979146}
   m_Layer: 0
-  m_Name: Icon (4)
+  m_Name: GemIcon_5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3151,7 +3151,7 @@ GameObject:
   - component: {fileID: 4548109100773567266}
   - component: {fileID: 2974167239723965067}
   m_Layer: 0
-  m_Name: Image
+  m_Name: LensesImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3332,7 +3332,7 @@ GameObject:
   - component: {fileID: 6937594028570217431}
   - component: {fileID: 7821876439873009421}
   m_Layer: 0
-  m_Name: Rarity
+  m_Name: RareRarity
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3488,7 +3488,7 @@ GameObject:
   - component: {fileID: 6047100483008959902}
   - component: {fileID: 4185094661058963578}
   m_Layer: 0
-  m_Name: Item (2)
+  m_Name: Potion
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3570,7 +3570,7 @@ GameObject:
   - component: {fileID: 7973371569488020089}
   - component: {fileID: 4686754777758960284}
   m_Layer: 0
-  m_Name: Purchase
+  m_Name: KeyPurchase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3745,7 +3745,7 @@ GameObject:
   - component: {fileID: 1180673493287680223}
   - component: {fileID: 2114172141925587199}
   m_Layer: 0
-  m_Name: Icon
+  m_Name: CoinIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3820,7 +3820,7 @@ GameObject:
   - component: {fileID: 4928194290818920993}
   - component: {fileID: 6033715587799915990}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: PotionPrice
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3956,7 +3956,7 @@ GameObject:
   - component: {fileID: 7970989537767174652}
   - component: {fileID: 1408131572006450890}
   m_Layer: 0
-  m_Name: Description
+  m_Name: VisorsDescription
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3978,7 +3978,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 99.29099, y: 0}
+  m_AnchoredPosition: {x: 99.29099, y: -42}
   m_SizeDelta: {x: 362.11, y: 69.8021}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7970989537767174652
@@ -4009,7 +4009,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: ATTACK x2
+  m_text: REMOVE FOG
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f54487c76c163c84b8fef7ae3c38fee0, type: 2}
   m_sharedMaterial: {fileID: -9116426184656833220, guid: f54487c76c163c84b8fef7ae3c38fee0, type: 2}
@@ -4036,8 +4036,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 60
-  m_fontSizeBase: 60
+  m_fontSize: 57.2
+  m_fontSizeBase: 57.2
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -4092,7 +4092,7 @@ GameObject:
   - component: {fileID: 3368981279933898678}
   - component: {fileID: 4258313057765554618}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: VisorsPrice
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4228,7 +4228,7 @@ GameObject:
   - component: {fileID: 3037837963751843945}
   - component: {fileID: 4586345664403163464}
   m_Layer: 0
-  m_Name: Icon
+  m_Name: CoinIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4303,7 +4303,7 @@ GameObject:
   - component: {fileID: 5101403058249843070}
   - component: {fileID: 2590957045667974722}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: InsufficientCoinText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4439,7 +4439,7 @@ GameObject:
   - component: {fileID: 2292652043001870432}
   - component: {fileID: 8752183820134585957}
   m_Layer: 0
-  m_Name: Description
+  m_Name: PotionDescription
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4492,7 +4492,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Heals 50 hp
+  m_text: Doubles hp
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f54487c76c163c84b8fef7ae3c38fee0, type: 2}
   m_sharedMaterial: {fileID: -9116426184656833220, guid: f54487c76c163c84b8fef7ae3c38fee0, type: 2}
@@ -4519,8 +4519,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 70.7
-  m_fontSizeBase: 70.7
+  m_fontSize: 65.4
+  m_fontSizeBase: 65.4
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -4575,7 +4575,7 @@ GameObject:
   - component: {fileID: 4777642892275897238}
   - component: {fileID: 4117525853060237136}
   m_Layer: 0
-  m_Name: Item
+  m_Name: Boots
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4656,7 +4656,7 @@ GameObject:
   - component: {fileID: 3349647476302272735}
   - component: {fileID: 5980034684571496658}
   m_Layer: 0
-  m_Name: Rarity (1)
+  m_Name: EpicRarity
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4812,7 +4812,7 @@ GameObject:
   - component: {fileID: 7523568845914787222}
   - component: {fileID: 245355639053093927}
   m_Layer: 0
-  m_Name: Item
+  m_Name: Sword
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4830,7 +4830,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2760768673772343202}
+  - {fileID: 2168276954544174819}
   - {fileID: 1655718868406328914}
   - {fileID: 6583584255067338955}
   - {fileID: 1868428234868976374}
@@ -4893,7 +4893,7 @@ GameObject:
   - component: {fileID: 5108465029519831730}
   - component: {fileID: 6103800170978768887}
   m_Layer: 0
-  m_Name: Obtained (2)
+  m_Name: LensesObtained
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5038,8 +5038,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -828.53, y: 414.23}
-  m_SizeDelta: {x: 177.0764, y: 60.7378}
+  m_AnchoredPosition: {x: -786.3593, y: 421.0685}
+  m_SizeDelta: {x: 261.4178, y: 74.4149}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2212937252805628196
 CanvasRenderer:
@@ -5208,6 +5208,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pauseSaveButton: {fileID: 5666905188651042203}
+  minimapCanvas: {fileID: 0}
 --- !u!1 &5998475792934495806
 GameObject:
   m_ObjectHideFlags: 0
@@ -5220,7 +5221,7 @@ GameObject:
   - component: {fileID: 3339541399234870998}
   - component: {fileID: 643361483882372461}
   m_Layer: 0
-  m_Name: Name (1)
+  m_Name: SwordName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5273,7 +5274,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: TECH GOGGLES
+  m_text: 'FIRE SWORD
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f54487c76c163c84b8fef7ae3c38fee0, type: 2}
   m_sharedMaterial: {fileID: -9116426184656833220, guid: f54487c76c163c84b8fef7ae3c38fee0, type: 2}
@@ -5300,8 +5303,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 59.9
-  m_fontSizeBase: 59.9
+  m_fontSize: 67.1
+  m_fontSizeBase: 67.1
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -5356,7 +5359,7 @@ GameObject:
   - component: {fileID: 7185414821164227941}
   - component: {fileID: 7104476746678731478}
   m_Layer: 0
-  m_Name: Icon
+  m_Name: GemIcon_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5431,7 +5434,7 @@ GameObject:
   - component: {fileID: 1728968608744571190}
   - component: {fileID: 1569653821405233343}
   m_Layer: 0
-  m_Name: Name
+  m_Name: LensesName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5511,8 +5514,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 68
-  m_fontSizeBase: 68
+  m_fontSize: 71.2
+  m_fontSizeBase: 71.2
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -5568,7 +5571,7 @@ GameObject:
   - component: {fileID: 3155673528273923654}
   - component: {fileID: 7290142888566347369}
   m_Layer: 0
-  m_Name: Obtained (3)
+  m_Name: PotionObtained
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5688,7 +5691,7 @@ GameObject:
   - component: {fileID: 6983391788073012877}
   - component: {fileID: 2529928905448457649}
   m_Layer: 0
-  m_Name: Name
+  m_Name: BootsName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5824,7 +5827,7 @@ GameObject:
   - component: {fileID: 3095798500642126819}
   - component: {fileID: 3174153442853976335}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: BootsPrice
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5960,7 +5963,7 @@ GameObject:
   - component: {fileID: 287114714424492735}
   - component: {fileID: 3278832322653562849}
   m_Layer: 0
-  m_Name: Item (3)
+  m_Name: Key
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6041,7 +6044,7 @@ GameObject:
   - component: {fileID: 8230647893406308137}
   - component: {fileID: 8060281243964846387}
   m_Layer: 0
-  m_Name: Rarity (2)
+  m_Name: HeroicRarity
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6197,7 +6200,7 @@ GameObject:
   - component: {fileID: 6081932093505612473}
   - component: {fileID: 6043415211865868696}
   m_Layer: 0
-  m_Name: Description
+  m_Name: BootsDescription
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6250,7 +6253,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: SPEED x2
+  m_text: BOOST SPEED
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f54487c76c163c84b8fef7ae3c38fee0, type: 2}
   m_sharedMaterial: {fileID: -9116426184656833220, guid: f54487c76c163c84b8fef7ae3c38fee0, type: 2}
@@ -6277,8 +6280,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 74.1
-  m_fontSizeBase: 74.1
+  m_fontSize: 65.7
+  m_fontSizeBase: 65.7
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -6333,7 +6336,7 @@ GameObject:
   - component: {fileID: 130116959308207353}
   - component: {fileID: 5522639077811070759}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: BlankText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6470,7 +6473,7 @@ GameObject:
   - component: {fileID: 4581263089266653262}
   - component: {fileID: 792475585280225782}
   m_Layer: 0
-  m_Name: Purchase
+  m_Name: PotionPurchase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6615,7 +6618,7 @@ GameObject:
   - component: {fileID: 4441084067019335570}
   - component: {fileID: 1637436624941026044}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6751,7 +6754,7 @@ GameObject:
   - component: {fileID: 8796575214233558815}
   - component: {fileID: 8619599749191963543}
   m_Layer: 0
-  m_Name: Name
+  m_Name: PotionName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6831,8 +6834,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 68
-  m_fontSizeBase: 68
+  m_fontSize: 74.4
+  m_fontSizeBase: 74.4
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -6888,7 +6891,7 @@ GameObject:
   - component: {fileID: 2330974971687336941}
   - component: {fileID: 8658092611282832457}
   m_Layer: 0
-  m_Name: Obtained
+  m_Name: BootsObtained
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7008,7 +7011,7 @@ GameObject:
   - component: {fileID: 8018692153625432499}
   - component: {fileID: 847790500891645622}
   m_Layer: 0
-  m_Name: Item (1)
+  m_Name: Lenses
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7088,7 +7091,7 @@ GameObject:
   - component: {fileID: 4126292140334946427}
   - component: {fileID: 4430469382509623937}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7224,7 +7227,7 @@ GameObject:
   - component: {fileID: 868458430657001261}
   - component: {fileID: 1211887863882297203}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7360,7 +7363,7 @@ GameObject:
   - component: {fileID: 726401491374943717}
   - component: {fileID: 4756385394988348522}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7497,7 +7500,7 @@ GameObject:
   - component: {fileID: 8131920541419702437}
   - component: {fileID: 7715874097528563666}
   m_Layer: 0
-  m_Name: Purchase
+  m_Name: BootsPurchase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7642,7 +7645,7 @@ GameObject:
   - component: {fileID: 6949105075296108750}
   - component: {fileID: 1134247162159315358}
   m_Layer: 0
-  m_Name: Description
+  m_Name: LensesDescription
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7779,7 +7782,7 @@ GameObject:
   - component: {fileID: 8071951963774827626}
   - component: {fileID: 2247762848846475495}
   m_Layer: 0
-  m_Name: Purchase
+  m_Name: VisorsPurchase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7925,7 +7928,7 @@ GameObject:
   - component: {fileID: 2235296795148836700}
   - component: {fileID: 6271036309105098630}
   m_Layer: 0
-  m_Name: Obtained (1)
+  m_Name: SwordObtained
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8045,7 +8048,7 @@ GameObject:
   - component: {fileID: 491338614427061732}
   - component: {fileID: 6536583208149237398}
   m_Layer: 0
-  m_Name: Icon (3)
+  m_Name: GemIcon_4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8225,7 +8228,7 @@ GameObject:
   - component: {fileID: 5215869276918459965}
   - component: {fileID: 5957491642934039037}
   m_Layer: 0
-  m_Name: Image (1)
+  m_Name: VisorsImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8243,11 +8246,11 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 585362194517687938}
+  m_Father: {fileID: 5325279188026903570}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -183, y: 27.656}
+  m_AnchoredPosition: {x: -174, y: 33}
   m_SizeDelta: {x: 214.66, y: 131.9669}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5215869276918459965
@@ -8300,7 +8303,7 @@ GameObject:
   - component: {fileID: 2391853817993796629}
   - component: {fileID: 8658792699992748282}
   m_Layer: 0
-  m_Name: Image
+  m_Name: KeyImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

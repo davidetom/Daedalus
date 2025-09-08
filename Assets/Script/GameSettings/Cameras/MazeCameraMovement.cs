@@ -28,9 +28,16 @@ public class CameraMovement : MonoBehaviour
     private float bottomBound;
     private bool boundsCalculated = false;
     private float transitionStartTime;
-    
     private bool isTransitioning = false;
+    private bool isTransitioningAtNight = false;
     private Vector3 targetPosition;
+
+    // Bounds esterni del labirinto
+    private float outerLeftBound = 0f;
+    private float outerRightBound = 310f;
+    private float outerTopBound = 310f;
+    private float outerBottomBound = 0f;
+
     public MazeManager mazeManager;
 
     void Start()
@@ -56,6 +63,10 @@ public class CameraMovement : MonoBehaviour
         {
             HandleSmoothTransition();
         }
+        else if (isTransitioningAtNight)
+        {
+            HandleNightTransition();
+        }
         else
         {
             HandleNormalFollow();
@@ -66,11 +77,15 @@ public class CameraMovement : MonoBehaviour
     {
         Vector3 pos = player.transform.position;
         pos.z = -cameraOffset;
-        
+
         // Applica i vincoli solo se le porte sono chiuse
         if (useConstraints && boundsCalculated)
         {
             pos = ApplyBounds(pos);
+        }
+        else
+        {
+            pos = ApplyOuterBounds(pos);
         }
         
         transform.position = pos;
@@ -114,11 +129,57 @@ public class CameraMovement : MonoBehaviour
             Debug.Log("Transizione telecamera completata - ritorno al follow normale");
         }
     }
+
+    void HandleNightTransition()
+    {
+        // Durante la transizione notturna, la telecamera si sposta verso una posizione con bounds applicati
+        Vector3 nightTarget = player.transform.position;
+        nightTarget.z = -cameraOffset;
+
+        // Applica sempre i bounds per la posizione notturna
+        if (boundsCalculated)
+        {
+            nightTarget = ApplyBounds(nightTarget);
+        }
+
+        // Aggiorna il target per seguire il player con bounds
+        targetPosition = nightTarget;
+
+        // Controlla il timeout della transizione (5 secondi)
+        if (Time.time - transitionStartTime > 5f)
+        {
+            // Timeout raggiunto - forza il completamento della transizione
+            transform.position = targetPosition;
+            isTransitioningAtNight = false;
+            Debug.LogWarning("Transizione notturna forzata per timeout (5 secondi) - ritorno al follow normale");
+            return;
+        }
+
+        // Muovi dolcemente verso la posizione target con bounds
+        transform.position = Vector3.Lerp(transform.position, targetPosition, smoothTransitionSpeed * Time.deltaTime);
+
+        // Controlla se abbiamo raggiunto la destinazione
+        float distance = Vector3.Distance(transform.position, targetPosition);
+        if (distance < 0.1f)
+        {
+            // Transizione completata
+            transform.position = targetPosition;
+            isTransitioning = false;
+            Debug.Log("Transizione notturna completata - ritorno al follow normale con bounds");
+        }
+    }
     
     Vector3 ApplyBounds(Vector3 position)
     {
         position.x = Mathf.Clamp(position.x, leftBound, rightBound);
         position.y = Mathf.Clamp(position.y, bottomBound, topBound);
+        return position;
+    }
+
+    Vector3 ApplyOuterBounds(Vector3 position)
+    {
+        position.x = Mathf.Clamp(position.x, outerLeftBound, outerRightBound);
+        position.y = Mathf.Clamp(position.y, outerBottomBound, outerTopBound);
         return position;
     }
 
@@ -177,6 +238,34 @@ public class CameraMovement : MonoBehaviour
         targetPosition = target;
         isTransitioning = true;
         transitionStartTime = Time.time;
+    }
+
+    // Metodo chiamato all'inizio della notte
+    public void OnNightStart()
+    {
+        if (player == null) return;
+
+        // Calcola dove dovrebbe essere la telecamera con i bounds applicati
+        Vector3 nightPosition = player.transform.position;
+        nightPosition.z = -cameraOffset;
+
+        if (boundsCalculated)
+        {
+            nightPosition = ApplyBounds(nightPosition);
+        }
+
+        // Controlla se la telecamera è già nella posizione corretta
+        float distance = Vector3.Distance(transform.position, nightPosition);
+        if (distance > 1f) // Se la distanza è significativa
+        {
+            Debug.Log("Notte iniziata - iniziando transizione dolce verso posizione con bounds");
+            StartSmoothTransition(nightPosition);
+            isTransitioningAtNight = true;
+        }
+        else
+        {
+            Debug.Log("Notte iniziata - telecamera già nella posizione corretta");
+        }
     }
     
     // Metodo per attivare/disattivare i vincoli
