@@ -12,6 +12,11 @@ public class MainMenu : MonoBehaviour
     [Header("Scene Settings")]
     public string gameScene = "Labirinto";
 
+    void Awake()
+    {
+        Application.targetFrameRate = 60;
+    }
+    
     void Start()
     {   
         if (AudioManager.Instance != null)

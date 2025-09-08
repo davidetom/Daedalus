@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.IO;
-using UnityEditor.Build.Content;
 using UnityEngine.InputSystem;
 using System.Collections;
 using Firebase.Auth;
@@ -98,7 +97,7 @@ public class SaveSystem
             if(difficultyManager != null)
             {
                 difficultyManager.Save(ref currentSaveData.difficultyData);
-                Debug.Log("Difficoltà salvata!");
+                Debug.Log("Difficoltï¿½ salvata!");
             }
             else
             {
@@ -122,7 +121,7 @@ public class SaveSystem
             // Salvataggio su Firebase
             SaveToFirebase(json);
 
-            //Torna al menù principale
+            //Torna al menï¿½ principale
             SceneManager.LoadScene("MainMenu");
             Time.timeScale = 1f;
         }
@@ -222,7 +221,7 @@ public class SaveSystem
             if(difficultyManager != null)
             {
                 difficultyManager.Load(currentUserData.difficultyData);
-                Debug.Log("Difficoltà caricata!");
+                Debug.Log("Difficoltï¿½ caricata!");
 
                 yield return new WaitForEndOfFrame();
             }

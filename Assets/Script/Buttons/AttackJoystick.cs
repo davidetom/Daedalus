@@ -252,7 +252,7 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
         
         // IMPORTANTE: Usa la stessa logica del PlayerController.PulsanteAzione()
         // Non può attaccare se è nell'inner hub (dentro casa)
-        if (playerController.InHub) // Se è nell'inner hub
+        if (playerController.InInnerHub) // Se è nell'inner hub
         {
             return false;
         }

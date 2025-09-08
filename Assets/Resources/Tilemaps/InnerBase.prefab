@@ -5123,6 +5123,9 @@ MonoBehaviour:
   playerController: {fileID: 0}
   outerHubController: {fileID: 0}
   bed: {fileID: 4818106142234668792}
+  gemSpawner: {fileID: 0}
+  bloodOffersPanel: {fileID: 0}
+  bloodOffersText: {fileID: 0}
   enableDebug: 0
 --- !u!1 &6152886331258895341
 GameObject:

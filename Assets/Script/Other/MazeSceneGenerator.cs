@@ -28,14 +28,6 @@ public class MazeSceneGenerator : MonoBehaviour
     public GameObject lightPrefab;
     public Camera cameraPrefab;
     
-    void Start()
-    {
-        if (generaAllAvvio)
-        {
-            GeneraTuttiILabirinti();
-        }
-    }
-    
     private void SetupOptimizedCollider(Tilemap tilemap, int[,] mazeData, int mazeSize)
     {
         // Approccio 1: Usa TilemapCollider2D nativo

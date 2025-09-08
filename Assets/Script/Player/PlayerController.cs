@@ -16,6 +16,8 @@ public class PlayerController : MonoBehaviour
     [Header("Tilemap Reference")]
     public Tilemap tilemap;
     public TileBase muraTile;
+    public Tilemap hubTilemap;
+    public TileBase erbaTile;
 
     [Header("Fog Manager Reference")]
     public FogManager fogManager;
@@ -296,28 +298,42 @@ public class PlayerController : MonoBehaviour
 
     public bool IsWalkable(Vector3 targetPos)
     {
-        if (IsPlayerInHub())
+        // Player nell'innerHub
+        if (IsPlayerInInnerHub())
         {
-            return IsWalkableInHub(targetPos);
+            return IsWalkableInInnerHub(targetPos);
         }
 
-        // PRIORITÀ 1: Verifica nebbia PRIMA di tutto il resto
-        if (fogManager != null && fogManager.HasFogAtPosition(fogManager.fogTilemap.WorldToCell(targetPos)))
+        // Player nell'outerHub
+        if (mazeManager.playerInOuterHub)
         {
-            // Se c'è nebbia e il player non può attraversarla, blocca il movimento
-            if (!canPassFog)
+            if (IsBlockedByGrass(targetPos))
             {
                 if (enableDebug)
                 {
-                    Debug.Log($"Movimento bloccato: nebbia rilevata in {targetPos} e player non ha il visore");
+                    Debug.Log($"Movimento bloccato: erba rilevata nell'outer hub in {targetPos}");
                 }
                 return false;
             }
-            else if (enableDebug)
-            {
-                Debug.Log($"Player attraversa la nebbia in {targetPos} (ha il visore)");
-            }
         }
+
+        // PRIORITÀ 1: Verifica nebbia PRIMA di tutto il resto
+            if (fogManager != null && fogManager.HasFogAtPosition(fogManager.fogTilemap.WorldToCell(targetPos)))
+            {
+                // Se c'è nebbia e il player non può attraversarla, blocca il movimento
+                if (!canPassFog)
+                {
+                    if (enableDebug)
+                    {
+                        Debug.Log($"Movimento bloccato: nebbia rilevata in {targetPos} e player non ha il visore");
+                    }
+                    return false;
+                }
+                else if (enableDebug)
+                {
+                    Debug.Log($"Player attraversa la nebbia in {targetPos} (ha il visore)");
+                }
+            }
     
         // PRIORITÀ 2: MapManager check
         if (mapManager != null && mapManager.wallCalculated)
@@ -384,7 +400,7 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
-    private bool IsWalkableInHub(Vector3 targetPos)
+    private bool IsWalkableInInnerHub(Vector3 targetPos)
     {
         // USA IL METODO CORRETTO DELLA TILEMAP PER LA CONVERSIONE
         Vector3Int cellPosition = hubBackgroundTilemap.WorldToCell(targetPos);
@@ -447,7 +463,7 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
-    private bool IsPlayerInHub()
+    private bool IsPlayerInInnerHub()
     {
         // Metodo 1: Usa HubController se disponibile
         if (outerHubController != null)
@@ -459,6 +475,44 @@ public class PlayerController : MonoBehaviour
         Vector3 hubCenter = new Vector3(405f, 160f, 0f);
         float distanceFromHub = Vector3.Distance(transform.position, hubCenter);
         return distanceFromHub < 20f; // Raggio arbitrario
+    }
+
+    private bool IsBlockedByGrass(Vector3 targetPos)
+    {
+        if (hubTilemap == null)
+        {
+            if (enableDebug)
+            {
+                Debug.LogWarning("hubTilemap non assegnata, impossibile controllare l'erba");
+            }
+            return false; // Se non c'è la tilemap, non blocchiamo il movimento
+        }
+
+        // Controlla se erbaTile è assegnata
+        if (erbaTile == null)
+        {
+            if (enableDebug)
+            {
+                Debug.LogWarning("erbaTile non assegnata, impossibile controllare l'erba");
+            }
+            return false; // Se non c'è il tile di riferimento, non blocchiamo il movimento
+        }
+
+        // Converti la posizione world in posizione della cella sulla tilemap
+        Vector3Int cellPosition = hubTilemap.WorldToCell(targetPos);
+
+        // Ottieni il tile nella posizione target
+        TileBase tileAtPosition = hubTilemap.GetTile(cellPosition);
+
+        // Controlla se il tile corrisponde all'erbaTile
+        bool hasGrass = tileAtPosition == erbaTile;
+
+        if (enableDebug && hasGrass)
+        {
+            Debug.Log($"Erba trovata nell'outer hub alla posizione {targetPos} (cella: {cellPosition})");
+        }
+
+        return hasGrass;
     }
 
     void InitializeHubTilemapReferences()
@@ -1300,7 +1354,7 @@ public class PlayerController : MonoBehaviour
     public bool IsDead() => isDead;
     public bool IsTakingDamage() => takingDamage;
     public bool IsInvincible() => isInvincible;
-    public bool InHub => IsPlayerInHub();
+    public bool InInnerHub => IsPlayerInInnerHub();
 
     // Metodi per accesso ai collezionabili
     public bool HasEnoughCoins(int required) => coinsPicked >= required;
@@ -1322,7 +1376,7 @@ public class PlayerController : MonoBehaviour
     public void PulsanteAzione()
     {
         // Prima controlla se siamo nell'inner hub (la priorità più alta)
-        if (IsPlayerInHub())                                        // se il player è nell'inner hub
+        if (IsPlayerInInnerHub())                                        // se il player è nell'inner hub
         {
             if (innerHubController != null && innerHubController.IsPlayerInExitPoint)
             {
@@ -1371,7 +1425,7 @@ public class PlayerController : MonoBehaviour
     public void KeyBoardKeyAzione()
     {
         // Prima controlla se siamo nell'inner hub (la priorità più alta)
-        if (IsPlayerInHub())                                        // se il player è nell'inner hub
+        if (IsPlayerInInnerHub())                                        // se il player è nell'inner hub
         {
             if (innerHubController != null && innerHubController.IsPlayerInExitPoint)
             {
