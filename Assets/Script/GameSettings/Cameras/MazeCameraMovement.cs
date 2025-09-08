@@ -208,6 +208,11 @@ public class CameraMovement : MonoBehaviour
         leftBound = minX + halfWidth;
         rightBound = maxX - halfWidth;
 
+        outerBottomBound += halfHeight;
+        topBound -= halfHeight;
+        leftBound += halfWidth;
+        rightBound -= halfWidth; 
+
         boundsCalculated = true;
     }
     

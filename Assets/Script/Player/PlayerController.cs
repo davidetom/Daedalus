@@ -17,6 +17,10 @@ public class PlayerController : MonoBehaviour
     public Tilemap tilemap;
     public TileBase muraTile;
 
+    [Header("Fog Manager Reference")]
+    public FogManager fogManager;
+    private bool canPassFog = false;
+
     [Header("Hub Tilemap References")]
     public Tilemap hubBackgroundTilemap;
     public Tilemap hubSolidObjectsBaseTilemap;
@@ -30,14 +34,14 @@ public class PlayerController : MonoBehaviour
     public MapManager mapManager; // Riferimento al MapManager
     public Vector3 startPos;
     //Prova respawn dopo salvataggio sempre davanti al letto
-    public Vector3 savePos; 
+    public Vector3 savePos;
 
     [Header("Cycle Management")]
     public DayNightCycleManager dayNightCycleManager;
     public MazeManager mazeManager;
 
     [Header("Move Settings")]
-    public float moveSpeed;
+    public float moveSpeed = 4;
     public bool isMoving = false;
 
     [Header("Door Interaction")]
@@ -85,6 +89,7 @@ public class PlayerController : MonoBehaviour
     [Header("Collectibles")]
     public int maxCoinNumber = 9999;
     public int coinsPicked = 0;
+    public GemSpawner gemSpawner;
     public bool hasLightGem;
     public bool hasNightGem;
     public bool hasZombieGem;
@@ -108,6 +113,11 @@ public class PlayerController : MonoBehaviour
     public Item binocular;
     public Item potion;
     public Item sword;
+    private bool hasBoots = false;
+    private bool hasGoggles = false;
+    private bool hasBinocular = false;
+    private bool hasPotion = false;
+    private bool hasSword = false;
 
     [Header("Inventory and UI Reference")]
     public InventoryManager inventory;
@@ -117,7 +127,7 @@ public class PlayerController : MonoBehaviour
     // INPUT SETTINGS
     private Vector2 input;
     private Vector2 mobileInput = Vector2.zero; // Nuova variabile per mobile input
-    
+
     //METODO PER IL JOYSTICK DI ATTACCO
     public void SetAttackDirection(Vector2 direction)
     {
@@ -132,10 +142,11 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        coinsPicked = 9999;
         currentHealthPoints = maxHealthPoints;
 
         InitializeHubTilemapReferences();
-        
+
         // AGGIUNTO: Salva il colore originale per il feedback del danno
         if (spriteRenderer != null)
         {
@@ -146,6 +157,14 @@ public class PlayerController : MonoBehaviour
         if (mapManager != null && mapManager.wallCalculated)
         {
             CalcoloDistanze();
+        }
+
+        if (fogManager != null)
+        {
+            // Assicurati che il FogManager conosca lo stato iniziale del player
+            fogManager.SetPlayerCanPassFog(canPassFog);
+            // Controlla la posizione iniziale
+            fogManager.CheckPlayerWarningZone(transform.position);
         }
     }
 
@@ -158,6 +177,9 @@ public class PlayerController : MonoBehaviour
         }
 
         HandleMovement();
+
+        // CHIAMALA SEMPRE, non solo quando si muove
+        HandleFogReveal();
 
         // Controlla input per aprire la porta
         if (Input.GetKeyDown(interactKey))
@@ -205,7 +227,7 @@ public class PlayerController : MonoBehaviour
                 var targetPos = transform.position;
                 targetPos.x += input.x;
                 targetPos.y += input.y;
-                
+
                 if (IsWalkable(targetPos))
                     StartCoroutine(Move(targetPos));
             }
@@ -228,7 +250,7 @@ public class PlayerController : MonoBehaviour
                 isMoving = false;
                 yield break;
             }
-            
+
             transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
             yield return null;
         }
@@ -237,22 +259,27 @@ public class PlayerController : MonoBehaviour
         // Ricalcola le distanze dopo ogni movimento
         CalcoloDistanze();
 
+        if (fogManager != null)
+        {
+            fogManager.CheckPlayerWarningZone(transform.position);
+        }
+
         isMoving = false;
     }
-    
+
     public void SnapToNearestGridPosition()
     {
         Vector3 currentPos = transform.position;
-        
+
         // Calcola la posizione della griglia più vicina (assumendo griglia 1x1 con centro a 0.5, 0.5)
         float snappedX = Mathf.Round(currentPos.x - 0.5f) + 0.5f;
         float snappedY = Mathf.Round(currentPos.y - 0.7f) + 0.7f;
-        
+
         Vector3 snappedPosition = new Vector3(snappedX, snappedY, currentPos.z);
-        
+
         // Applica la correzione
         transform.position = snappedPosition;
-        
+
         //Debug.Log($"Player disallineato corretto da {currentPos} a {snappedPosition}");
     }
 
@@ -263,6 +290,25 @@ public class PlayerController : MonoBehaviour
             return IsWalkableInHub(targetPos);
         }
 
+        // PRIORITÀ 1: Verifica nebbia PRIMA di tutto il resto
+        if (fogManager != null && fogManager.HasFogAtPosition(fogManager.fogTilemap.WorldToCell(targetPos)))
+        {
+            // Se c'è nebbia e il player non può attraversarla, blocca il movimento
+            if (!canPassFog)
+            {
+                if (enableDebug)
+                {
+                    Debug.Log($"Movimento bloccato: nebbia rilevata in {targetPos} e player non ha il visore");
+                }
+                return false;
+            }
+            else if (enableDebug)
+            {
+                Debug.Log($"Player attraversa la nebbia in {targetPos} (ha il visore)");
+            }
+        }
+    
+        // PRIORITÀ 2: MapManager check
         if (mapManager != null && mapManager.wallCalculated)
         {
             Vector2Int arrayPos = mapManager.WorldToArrayCoordinates(targetPos);
@@ -294,18 +340,15 @@ public class PlayerController : MonoBehaviour
             if (isWall) return false;
         }
 
-        // NUOVO: Verifica se c'è una porta chiusa in quella cella
+        // PRIORITÀ 3: Verifica porte chiuse
         DoorController[] doors = GameObject.FindObjectsByType<DoorController>(FindObjectsSortMode.None);
         foreach (DoorController door in doors)
         {
-            // Controlla se la porta è nella stessa posizione della tile target
             Vector3 doorPos = door.transform.position;
             float distance = Vector3.Distance(doorPos, targetPos);
-            
-            // Se la porta è molto vicina alla posizione target (stessa tile)
+
             if (distance < 0.5f)
             {
-                // Se la porta è chiusa, la tile non è percorribile
                 if (!door.IsOpen())
                 {
                     return false;
@@ -313,7 +356,7 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // NUOVO: Verifica se c'è un edificio (Building) in quella posizione
+        // PRIORITÀ 4: Verifica edifici
         Collider2D[] buildingColliders = Physics2D.OverlapPointAll(targetPos);
         foreach (Collider2D collider in buildingColliders)
         {
@@ -329,25 +372,25 @@ public class PlayerController : MonoBehaviour
 
         return true;
     }
-    
+
     private bool IsWalkableInHub(Vector3 targetPos)
     {
         // USA IL METODO CORRETTO DELLA TILEMAP PER LA CONVERSIONE
         Vector3Int cellPosition = hubBackgroundTilemap.WorldToCell(targetPos);
-        
+
         // Controllo 1: Deve esistere un tile sulla tilemap Background per essere camminabile
         bool hasBackgroundTile = false;
         if (hubBackgroundTilemap != null)
         {
             TileBase backgroundTile = hubBackgroundTilemap.GetTile(cellPosition);
             hasBackgroundTile = backgroundTile != null;
-            
+
             if (enableDebug)
             {
                 Debug.Log($"Hub: Pos world {targetPos} -> Pos cella {cellPosition} -> Tile: {(backgroundTile != null ? backgroundTile.name : "NULL")}");
             }
         }
-        
+
         if (!hasBackgroundTile)
         {
             if (enableDebug)
@@ -356,7 +399,7 @@ public class PlayerController : MonoBehaviour
             }
             return false;
         }
-        
+
         // Controllo 2: NON deve esserci un tile su SolidObjectsBase
         if (hubSolidObjectsBaseTilemap != null)
         {
@@ -370,7 +413,7 @@ public class PlayerController : MonoBehaviour
                 return false;
             }
         }
-        
+
         // Controllo 3: NON deve esserci un tile su SolidObjects
         if (hubSolidObjectsTilemap != null)
         {
@@ -384,12 +427,12 @@ public class PlayerController : MonoBehaviour
                 return false;
             }
         }
-        
+
         if (enableDebug)
         {
             Debug.Log($"Hub: Posizione {targetPos} (cella {cellPosition}) è camminabile");
         }
-        
+
         return true;
     }
 
@@ -400,7 +443,7 @@ public class PlayerController : MonoBehaviour
         {
             return outerHubController.IsPlayerInHub();
         }
-        
+
         // Metodo 2: Fallback - controlla coordinate
         Vector3 hubCenter = new Vector3(405f, 160f, 0f);
         float distanceFromHub = Vector3.Distance(transform.position, hubCenter);
@@ -458,7 +501,7 @@ public class PlayerController : MonoBehaviour
                 Debug.Log("OuterHubController trovato automaticamente");
             }
         }
-        
+
         if (innerHubController == null)
         {
             innerHubController = FindFirstObjectByType<InnerHubController>();
@@ -508,7 +551,7 @@ public class PlayerController : MonoBehaviour
 
         yield return null;
         yield return new WaitUntil(() => animator.GetCurrentAnimatorStateInfo(0).IsName("Attack"));
-        
+
         // Aspetta che l'Animation Event segnali la fine
         while (!attackAnimationFinished)
         {
@@ -544,10 +587,10 @@ public class PlayerController : MonoBehaviour
     {
         List<GameObject> enemiesHit = new List<GameObject>();
         Vector3 startPos = transform.position;
-        
+
         // PRIMA: Controlla nemici sulla stessa tile del player (distanza 0)
         Collider2D[] collidersOnPlayer = Physics2D.OverlapPointAll(startPos, enemyLayerMask);
-        
+
         foreach (var collider in collidersOnPlayer)
         {
             if (collider.CompareTag("Enemy"))
@@ -559,19 +602,19 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-        
+
         // POI: Per ogni tile nel range (dalla distanza 1 in poi)
         for (int distance = 1; distance <= attackRange; distance++)
         {
             Vector3 tilePos = startPos + new Vector3(
-                attackDirection.x * distance, 
-                attackDirection.y * distance, 
+                attackDirection.x * distance,
+                attackDirection.y * distance,
                 0
             );
-            
+
             // Controlla nemici in questa tile
             Collider2D[] colliders = Physics2D.OverlapPointAll(tilePos, enemyLayerMask);
-            
+
             foreach (var collider in colliders)
             {
                 if (collider.CompareTag("Enemy"))
@@ -582,14 +625,14 @@ public class PlayerController : MonoBehaviour
                     }
                 }
             }
-            
+
             // OPZIONALE: Fermati se incontri un muro
             if (mapManager != null && mapManager.GetTileTypeAtWorldPos(tilePos) == TileType.Wall)
             {
                 break; // L'attacco non passa attraverso i muri
             }
         }
-        
+
         return enemiesHit;
     }
 
@@ -602,19 +645,19 @@ public class PlayerController : MonoBehaviour
         {
             // Calcola la direzione del rinculo (dal player verso il nemico)
             Vector2 knockbackDirection = (enemy.transform.position - transform.position).normalized;
-            
+
             // Applica il danno con la direzione del rinculo
             enemyLogic.TakeDamage(attackDamage, knockbackDirection);
-            
+
             //Debug.Log($"Attaccato {enemy.name} per {attackDamage} danni! Vita rimanente: {enemyLogic.GetCurrentHealth()}");
-            
+
             // Effetti visivi dell'attacco
             if (enableAttackEffects && attackEffect != null)
             {
                 // Spawna l'effetto a metà strada tra player e nemico
                 Vector3 effectPosition = Vector3.Lerp(transform.position, enemy.transform.position, 0.5f);
                 GameObject effect = Instantiate(attackEffect, effectPosition, Quaternion.identity);
-                
+
                 // Distruggi l'effetto dopo un po' (se non ha un sistema di autodistruzione)
                 if (effect.GetComponent<ParticleSystem>() == null)
                 {
@@ -643,7 +686,7 @@ public class PlayerController : MonoBehaviour
         }
 
         Debug.Log($"Player riceve {damage} danni. Vita prima: {currentHealthPoints}");
-        
+
         currentHealthPoints -= damage;
         currentHealthPoints = Mathf.Max(0, currentHealthPoints);
 
@@ -663,7 +706,7 @@ public class PlayerController : MonoBehaviour
             Die();
         }
     }
-    
+
     // NUOVO METODO: Gestione del feedback visivo del danno
     void StartDamageFeedback()
     {
@@ -673,32 +716,32 @@ public class PlayerController : MonoBehaviour
             StopCoroutine(currentDamageFeedbackCoroutine);
             currentDamageFeedbackCoroutine = null;
         }
-        
+
         // Avvia il nuovo feedback solo se non è morto
         if (!isDead)
         {
             currentDamageFeedbackCoroutine = StartCoroutine(DamageFeedbackCoroutine());
         }
     }
-    
+
     // NUOVO METODO: Coroutine per il lampeggiamento del player
     IEnumerator DamageFeedbackCoroutine()
     {
-        if (spriteRenderer == null || isDead) 
+        if (spriteRenderer == null || isDead)
         {
             currentDamageFeedbackCoroutine = null;
             yield break;
         }
-        
+
         takingDamage = true; // Mantieni la flag per il feedback visivo
-        
+
         // Lampeggiamento durante l'invincibilità
         float totalDuration = Mathf.Max(damageFeedbackDuration, invincibilityDuration);
         float flashInterval = 0.1f; // Lampeggia ogni 0.1 secondi
         float elapsed = 0f;
-        
+
         bool isVisible = true;
-        
+
         while (elapsed < totalDuration && !isDead)
         {
             // Cambia visibilità 
@@ -714,19 +757,19 @@ public class PlayerController : MonoBehaviour
                 // Feedback normale del danno (primo momento)
                 spriteRenderer.color = Color.red;
             }
-            
+
             isVisible = !isVisible;
-            
+
             yield return new WaitForSeconds(flashInterval);
             elapsed += flashInterval;
         }
-        
+
         // Ripristina il colore originale
         if (!isDead && spriteRenderer != null)
         {
             spriteRenderer.color = originalColor;
         }
-        
+
         takingDamage = false;
         currentDamageFeedbackCoroutine = null;
     }
@@ -739,7 +782,7 @@ public class PlayerController : MonoBehaviour
             StopCoroutine(currentInvincibilityCoroutine);
             currentInvincibilityCoroutine = null;
         }
-        
+
         // Avvia la nuova invincibilità
         currentInvincibilityCoroutine = StartCoroutine(InvincibilityCoroutine());
     }
@@ -751,27 +794,27 @@ public class PlayerController : MonoBehaviour
             currentInvincibilityCoroutine = null;
             yield break;
         }
-        
+
         isInvincible = true;
-        
+
         if (enableDebug)
         {
             Debug.Log($"Player invincibile per {invincibilityDuration} secondi");
         }
-        
+
         yield return new WaitForSeconds(invincibilityDuration);
-        
+
         // Fine dell'invincibilità
         if (!isDead)
         {
             isInvincible = false;
-            
+
             if (enableDebug)
             {
                 Debug.Log("Invincibilità terminata");
             }
         }
-        
+
         currentInvincibilityCoroutine = null;
     }
 
@@ -787,7 +830,7 @@ public class PlayerController : MonoBehaviour
         {
             gemSpawner.OnPlayerDeath();
         }
-        
+
         // NUOVO: Ferma anche l'invincibilità
         if (currentInvincibilityCoroutine != null)
         {
@@ -795,7 +838,7 @@ public class PlayerController : MonoBehaviour
             currentInvincibilityCoroutine = null;
         }
         isInvincible = false;
-        
+
         // Ferma il feedback del danno se attivo
         if (currentDamageFeedbackCoroutine != null)
         {
@@ -803,13 +846,13 @@ public class PlayerController : MonoBehaviour
             currentDamageFeedbackCoroutine = null;
         }
         takingDamage = false;
-        
+
         // NUOVO: Ferma anche il ciclo giorno/notte
         if (dayNightCycleManager != null)
         {
             dayNightCycleManager.PauseSystem();
         }
-        
+
         StopAllCoroutines();
         StartCoroutine(DeathSequence());
     }
@@ -838,9 +881,9 @@ public class PlayerController : MonoBehaviour
             gemCollectedPanel.SetActive(false);
 
         if (gameUICanvas != null)
-            {
-                gameUICanvas.SetActive(false);
-            }
+        {
+            gameUICanvas.SetActive(false);
+        }
 
         if (gameButtons != null)
         {
@@ -939,7 +982,7 @@ public class PlayerController : MonoBehaviour
             StopCoroutine(currentDamageFeedbackCoroutine);
             currentDamageFeedbackCoroutine = null;
         }
-        
+
         // NUOVO: Reset coroutine invincibilità
         if (currentInvincibilityCoroutine != null)
         {
@@ -974,7 +1017,7 @@ public class PlayerController : MonoBehaviour
     void ResetAllEnemiesState()
     {
         EnemyLogic[] allEnemies = GameObject.FindObjectsByType<EnemyLogic>(FindObjectsSortMode.None);
-        
+
         foreach (var enemy in allEnemies)
         {
             if (enemy != null && enemy.IsAlive())
@@ -982,22 +1025,22 @@ public class PlayerController : MonoBehaviour
                 // Reset dello stato di attacco e vicinanza
                 enemy.closeToPlayer = false;
                 enemy.isAttacking = false;
-                
+
                 // Forza il reset della direzione patrol
                 if (enemy.enableDebug)
                 {
                     Debug.Log($"Reset stato nemico: {enemy.name}");
                 }
-                
+
                 // Usa reflection per resettare le variabili private se necessario
-                var patrolDirectionField = typeof(EnemyLogic).GetField("currentPatrolDirection", 
+                var patrolDirectionField = typeof(EnemyLogic).GetField("currentPatrolDirection",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (patrolDirectionField != null)
                 {
                     patrolDirectionField.SetValue(enemy, Vector2.zero);
                 }
-                
-                var patrolStepsField = typeof(EnemyLogic).GetField("patrolStepsInDirection", 
+
+                var patrolStepsField = typeof(EnemyLogic).GetField("patrolStepsInDirection",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (patrolStepsField != null)
                 {
@@ -1005,32 +1048,32 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-        
+
         //Debug.Log($"Reset effettuato su {allEnemies.Length} nemici");
     }
 
     void InvalidateDistances()
     {
         if (mapManager == null || !mapManager.wallCalculated) return;
-        
+
         int width = mapManager.Distances.GetLength(0);
         int height = mapManager.Distances.GetLength(1);
-        
+
         // Imposta tutte le distanze a -1 (non raggiungibile)
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
                 mapManager.Distances[x, y] = -1;
-        
+
         Debug.Log("Distanze BFS invalidate - i nemici dovranno attendere il ricalcolo");
     }
 
     IEnumerator RecalculateDistancesNextFrame()
     {
         yield return null; // Aspetta un frame
-        
+
         // Ricalcola le distanze dalla nuova posizione
         CalcoloDistanze();
-        
+
         Debug.Log($"Distanze BFS ricalcolate dopo respawn a posizione: {transform.position}");
     }
 
@@ -1045,11 +1088,11 @@ public class PlayerController : MonoBehaviour
         float previousHealth = currentHealthPoints;
         currentHealthPoints += healAmount;
         currentHealthPoints = Mathf.Min(currentHealthPoints, maxHealthPoints);
-        
+
         float actualHealAmount = currentHealthPoints - previousHealth;
-        
+
         //Debug.Log($"Player curato di {actualHealAmount} HP. Vita attuale: {currentHealthPoints}/{maxHealthPoints}");
-        
+
         return actualHealAmount;
     }
 
@@ -1071,7 +1114,7 @@ public class PlayerController : MonoBehaviour
 
         foreach (var door in doors)
         {
-            if(door.isPlayerOnDoor)
+            if (door.isPlayerOnDoor)
             {
                 // NUOVO: Solo le outer doors possono essere aperte dal player
                 if (door.IsOuterDoor())
@@ -1097,7 +1140,7 @@ public class PlayerController : MonoBehaviour
         }
 
         Vector2Int playerArrayPos = mapManager.WorldToArrayCoordinates(transform.position);
-        
+
         if (!mapManager.IsValidArrayCoordinate(playerArrayPos))
         {
             //Debug.LogWarning($"Posizione player fuori dai bounds della mappa: {playerArrayPos}");
@@ -1116,7 +1159,7 @@ public class PlayerController : MonoBehaviour
     {
         CalcoloDistanze();
     }
-    
+
     // Nuovo metodo BFS che considera solo i corridoi per l'AI
     void BFS_CorridorsOnly(Vector2Int start, int[,] dist, TileType[,] tileTypes)
     {
@@ -1147,7 +1190,7 @@ public class PlayerController : MonoBehaviour
                 // Controllo limiti
                 if (next.x < 0 || next.y < 0 || next.x >= width || next.y >= height)
                     continue;
-                
+
                 // IMPORTANTE: Considera solo i corridoi per l'AI pathfinding
                 // I nemici possono raggiungere solo tile corridoio
                 if (tileTypes[next.x, next.y] != TileType.Corridor)
@@ -1161,7 +1204,7 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-        
+
         //Debug.Log($"BFS completata da posizione player: {start}");
     }
 
@@ -1188,14 +1231,14 @@ public class PlayerController : MonoBehaviour
     {
         // Ferma tutte le coroutine attive (inclusa Move())
         StopAllCoroutines();
-        
+
         // Reset completo dello stato di movimento
         isMoving = false;
         isAttacking = false;
-        
+
         // Reset dell'input mobile
         StopMovimento();
-        
+
         // Reset delle animazioni
         if (animator != null)
         {
@@ -1204,19 +1247,24 @@ public class PlayerController : MonoBehaviour
             animator.SetFloat("moveX", 0);
             animator.SetFloat("moveY", 0);
         }
-        
+
         // Imposta la nuova posizione
         transform.position = targetPosition;
-        
+
         // Correggi la posizione sulla griglia
         SnapToNearestGridPosition();
-        
+
         // Ricalcola le distanze BFS
         CalcoloDistanze();
-        
+
+        if (fogManager != null)
+        {
+            fogManager.CheckPlayerWarningZone(transform.position);
+        }
+
         Debug.Log($"Player trasportato in modo sicuro a: {transform.position}");
     }
-    
+
     // Metodi pubblici per accesso esterno allo stato del player
     public float GetCurrentHealth() => currentHealthPoints;
     public float GetMaxHealth() => maxHealthPoints;
@@ -1270,18 +1318,18 @@ public class PlayerController : MonoBehaviour
             // Nell'inner hub NON si può attaccare, quindi non aggiungiamo altre azioni
             return;
         }
-        
+
         // Se siamo nell'outer hub (ma non nell'inner hub)
         if (mazeManager.IsPlayerInOuterHub)                              // se il player è nell'outer hub
         {
-            if (outerHubController != null && outerHubController.IsPlayerInEnterPoint)        
+            if (outerHubController != null && outerHubController.IsPlayerInEnterPoint)
             {
                 outerHubController.EnterHub();
             }
             // Nell'outer hub NON si può attaccare, quindi non aggiungiamo altre azioni
             return;
         }
-        
+
         // Se siamo nel labirinto (fuori da entrambi gli hub)
         if (isNightTime)                                            // se è notte
         {
@@ -1319,18 +1367,18 @@ public class PlayerController : MonoBehaviour
             // Nell'inner hub NON si può attaccare, quindi non aggiungiamo altre azioni
             return;
         }
-        
+
         // Se siamo nell'outer hub (ma non nell'inner hub)
         if (mazeManager.IsPlayerInOuterHub)                              // se il player è nell'outer hub
         {
-            if (outerHubController != null && outerHubController.IsPlayerInEnterPoint)        
+            if (outerHubController != null && outerHubController.IsPlayerInEnterPoint)
             {
                 outerHubController.EnterHub();
             }
             // Nell'outer hub NON si può attaccare, quindi non aggiungiamo altre azioni
             return;
         }
-        
+
         // Se siamo nel labirinto (fuori da entrambi gli hub)
         if (isNightTime)                                            // se è notte
         {
@@ -1346,7 +1394,7 @@ public class PlayerController : MonoBehaviour
     public bool CheckForKey()
     {
         InventoryManager inventoryManager = GameObject.FindFirstObjectByType<InventoryManager>();
-        if(inventoryManager != null)
+        if (inventoryManager != null)
         {
             return inventoryManager.HasItem(keyItem);
         }
@@ -1354,26 +1402,92 @@ public class PlayerController : MonoBehaviour
     }
 
     //METODO PER POWERUP
+    //METODO PER POWERUP - AGGIORNATO
     public void PowerUpEnabled()
     {
-        if (inventory.HasItem(boots))
+        if (inventory.HasItem(boots) && !hasBoots)
         {
             Debug.Log("SPEED BOOST APPLIED");
-            moveSpeed = moveSpeed * 2;
+            moveSpeed = moveSpeed * 1.3f;
+            hasBoots = true;
         }
 
-        if (inventory.HasItem(potion)){
+        if (inventory.HasItem(potion) && !hasPotion)
+        {
             Debug.Log("HEALTH BOOST APPLIED");
             maxHealthPoints = maxHealthPoints * 2;
             healthText1.healthSuffix = "/200";
             healthText1.healthText.text = "200/200";
             healthBarText.text = "200/200";
+            hasPotion = true;
         }
 
-        if (inventory.HasItem(sword))
+        if (inventory.HasItem(sword) && !hasSword)
         {
             Debug.Log("ATTACK BOOST APPLIED");
-            attackDamage = attackDamage * 2;
+            attackDamage = attackDamage * 2f;
+            hasSword = true;
+        }
+
+        if (inventory.HasItem(goggles) && !hasGoggles)
+        {
+            Debug.Log("FOG REVEALED - VISORE ATTIVATO!");
+
+            canPassFog = true;
+            hasGoggles = true;
+
+            if (fogManager != null)
+            {
+                fogManager.SetPlayerCanPassFog(true);
+                Debug.Log("FogManager aggiornato: player può ora attraversare la nebbia");
+            }
+            else
+            {
+                Debug.LogError("FogManager non trovato! Il visore non funzionerà correttamente.");
+            }
+
+            if (gemSpawner != null)
+            {
+                gemSpawner.UnlockFogVisibility();
+            }
+            else
+            {
+                Debug.LogWarning("GemSpawner non trovato per UnlockFogVisibility");
+            }
+
+            if (fogManager != null)
+            {
+                fogManager.CheckPlayerWarningZone(transform.position);
+            }
+        }
+
+        if (inventory.HasItem(binocular) && !hasBinocular)
+        {
+            Debug.Log("FOOTPRINTS NOW VISIBLE");
+            hasBinocular = true;
+        }
+    }
+
+    void HandleFogReveal()
+    {
+        // La nebbia si dirada SEMPRE quando il player ha il visore, 
+        // indipendentemente da dove si trova
+        if (fogManager != null && canPassFog)
+        {
+            Vector3Int playerPos = fogManager.fogTilemap.WorldToCell(transform.position);
+
+            // Parametri per l'effetto "torcia":
+            // - innerRadius: raggio completamente libero da nebbia
+            // - outerRadius: raggio dove la nebbia si dirada gradualmente
+            float innerRadius = 1.5f;  // 1.5 tile completamente libere
+            float outerRadius = 3.5f;  // 3.5 tile di diradamento graduale
+
+            fogManager.RevealFogGradually(playerPos, innerRadius, outerRadius);
+
+            if (enableDebug)
+            {
+                Debug.Log($"Nebbia diradata attorno al player in posizione: {playerPos}");
+            }
         }
     }
 

@@ -78,7 +78,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 6088342627132289551, guid: 99d2cc76d5e1d45ab8dd5ced0f31bc2f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -160,3 +160,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b9235b810d5d4bee9b0dd53fe42e1ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mapManager: {fileID: 0}
+  gemSpawner: {fileID: 0}
+  position: {x: 0, y: 0}
