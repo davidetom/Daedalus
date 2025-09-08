@@ -294,6 +294,13 @@ public class EnemyLogic : MonoBehaviour
         
         currentHealthPoints -= damage;
         currentHealthPoints = Mathf.Max(0, currentHealthPoints);
+
+        // Effetto sonoro quando il nemico viene colpito
+if (AudioManager.Instance != null)
+{
+    AudioManager.Instance.PlayEnemyShout();
+}
+
         
         if (enableDebug)
         {

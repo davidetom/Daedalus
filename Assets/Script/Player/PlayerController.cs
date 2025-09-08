@@ -535,15 +535,10 @@ public class PlayerController : MonoBehaviour
         canAttack = false;
         attackAnimationFinished = false;
 
-        // Effetti sonori dell'attacco
-        if (enableAttackEffects && attackSound != null)
-        {
-            AudioSource audioSource = GetComponent<AudioSource>();
-            if (audioSource != null)
-            {
-                audioSource.PlayOneShot(attackSound);
-            }
-        }
+        if (AudioManager.Instance != null)
+                {
+            AudioManager.Instance.PlaySwordHit();
+                }
 
         // 🔧 Durante l'attacco, forza la transizione all'animazione di attacco
         // sovrascrivendo temporaneamente l'animazione di movimento
@@ -701,6 +696,10 @@ public class PlayerController : MonoBehaviour
         // Avvia feedback visivo del danno
         StartDamageFeedback();
 
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayDamageTaken();
+        }
         if (currentHealthPoints <= 0)
         {
             Die();
@@ -824,6 +823,11 @@ public class PlayerController : MonoBehaviour
 
         Debug.Log("Player morto!");
         isDead = true;
+
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayDeath();
+        }
 
         GemSpawner gemSpawner = FindFirstObjectByType<GemSpawner>();
         if (gemSpawner != null)

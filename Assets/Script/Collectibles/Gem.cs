@@ -15,6 +15,14 @@ public class Gem : Collectible
             case GemColor.Blood: player.hasBloodGem = true; break;
             case GemColor.Fog: player.hasFogGem = true; break;
         }
+             if (AudioManager.Instance != null)
+                {
+                 AudioManager.Instance.PlayGemPickup();
+                }
+            else
+         {
+            Debug.LogWarning("AudioManager non trovato! Suono gemma non riprodotto.");
+         }
 
         Destroy(gameObject);
     }

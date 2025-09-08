@@ -13,21 +13,41 @@ public class MainMenu : MonoBehaviour
     public string gameScene = "Labirinto";
 
     void Start()
+    {   
+        if (AudioManager.Instance != null)
     {
+        AudioManager.Instance.PlayMusic(AudioManager.Instance.mainMenuMusic);
+    }
         SetUpButtons();
     }
+private void SetUpButtons()
+{
+    if (easyButton != null)
+        easyButton.onClick.AddListener(() => {
+            // Suono del pulsante
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlayButtonClick();
 
-    private void SetUpButtons()
-    {
-        if (easyButton != null)
-            easyButton.onClick.AddListener(() => StartGame(DifficultyLevel.Easy));
+            StartGame(DifficultyLevel.Easy);
+        });
 
-        if (normalButton != null)
-            normalButton.onClick.AddListener(() => StartGame(DifficultyLevel.Normal));
+    if (normalButton != null)
+        normalButton.onClick.AddListener(() => {
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlayButtonClick();
 
-        if (hardButton != null)
-            hardButton.onClick.AddListener(() => StartGame(DifficultyLevel.Hard));
-    }
+            StartGame(DifficultyLevel.Normal);
+        });
+
+    if (hardButton != null)
+        hardButton.onClick.AddListener(() => {
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlayButtonClick();
+
+            StartGame(DifficultyLevel.Hard);
+        });
+}
+
 
     public void StartGame(DifficultyLevel difficulty)
     {
@@ -43,6 +63,11 @@ public class MainMenu : MonoBehaviour
             manager.SetDifficulty(difficulty);
         }
 
+    // 🔊 Ferma la musica del menu
+    if (AudioManager.Instance != null)
+    {
+        AudioManager.Instance.StopMusic();
+    }
         SaveSystem.NewGame();
     }
 

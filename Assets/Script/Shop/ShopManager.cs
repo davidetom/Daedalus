@@ -61,6 +61,8 @@ public class ShopManager : MonoBehaviour
             }
 
             item.isPurchased = true;
+            //SUONO OGGETTO COMPRATO
+             AudioManager.Instance.PlayItemPurchase();
 
             //Aggiungi all'inventario
             if (inventoryManager != null)

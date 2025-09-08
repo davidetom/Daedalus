@@ -5,9 +5,15 @@ public class Coin : Collectible
     public override void OnCollect(PlayerController player)
     {
         if (player.coinsPicked < player.maxCoinNumber)
-        {
+        {   
+
             player.coinsPicked++;
+            if (AudioManager.Instance != null)
+                {
+                AudioManager.Instance.PlayCoinPickup();
+                }
             Destroy(gameObject);
+
         }
     }
     
