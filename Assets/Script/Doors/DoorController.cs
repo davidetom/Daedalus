@@ -55,6 +55,12 @@ public class DoorController : MonoBehaviour
             player.enabled = false;
         }
 
+        // Riproduci il suono di vittoria
+    if (AudioManager.Instance != null)
+    {
+        AudioManager.Instance.PlayVictory(); 
+    }
+
         victoryCanvas.gameObject.SetActive(true);
 
         yield return new WaitForSeconds(durationMessage);

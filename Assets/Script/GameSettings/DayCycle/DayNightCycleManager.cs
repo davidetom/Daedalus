@@ -90,6 +90,10 @@ public class DayNightCycleManager : MonoBehaviour
 
         Debug.Log($"Gioco iniziato al giorno {dayCount}");
 
+        // Stampa immediata della porta del giorno
+        int doorOfTheDay = ((dayCount - 1) % 8) + 1;
+        Debug.Log($"All'avvio della scena: Porta del giorno {dayCount} → Porta {doorOfTheDay}");
+
         // Aggiorna immediatamente le luci
         UpdateLighting();
 

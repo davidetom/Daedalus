@@ -828,50 +828,56 @@ public class PlayerController : MonoBehaviour
         currentInvincibilityCoroutine = null;
     }
 
-    void Die()
+   void Die()
+{
+    if (isDead) return;
+
+    Debug.Log("Player morto!");
+    isDead = true;
+
+    if (AudioManager.Instance != null)
     {
-        if (isDead) return;
-
-        Debug.Log("Player morto!");
-        isDead = true;
-
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlayDeath();
-        }
-
-        GemSpawner gemSpawner = FindFirstObjectByType<GemSpawner>();
-        if (gemSpawner != null)
-        {
-            gemSpawner.OnPlayerDeath();
-        }
-
-        // NUOVO: Ferma anche l'invincibilità
-        if (currentInvincibilityCoroutine != null)
-        {
-            StopCoroutine(currentInvincibilityCoroutine);
-            currentInvincibilityCoroutine = null;
-        }
-        isInvincible = false;
-
-        // Ferma il feedback del danno se attivo
-        if (currentDamageFeedbackCoroutine != null)
-        {
-            StopCoroutine(currentDamageFeedbackCoroutine);
-            currentDamageFeedbackCoroutine = null;
-        }
-        takingDamage = false;
-
-        // NUOVO: Ferma anche il ciclo giorno/notte
-        if (dayNightCycleManager != null)
-        {
-            dayNightCycleManager.PauseSystem();
-        }
-
-        StopAllCoroutines();
-        StartCoroutine(DeathSequence());
+        AudioManager.Instance.PlayDeath();
     }
 
+    // NUOVO: Ferma la musica del labirinto quando muore
+    LabyrinthMusicManager labyrinthMusic = FindFirstObjectByType<LabyrinthMusicManager>();
+    if (labyrinthMusic != null)
+    {
+        labyrinthMusic.PauseMusicForDeath();
+    }
+
+    GemSpawner gemSpawner = FindFirstObjectByType<GemSpawner>();
+    if (gemSpawner != null)
+    {
+        gemSpawner.OnPlayerDeath();
+    }
+
+    // NUOVO: Ferma anche l'invincibilità
+    if (currentInvincibilityCoroutine != null)
+    {
+        StopCoroutine(currentInvincibilityCoroutine);
+        currentInvincibilityCoroutine = null;
+    }
+    isInvincible = false;
+
+    // Ferma il feedback del danno se attivo
+    if (currentDamageFeedbackCoroutine != null)
+    {
+        StopCoroutine(currentDamageFeedbackCoroutine);
+        currentDamageFeedbackCoroutine = null;
+    }
+    takingDamage = false;
+
+    // NUOVO: Ferma anche il ciclo giorno/notte
+    if (dayNightCycleManager != null)
+    {
+        dayNightCycleManager.PauseSystem();
+    }
+
+    StopAllCoroutines();
+    StartCoroutine(DeathSequence());
+}
     IEnumerator DeathSequence()
     {
         // Ferma tutti i movimenti e azioni
@@ -974,61 +980,67 @@ public class PlayerController : MonoBehaviour
     }
 
     public void InizializeSettings()
+{
+    Debug.Log("Reinizializzazione player...");
+
+    isDead = false;
+    currentHealthPoints = maxHealthPoints;
+    isMoving = false;
+    isAttacking = false;
+    canAttack = true;
+    takingDamage = false;
+    isInvincible = false; // NUOVO: Reset invincibilità
+
+    // Ripristina il colore originale
+    if (spriteRenderer != null)
     {
-        Debug.Log("Reinizializzazione player...");
-
-        isDead = false;
-        currentHealthPoints = maxHealthPoints;
-        isMoving = false;
-        isAttacking = false;
-        canAttack = true;
-        takingDamage = false;
-        isInvincible = false; // NUOVO: Reset invincibilità
-
-        // Ripristina il colore originale
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.color = originalColor;
-        }
-
-        // Reset delle coroutine
-        if (currentDamageFeedbackCoroutine != null)
-        {
-            StopCoroutine(currentDamageFeedbackCoroutine);
-            currentDamageFeedbackCoroutine = null;
-        }
-
-        // NUOVO: Reset coroutine invincibilità
-        if (currentInvincibilityCoroutine != null)
-        {
-            StopCoroutine(currentInvincibilityCoroutine);
-            currentInvincibilityCoroutine = null;
-        }
-
-        animator.SetBool("isAttacking", false);
-        animator.SetBool("isMoving", false);
-        transform.position = startPos;
-        outerHubController.UpdateStatusWithPlayerInHub();
-
-        // NUOVO: Cambia labirinto prima di riavviare il giorno
-        if (mazeManager != null)
-        {
-            mazeManager.ChangeToNextMaze();
-        }
-
-        // NUOVO: Riavvia il ciclo giorno/notte dall'inizio del giorno
-        if (dayNightCycleManager != null)
-        {
-            dayNightCycleManager.ResetToDay();
-        }
-
-        ResetAllEnemiesState();
-
-        InvalidateDistances();
-        StartCoroutine(RecalculateDistancesNextFrame());
-        ShowRespawn();
+        spriteRenderer.color = originalColor;
     }
 
+    // Reset delle coroutine
+    if (currentDamageFeedbackCoroutine != null)
+    {
+        StopCoroutine(currentDamageFeedbackCoroutine);
+        currentDamageFeedbackCoroutine = null;
+    }
+
+    // NUOVO: Reset coroutine invincibilità
+    if (currentInvincibilityCoroutine != null)
+    {
+        StopCoroutine(currentInvincibilityCoroutine);
+        currentInvincibilityCoroutine = null;
+    }
+
+    animator.SetBool("isAttacking", false);
+    animator.SetBool("isMoving", false);
+    transform.position = startPos;
+    outerHubController.UpdateStatusWithPlayerInHub();
+
+    // NUOVO: Cambia labirinto prima di riavviare il giorno
+    if (mazeManager != null)
+    {
+        mazeManager.ChangeToNextMaze();
+    }
+
+    // NUOVO: Riavvia il ciclo giorno/notte dall'inizio del giorno
+    if (dayNightCycleManager != null)
+    {
+        dayNightCycleManager.ResetToDay();
+    }
+
+    // NUOVO: Riprendi la musica dopo il revive
+    LabyrinthMusicManager labyrinthMusic = FindFirstObjectByType<LabyrinthMusicManager>();
+    if (labyrinthMusic != null)
+    {
+        labyrinthMusic.ResumeMusicAfterRevive();
+    }
+
+    ResetAllEnemiesState();
+
+    InvalidateDistances();
+    StartCoroutine(RecalculateDistancesNextFrame());
+    ShowRespawn();
+}
     void ResetAllEnemiesState()
     {
         EnemyLogic[] allEnemies = GameObject.FindObjectsByType<EnemyLogic>(FindObjectsSortMode.None);

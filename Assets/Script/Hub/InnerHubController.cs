@@ -410,6 +410,18 @@ public class InnerHubController : MonoBehaviour
         {
             gemSpawner.OnRedGemCollected();
             playerController.hasBloodGem = true;
+
+            // AGGIUNGI QUI IL SUONO DELLA GEMMA
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayGemPickup();
+                if (enableDebug)
+                    Debug.Log("Suono gemma riprodotto!");
+            }
+            else
+            {
+                Debug.LogWarning("AudioManager.Instance non trovato!");
+            }
         }
     }
 

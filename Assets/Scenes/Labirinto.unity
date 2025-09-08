@@ -8884,6 +8884,53 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 6434562638907676200, guid: 7ad4777d33fd66d4d85f5d270deb9170, type: 3}
   m_PrefabInstance: {fileID: 223220262}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1422861831
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1422861833}
+  - component: {fileID: 1422861832}
+  m_Layer: 0
+  m_Name: LabyrinthMusicManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1422861832
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1422861831}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dea02bf12cba148438ba94dcdcaabf86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dayNightManager: {fileID: 482417671}
+  playMusicOnStart: 1
+  fadeTime: 2
+--- !u!4 &1422861833
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1422861831}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1839735485 &1434064107 stripped
 Tilemap:
   m_CorrespondingSourceObject: {fileID: 6945814864045937636, guid: 7ad4777d33fd66d4d85f5d270deb9170, type: 3}
@@ -30522,6 +30569,10 @@ PrefabInstance:
       value: 158.7
       objectReference: {fileID: 0}
     - target: {fileID: 3894990245822049790, guid: e62c5b2bffbee4dc698712eedb9def82, type: 3}
+      propertyPath: coinsPicked
+      value: 3000
+      objectReference: {fileID: 0}
+    - target: {fileID: 3894990245822049790, guid: e62c5b2bffbee4dc698712eedb9def82, type: 3}
       propertyPath: gameButtons
       value: 
       objectReference: {fileID: 1988953587}
@@ -30874,3 +30925,4 @@ SceneRoots:
   - {fileID: 536234040}
   - {fileID: 149485611}
   - {fileID: 1571156484}
+  - {fileID: 1422861833}
