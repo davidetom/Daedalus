@@ -21,6 +21,9 @@ public class PlayerController : MonoBehaviour
     public FogManager fogManager;
     private bool canPassFog = false;
 
+    [Header("Footprint Manager Reference")]
+    public FootprintManager footprintManager;
+
     [Header("Hub Tilemap References")]
     public Tilemap hubBackgroundTilemap;
     public Tilemap hubSolidObjectsBaseTilemap;
@@ -142,10 +145,18 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
-        coinsPicked = 9999;
         currentHealthPoints = maxHealthPoints;
 
         InitializeHubTilemapReferences();
+
+        if (footprintManager == null)
+        {
+            footprintManager = FindFirstObjectByType<FootprintManager>();
+            if (footprintManager == null)
+            {
+                Debug.LogWarning("FootprintManager non trovato! Le impronte non funzioneranno.");
+            }
+        }
 
         // AGGIUNTO: Salva il colore originale per il feedback del danno
         if (spriteRenderer != null)
@@ -1406,7 +1417,6 @@ public class PlayerController : MonoBehaviour
     }
 
     //METODO PER POWERUP
-    //METODO PER POWERUP - AGGIORNATO
     public void PowerUpEnabled()
     {
         if (inventory.HasItem(boots) && !hasBoots)
@@ -1467,8 +1477,19 @@ public class PlayerController : MonoBehaviour
 
         if (inventory.HasItem(binocular) && !hasBinocular)
         {
-            Debug.Log("FOOTPRINTS NOW VISIBLE");
+            Debug.Log("FOOTPRINTS NOW VISIBLE - BINOCOLO ATTIVATO!");
             hasBinocular = true;
+
+            // Attiva il sistema di impronte
+            if (footprintManager != null)
+            {
+                footprintManager.EnableFootprints();
+                Debug.Log("Sistema di impronte abilitato dal binocolo");
+            }
+            else
+            {
+                Debug.LogError("FootprintManager non trovato! Il binocolo non funzionerà correttamente.");
+            }
         }
     }
 

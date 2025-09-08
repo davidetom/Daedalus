@@ -16,6 +16,7 @@ public class MazeManager : MonoBehaviour
     public SpawnPointGenerator spawnPointGenerator;
     public OuterHubController hubController;
     public InnerHubController innerHub;
+    public FootprintManager footprintManager;
 
     [Header("UI")]
     public GameObject warningPanel;
@@ -104,6 +105,9 @@ public class MazeManager : MonoBehaviour
 
         if (innerHub == null)
             innerHub = FindFirstObjectByType<InnerHubController>();
+
+        if (footprintManager == null)
+            footprintManager = FindFirstObjectByType<FootprintManager>();
 
         LoadTilemapPrefabs();
 
@@ -331,6 +335,12 @@ public class MazeManager : MonoBehaviour
                 playerController.tilemap = newTilemap;
                 Debug.Log("Riferimento tilemap aggiornato nel PlayerController");
             }
+        }
+
+        if (footprintManager != null)
+        {
+            footprintManager.UpdateTilemapReference(newTilemap);
+            Debug.Log("Riferimento tilemap aggiornato nel FootprintManager");
         }
 
         StartCoroutine(RegenerateMapAfterFrame());
@@ -729,6 +739,12 @@ public class MazeManager : MonoBehaviour
 
         if (enemySpawner != null)
             enemySpawner.ClearAllEnemies();
+
+        if (footprintManager != null)
+        {
+            footprintManager.ResetFootprints();
+            Debug.Log("Impronte resettate all'alba");
+        }
 
         StartCoroutine(HandleMazeChange());
     }
