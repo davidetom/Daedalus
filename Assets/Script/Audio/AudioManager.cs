@@ -9,7 +9,7 @@ public class AudioManager : MonoBehaviour
     public AudioClip coinPickup;
     public AudioClip gemPickup;
     public AudioClip itemPurchase;
-    public AudioClip walking;
+    public AudioClip errorPurchase;
     public AudioClip death;
 
 
@@ -156,7 +156,7 @@ public class AudioManager : MonoBehaviour
     public void PlayGemPickup() => PlaySound(gemPickup);
     public void PlayItemPurchase() => PlaySound(itemPurchase);
 
-    public void PlayWalking() => PlaySound(walking);
+    public void PlayErrorPurchase() => PlaySound(errorPurchase);
     // Ambiente
     public void PlayDoorOpen() => PlaySound(doorOpen);
     public void PlayDoorClose() => PlaySound(doorClose);

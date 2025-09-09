@@ -143,6 +143,12 @@ public class ShopManager : MonoBehaviour
 
     private void ShowInsufficientFundsMessage()
     {
+        //SUONO SOLDI/RISORSE INSUFFICIENTI
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayErrorPurchase();
+        }
+
         if (insufficientFundsPanel != null)
         {
             insufficientFundsPanel.SetActive(true);

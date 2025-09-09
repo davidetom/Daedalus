@@ -355,7 +355,7 @@ MonoBehaviour:
   coinPickup: {fileID: 8300000, guid: 0949efea93585234fb0125f8c7aba6ca, type: 3}
   gemPickup: {fileID: 8300000, guid: c4aaf6a33be67a44bbf882cfa3590728, type: 3}
   itemPurchase: {fileID: 8300000, guid: b25011dc828c8e1408142861dec6d0f3, type: 3}
-  walking: {fileID: 0}
+  errorPurchase: {fileID: 8300000, guid: a4eb36affcfe86544919b0954cff51ec, type: 3}
   death: {fileID: 8300000, guid: c123b69bdaec8484a8c114f95ec254f4, type: 3}
   damageTaken: {fileID: 8300000, guid: 4d449a27d8faf5a4aad743552bd4abc6, type: 3}
   labyrinthDayMusic: {fileID: 8300000, guid: e54dfe9adf4f4ac4e930c08387e1df5a, type: 3}
