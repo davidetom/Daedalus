@@ -27,6 +27,7 @@ public class SaveSystem
         public HubData hubData;
         public DifficultyData difficultyData;
         public GemData gemData;
+        public FogData fogData;
         public int sceneIndex;
     }
 
@@ -106,6 +107,13 @@ public class SaveSystem
             }
 
             gem.Save(ref currentSaveData.gemData);
+
+            FogManager fogManager = GameObject.FindFirstObjectByType<FogManager>();
+            if(fogManager != null)
+            {
+                fogManager.Save(ref currentSaveData.fogData);
+                Debug.Log("Dati nebbia salvati");
+            }
 
             currentSaveData.sceneIndex = SceneManager.GetActiveScene().buildIndex;
 
@@ -203,11 +211,13 @@ public class SaveSystem
         DifficultyManager difficultyManager = GameObject.FindFirstObjectByType<DifficultyManager>();
         GameElementsManager gameElementsManager = GameObject.FindFirstObjectByType<GameElementsManager>();
         GemSpawner gemSpawner = GameObject.FindFirstObjectByType<GemSpawner>();
+        FogManager fogManager = GameObject.FindFirstObjectByType<FogManager>(); // NUOVO
 
         Debug.Log($"=== CARICAMENTO COMPONENTI PER {GetCurrentUserId()} ===");
         Debug.Log("CoinUIManager trovato: " + (coin != null));
         Debug.Log("PlayerController trovato: " + (player != null));
         Debug.Log("DayNightCycleManager trovato: " + (dayNight != null));
+        Debug.Log("FogManager trovato: " + (fogManager != null));
 
         if (player != null && coin != null && dayNight != null && shop != null)
         {
@@ -225,6 +235,13 @@ public class SaveSystem
 
                 yield return new WaitForEndOfFrame();
             }
+            
+            if(fogManager != null)
+            {
+                fogManager.Load(currentUserData.fogData);
+                Debug.Log("Dati nebbia caricati!");
+            }
+
 
             gameElementsManager.ConfigureGameElements();
             gemSpawner.Load(currentUserData.gemData);
@@ -354,6 +371,14 @@ public class SaveSystem
 
         //Carica scena di gioco
         SceneManager.LoadScene("Labirinto");
+    }
+
+    public static bool HasFogSaveData()
+    {
+        if (!SaveExists()) return false;
+
+        SaveData currentData = GetCurrentUserSaveData();
+        return currentData.fogData.isInitialized && !string.IsNullOrEmpty(currentData.fogData.fogBitArrayData);
     }
 }
 
