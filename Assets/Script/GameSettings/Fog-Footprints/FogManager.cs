@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using System.Collections.Generic;
+using System.Collections;
 
 public class FogManager : MonoBehaviour
 {
@@ -7,6 +9,7 @@ public class FogManager : MonoBehaviour
     public Tilemap mainTilemap;      // La tilemap che cambia ogni giorno
     public Tilemap fogTilemap;       // La tilemap della nebbia (separata)
     public TileBase fogTile;         // Tile da usare per la nebbia
+    public GameObject fogPrefab;     // Prefab della tilemap nebbia preconfigurata
 
     [Header("Fog Settings")]
     public Vector3Int centerCell;    // Il centro in coordinate cella
@@ -20,12 +23,19 @@ public class FogManager : MonoBehaviour
     public float warningMaxDist = 119f;  // Distanza massima warning zone
     public bool canPlayerPassFog = false; // Il player può passare attraverso la nebbia?
 
+    [Header("Save/Load Settings")]
+    public bool loadFromSave = false; // Impostare true se si vuole caricare da salvataggio
+
     // Eventi per la warning zone
     public static System.Action OnPlayerEnteredWarningZone;
     public static System.Action OnPlayerExitedWarningZone;
 
     // Stato interno per tracking del player
     private bool isPlayerInWarningZone = false;
+
+    // Matrice per il salvataggio dello stato della nebbia (310x310)
+    private bool[,] matriceNebbia = new bool[310, 310];
+    private const int MAZE_SIZE = 310;
 
     void Start()
     {
@@ -41,7 +51,26 @@ public class FogManager : MonoBehaviour
             }
         }
 
-        ApplyFog();
+        // Decide se caricare da prefab o da salvataggio
+        if (loadFromSave)
+        {
+            // Qui dovresti caricare i dati di salvataggio e poi chiamare ApplyFogFromSave()
+            // Per ora usiamo il prefab come fallback
+            if (HasSaveData())
+            {
+                LoadFogDataFromSave();
+                ApplyFogFromSave();
+            }
+            else
+            {
+                ApplyFogFromPrefab();
+            }
+        }
+        else
+        {
+            // Nuova partita - usa il prefab
+            ApplyFogFromPrefab();
+        }
     }
 
     [ContextMenu("Applica Nebbia")]
@@ -72,10 +101,112 @@ public class FogManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Applica la nebbia usando il prefab preconfigurato e aggiorna la matrice
+    /// </summary>
+    public void ApplyFogFromPrefab()
+    {
+        if (fogPrefab == null)
+        {
+            Debug.LogError("Prefab della nebbia non assegnato!");
+            return;
+        }
+
+        if (fogTilemap == null || mainTilemap == null)
+        {
+            Debug.LogError("Tilemap non assegnate!");
+            return;
+        }
+
+        // Pulisci la fog tilemap attuale
+        ClearFogTilemap();
+        
+        // Resetta la matrice
+        InitializeMatrix();
+
+        // Ottieni il prefab Tilemap
+        GameObject prefabInstance = Instantiate(fogPrefab);
+        Tilemap prefabTilemap = prefabInstance.GetComponent<Tilemap>();
+        
+        if (prefabTilemap == null)
+        {
+            Debug.LogError("Il prefab non contiene una Tilemap!");
+            Destroy(prefabInstance);
+            return;
+        }
+
+        // Copia tutti i tile dal prefab alla tilemap attiva
+        BoundsInt bounds = prefabTilemap.cellBounds;
+        TileBase[] allTiles = prefabTilemap.GetTilesBlock(bounds);
+        Color[] allColors = new Color[allTiles.Length];
+
+        int index = 0;
+        foreach (var pos in bounds.allPositionsWithin)
+        {
+            if (allTiles[index] != null)
+            {
+                // Copia il tile
+                fogTilemap.SetTile(pos, allTiles[index]);
+                fogTilemap.SetColor(pos, fogColor);
+                
+                // Aggiorna la matrice
+                UpdateMatrixPosition(pos, true);
+            }
+            index++;
+        }
+
+        // Distruggi l'istanza temporanea del prefab
+        Destroy(prefabInstance);
+
+        Debug.Log($"Nebbia applicata da prefab. Tile copiati: {GetFogTileCount()}");
+    }
+
+    /// <summary>
+    /// Applica la nebbia usando i dati di salvataggio
+    /// </summary>
+    public void ApplyFogFromSave()
+    {
+        if (fogTilemap == null || fogTile == null)
+        {
+            Debug.LogError("Tilemap o FogTile non assegnati!");
+            return;
+        }
+
+        // Pulisci la fog tilemap
+        ClearFogTilemap();
+
+        // Crea una lista delle posizioni dove applicare la nebbia
+        List<Vector3Int> fogPositions = new List<Vector3Int>();
+
+        // Scansiona la matrice per trovare le posizioni con nebbia
+        for (int x = 0; x < MAZE_SIZE; x++)
+        {
+            for (int y = 0; y < MAZE_SIZE; y++)
+            {
+                if (matriceNebbia[x, y])
+                {
+                    // Converti le coordinate della matrice in coordinate tilemap
+                    Vector3Int tilePos = MatrixToTileCoordinates(x, y);
+                    fogPositions.Add(tilePos);
+                }
+            }
+        }
+
+        // Applica i tile nebbia nelle posizioni salvate
+        foreach (Vector3Int pos in fogPositions)
+        {
+            fogTilemap.SetTile(pos, fogTile);
+            fogTilemap.SetColor(pos, fogColor);
+        }
+
+        Debug.Log($"Nebbia applicata da salvataggio. Tile ripristinati: {fogPositions.Count}");
+    }
+
     [ContextMenu("Rimuovi Nebbia")]
     public void RemoveFog()
     {
         ClearFogTilemap();
+        InitializeMatrix(); // Resetta anche la matrice
     }
 
     // Rimuove nebbia in una posizione specifica
@@ -84,6 +215,8 @@ public class FogManager : MonoBehaviour
         if (fogTilemap != null && fogTilemap.HasTile(position))
         {
             fogTilemap.SetTile(position, null);
+            // Aggiorna la matrice
+            UpdateMatrixPosition(position, false);
         }
     }
 
@@ -105,6 +238,8 @@ public class FogManager : MonoBehaviour
             if (dist <= radius && fogTilemap.HasTile(pos))
             {
                 fogTilemap.SetTile(pos, null);
+                // Aggiorna la matrice
+                UpdateMatrixPosition(pos, false);
             }
         }
     }
@@ -131,6 +266,8 @@ public class FogManager : MonoBehaviour
             {
                 // Rimuovi completamente la nebbia nel centro
                 fogTilemap.SetTile(pos, null);
+                // Aggiorna la matrice
+                UpdateMatrixPosition(pos, false);
             }
             else if (dist <= outerRadius)
             {
@@ -138,6 +275,8 @@ public class FogManager : MonoBehaviour
                 float t = Mathf.InverseLerp(innerRadius, outerRadius, dist);
                 Color newColor = new Color(fogColor.r, fogColor.g, fogColor.b, t);
                 fogTilemap.SetColor(pos, newColor);
+                // Nota: in questo caso non rimuoviamo il tile, solo cambiamo il colore
+                // quindi la matrice rimane true
             }
         }
     }
@@ -171,6 +310,7 @@ public class FogManager : MonoBehaviour
         return fogTilemap != null && fogTilemap.HasTile(position);
     }
 
+    #region Warning Zone Methods
     public void CheckPlayerWarningZone(Vector3 playerWorldPosition)
     {
         // Debug dettagliato delle coordinate
@@ -314,4 +454,178 @@ public class FogManager : MonoBehaviour
             Debug.Log("Warning zone resettata!");
         }
     }
+    #endregion
+
+    #region Matrix and Save/Load Methods
+    /// <summary>
+    /// Inizializza la matrice nebbia (tutti false)
+    /// </summary>
+    private void InitializeMatrix()
+    {
+        for (int x = 0; x < MAZE_SIZE; x++)
+        {
+            for (int y = 0; y < MAZE_SIZE; y++)
+            {
+                matriceNebbia[x, y] = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Aggiorna una posizione specifica nella matrice
+    /// </summary>
+    private void UpdateMatrixPosition(Vector3Int tilePosition, bool hasFog)
+    {
+        Vector2Int matrixCoords = TileToMatrixCoordinates(tilePosition);
+        
+        if (IsValidMatrixCoordinate(matrixCoords))
+        {
+            matriceNebbia[matrixCoords.x, matrixCoords.y] = hasFog;
+        }
+    }
+
+    /// <summary>
+    /// Converte coordinate tilemap in coordinate matrice
+    /// </summary>
+    private Vector2Int TileToMatrixCoordinates(Vector3Int tilePosition)
+    {
+        // Assumendo che le coordinate tilemap partano da (0,0) e la matrice pure
+        // Adatta questo metodo alle tue coordinate specifiche
+        return new Vector2Int(tilePosition.x, tilePosition.y);
+    }
+
+    /// <summary>
+    /// Converte coordinate matrice in coordinate tilemap
+    /// </summary>
+    private Vector3Int MatrixToTileCoordinates(int matrixX, int matrixY)
+    {
+        // Assumendo che le coordinate tilemap partano da (0,0) e la matrice pure
+        // Adatta questo metodo alle tue coordinate specifiche
+        return new Vector3Int(matrixX, matrixY, 0);
+    }
+
+    /// <summary>
+    /// Verifica se le coordinate della matrice sono valide
+    /// </summary>
+    private bool IsValidMatrixCoordinate(Vector2Int coords)
+    {
+        return coords.x >= 0 && coords.x < MAZE_SIZE && coords.y >= 0 && coords.y < MAZE_SIZE;
+    }
+
+    /// <summary>
+    /// Converte la matrice nebbia in un BitArray per il salvataggio
+    /// </summary>
+    public BitArray GetFogBitArray()
+    {
+        BitArray bitArray = new BitArray(MAZE_SIZE * MAZE_SIZE);
+        
+        for (int x = 0; x < MAZE_SIZE; x++)
+        {
+            for (int y = 0; y < MAZE_SIZE; y++)
+            {
+                int index = x * MAZE_SIZE + y;
+                bitArray[index] = matriceNebbia[x, y];
+            }
+        }
+        
+        Debug.Log($"Matrice nebbia convertita in BitArray. Dimensione: {bitArray.Length} bit");
+        return bitArray;
+    }
+
+    /// <summary>
+    /// Carica la matrice nebbia da un BitArray
+    /// </summary>
+    public void SetFogBitArray(BitArray bitArray)
+    {
+        if (bitArray == null || bitArray.Length != MAZE_SIZE * MAZE_SIZE)
+        {
+            Debug.LogError($"BitArray invalido! Dimensione attesa: {MAZE_SIZE * MAZE_SIZE}, ricevuta: {bitArray?.Length ?? 0}");
+            return;
+        }
+
+        for (int x = 0; x < MAZE_SIZE; x++)
+        {
+            for (int y = 0; y < MAZE_SIZE; y++)
+            {
+                int index = x * MAZE_SIZE + y;
+                matriceNebbia[x, y] = bitArray[index];
+            }
+        }
+        
+        Debug.Log($"Matrice nebbia caricata da BitArray. Tile nebbia: {GetMatrixFogCount()}");
+    }
+
+    /// <summary>
+    /// Conta quanti tile nebbia ci sono nella matrice
+    /// </summary>
+    private int GetMatrixFogCount()
+    {
+        int count = 0;
+        for (int x = 0; x < MAZE_SIZE; x++)
+        {
+            for (int y = 0; y < MAZE_SIZE; y++)
+            {
+                if (matriceNebbia[x, y]) count++;
+            }
+        }
+        return count;
+    }
+
+    /// <summary>
+    /// Conta quanti tile nebbia ci sono attualmente nella tilemap
+    /// </summary>
+    private int GetFogTileCount()
+    {
+        if (fogTilemap == null) return 0;
+        
+        int count = 0;
+        BoundsInt bounds = fogTilemap.cellBounds;
+        
+        foreach (var pos in bounds.allPositionsWithin)
+        {
+            if (fogTilemap.HasTile(pos)) count++;
+        }
+        
+        return count;
+    }
+
+    /// <summary>
+    /// Metodo placeholder per verificare se ci sono dati di salvataggio
+    /// Implementa la logica specifica del tuo sistema di salvataggio
+    /// </summary>
+    private bool HasSaveData()
+    {
+        // Implementa qui la logica per verificare se esistono dati salvati
+        // Per esempio, controlla se esiste un file di salvataggio o una chiave in PlayerPrefs
+        return false; // Placeholder
+    }
+
+    /// <summary>
+    /// Metodo placeholder per caricare i dati di salvataggio
+    /// Implementa la logica specifica del tuo sistema di salvataggio
+    /// </summary>
+    private void LoadFogDataFromSave()
+    {
+        // Implementa qui la logica per caricare i dati dal sistema di salvataggio
+        // e chiamare SetFogBitArray() con i dati caricati
+        
+        // Esempio:
+        // string savedData = PlayerPrefs.GetString("FogData", "");
+        // if (!string.IsNullOrEmpty(savedData))
+        // {
+        //     BitArray bitArray = DeserializeBitArray(savedData);
+        //     SetFogBitArray(bitArray);
+        // }
+    }
+
+    /// <summary>
+    /// Metodo di debug per visualizzare lo stato della matrice
+    /// </summary>
+    [ContextMenu("Debug Matrix State")]
+    public void DebugMatrixState()
+    {
+        Debug.Log($"Stato matrice nebbia: {GetMatrixFogCount()}/{MAZE_SIZE * MAZE_SIZE} posizioni con nebbia");
+        Debug.Log($"Stato tilemap: {GetFogTileCount()} tile nebbia attivi");
+    }
+    #endregion
 }
