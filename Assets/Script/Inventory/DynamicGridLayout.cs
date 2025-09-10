@@ -59,7 +59,7 @@ public class DynamicGridLayout : MonoBehaviour
 
         if (gridLayout == null)
         {
-            Debug.LogError("DynamicGridLayout: Nessun GridLayoutGroup trovato su " + gameObject.name);
+            //Debug.LogError("DynamicGridLayout: Nessun GridLayoutGroup trovato su " + gameObject.name);
             return;
         }
 
@@ -117,7 +117,7 @@ public class DynamicGridLayout : MonoBehaviour
         gridLayout.padding = padding;
 
         // Debug per verificare i calcoli
-        Debug.Log($"Container Size: {containerSize}, Cell Size: {cellSize}");
+        //Debug.Log($"Container Size: {containerSize}, Cell Size: {cellSize}");
     }
 
     // Funzione per cambiare il numero di colonne runtime

@@ -68,7 +68,7 @@ public class EnemyLogic : MonoBehaviour
 
     private Animator animator;
     private Transform playerTransform;
-    private Vector3 lastPlayerPosition = Vector3.zero; // NUOVO: per tracciare la posizione del player
+    private Vector3 lastPlayerPosition = Vector3.zero; // per tracciare la posizione del player
     private float playerPositionCheckInterval = 0.1f; // Controlla ogni 0.1 secondi
     private float lastPlayerPositionCheckTime = 0f;
 
@@ -114,7 +114,7 @@ public class EnemyLogic : MonoBehaviour
     {
         if (isDead) return; // Non fare nulla se Ã¨ morto
 
-        // NUOVO: Monitora la posizione del player per rilevare respawn o teletrasporti
+        // Monitora la posizione del player per rilevare respawn o teletrasporti
         CheckPlayerPositionChange();
 
         HandleKnockback();
@@ -129,7 +129,7 @@ public class EnemyLogic : MonoBehaviour
             
         lastPlayerPositionCheckTime = Time.time;
         
-        // Se Ã¨ la prima volta, inizializza
+        // Se è la prima volta, inizializza
         if (lastPlayerPosition == Vector3.zero)
         {
             lastPlayerPosition = playerTransform.position;
@@ -139,11 +139,11 @@ public class EnemyLogic : MonoBehaviour
         // Calcola la distanza dal controllo precedente
         float distanceMoved = Vector3.Distance(playerTransform.position, lastPlayerPosition);
         
-        // Controlla anche se il player Ã¨ morto/respawnato
+        // Controlla anche se il player è morto/respawnato
         PlayerController pc = playerTransform.GetComponent<PlayerController>();
         bool playerJustRespawned = pc != null && !pc.IsAlive();
         
-        // NUOVO: Controlla se la matrice BFS Ã¨ in uno stato inconsistente
+        // Controlla se la matrice BFS è in uno stato inconsistente
         bool bfsInconsistent = IsBFSInconsistent();
         
         // Condizioni per forzare ricalcolo BFS:
@@ -154,24 +154,24 @@ public class EnemyLogic : MonoBehaviour
         if (distanceMoved > 2f)
         {
             shouldRecalculate = true;
-            reason = $"movimento drastico ({distanceMoved:F1} unitÃ )";
+            //reason = $"movimento drastico ({distanceMoved:F1} unitÃ )";
         }
         
         // 2. Player respawnato
         if (playerJustRespawned)
         {
             shouldRecalculate = true;
-            reason = "player respawnato";
+            //reason = "player respawnato";
         }
         
         // 3. BFS inconsistente
         if (bfsInconsistent)
         {
             shouldRecalculate = true;
-            reason = "BFS inconsistente";
+            //reason = "BFS inconsistente";
         }
         
-        // 4. NUOVO: Controllo se siamo "bloccati" in modalitÃ  closeToPlayer ma il player Ã¨ lontano
+        // 4. Controllo se siamo "bloccati" in modalità  closeToPlayer ma il player è lontano
         if (closeToPlayer && mapManager != null && mapManager.wallCalculated)
         {
             Vector2Int playerArrayPos = mapManager.WorldToArrayCoordinates(playerTransform.position);
@@ -182,11 +182,11 @@ public class EnemyLogic : MonoBehaviour
                 // Calcola distanza fisica effettiva
                 float physicalDistance = Vector3.Distance(transform.position, playerTransform.position);
                 
-                // Se siamo in modalitÃ  closeToPlayer ma fisicamente siamo lontani, c'Ã¨ un problema
+                // Se siamo in modalità  closeToPlayer ma fisicamente siamo lontani, c'è un problema
                 if (physicalDistance > stopDistance * 1.5f) // Margine di tolleranza
                 {
                     shouldRecalculate = true;
-                    reason = $"nemico bloccato in closeToPlayer ma distanza fisica Ã¨ {physicalDistance:F1}";
+                    //reason = $"nemico bloccato in closeToPlayer ma distanza fisica Ã¨ {physicalDistance:F1}";
                     
                     // Reset immediato dello stato
                     closeToPlayer = false;
@@ -199,7 +199,7 @@ public class EnemyLogic : MonoBehaviour
         {
             if (enableDebug)
             {
-                Debug.Log($"{gameObject.name}: Ricalcolo BFS per: {reason}");
+                //Debug.Log($"{gameObject.name}: Ricalcolo BFS per: {reason}");
             }
             
             ForcePlayerBFSRecalculation();
@@ -213,7 +213,7 @@ public class EnemyLogic : MonoBehaviour
         lastPlayerPosition = playerTransform.position;
     }
 
-    // NUOVO METODO: Verifica se la BFS Ã¨ in uno stato inconsistente
+    // Verifica se la BFS è in uno stato inconsistente
     bool IsBFSInconsistent()
     {
         if (mapManager == null || !mapManager.wallCalculated) return true;
@@ -230,7 +230,7 @@ public class EnemyLogic : MonoBehaviour
         {
             if (enableDebug)
             {
-                Debug.Log($"BFS inconsistente: player a distanza {playerDistance} da se stesso");
+                //Debug.Log($"BFS inconsistente: player a distanza {playerDistance} da se stesso");
             }
             return true;
         }
@@ -243,7 +243,7 @@ public class EnemyLogic : MonoBehaviour
             {
                 if (enableDebug)
                 {
-                    Debug.Log($"BFS inconsistente: nemico closeToPlayer ma distanza BFS = {enemyDistance}");
+                    //Debug.Log($"BFS inconsistente: nemico closeToPlayer ma distanza BFS = {enemyDistance}");
                 }
                 return true;
             }
@@ -252,7 +252,7 @@ public class EnemyLogic : MonoBehaviour
         return false;
     }
 
-    // NUOVO: Forza il ricalcolo delle distanze BFS tramite il PlayerController
+    // Forza il ricalcolo delle distanze BFS tramite il PlayerController
     void ForcePlayerBFSRecalculation()
     {
         if (playerTransform != null)
@@ -270,24 +270,14 @@ public class EnemyLogic : MonoBehaviour
                     
                     if (enableDebug)
                     {
-                        Debug.Log($"{gameObject.name}: BFS ricalcolata con successo.");
+                        //Debug.Log($"{gameObject.name}: BFS ricalcolata con successo.");
                     }
                 }
             }
         }
     }
 
-    void HandleKnockback()
-    {
-        // Il rinculo ora viene gestito dalla coroutine KnockbackMovement()
-        // Questo metodo serve solo per debug/stato
-        if (enableDebug && isKnockedBack)
-        {
-            Debug.Log($"{gameObject.name}: In stato di rinculo verso {knockbackDirection}");
-        }
-    }
-
-    // FIXED: Metodo pubblico per ricevere danni - VERSIONE SEMPLIFICATA
+    // Metodo pubblico per ricevere danni - VERSIONE SEMPLIFICATA
     public void TakeDamage(float damage, Vector2 attackDirection = default)
     {
         if (isDead) return; // Protezione base
@@ -296,34 +286,33 @@ public class EnemyLogic : MonoBehaviour
         currentHealthPoints = Mathf.Max(0, currentHealthPoints);
 
         // Effetto sonoro quando il nemico viene colpito
-if (AudioManager.Instance != null)
-{
-    AudioManager.Instance.PlayEnemyShout();
-}
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayEnemyShout();
+        }
 
-        
         if (enableDebug)
         {
-            Debug.Log($"{gameObject.name} ha ricevuto {damage} danni. Vita rimanente: {currentHealthPoints}");
+            //Debug.Log($"{gameObject.name} ha ricevuto {damage} danni. Vita rimanente: {currentHealthPoints}");
         }
         
         // Feedback visivo del danno
         StartDamageFeedback();
         
-        // Applica rinculo se possibile e se non Ã¨ giÃ  in rinculo
+        // Applica rinculo se possibile e se non è già  in rinculo
         if (attackDirection != Vector2.zero && !isKnockedBack)
         {
             ApplyKnockback(attackDirection);
         }
         
-        // Controlla se Ã¨ morto
+        // Controlla se è morto
         if (currentHealthPoints <= 0)
         {
             Die();
         }
     }
     
-    // FIXED: Gestione corretta del feedback del danno
+    // Gestione corretta del feedback del danno
     void StartDamageFeedback()
     {
         // Ferma il feedback precedente se esiste
@@ -333,14 +322,14 @@ if (AudioManager.Instance != null)
             currentDamageFeedbackCoroutine = null;
         }
         
-        // Avvia il nuovo feedback solo se non Ã¨ morto
+        // Avvia il nuovo feedback solo se non è morto
         if (!isDead)
         {
             currentDamageFeedbackCoroutine = StartCoroutine(DamageFeedbackCoroutine());
         }
     }
     
-    // FIXED: Versione corretta della coroutine di feedback
+    // Versione corretta della coroutine di feedback
     IEnumerator DamageFeedbackCoroutine()
     {
         if (spriteRenderer == null || isDead) 
@@ -354,7 +343,7 @@ if (AudioManager.Instance != null)
         
         yield return new WaitForSeconds(damageFeedbackDuration);
         
-        // Ripristina il colore solo se non Ã¨ morto
+        // Ripristina il colore solo se non è morto
         if (!isDead && spriteRenderer != null)
         {
             spriteRenderer.color = originalColor;
@@ -364,7 +353,7 @@ if (AudioManager.Instance != null)
         currentDamageFeedbackCoroutine = null;
     }
     
-    // FIXED: Applica il rinculo - VERSIONE SEMPLIFICATA
+    // Applica il rinculo
     void ApplyKnockback(Vector2 direction)
     {
         if (isDead || isKnockedBack) return;
@@ -380,7 +369,7 @@ if (AudioManager.Instance != null)
         {
             if (enableDebug)
             {
-                Debug.Log($"{gameObject.name}: Posizione di rinculo non camminabile, rinculo annullato");
+                //Debug.Log($"{gameObject.name}: Posizione di rinculo non camminabile, rinculo annullato");
             }
             return;
         }
@@ -409,7 +398,7 @@ if (AudioManager.Instance != null)
         
         if (enableDebug)
         {
-            Debug.Log($"{gameObject.name}: Avviato rinculo fluido verso {targetPosition}");
+            //Debug.Log($"{gameObject.name}: Avviato rinculo fluido verso {targetPosition}");
         }
     }
     
@@ -431,7 +420,7 @@ if (AudioManager.Instance != null)
         
         if (enableDebug)
         {
-            Debug.Log($"{gameObject.name}: Rinculo completato a posizione {transform.position}");
+            //Debug.Log($"{gameObject.name}: Rinculo completato a posizione {transform.position}");
         }
     }
     
@@ -454,7 +443,7 @@ if (AudioManager.Instance != null)
         }
     }
     
-    // FIXED: Gestisce la morte del nemico
+    // Gestisce la morte del nemico
     void Die()
     {
         if (isDead) return; // Previeni chiamate multiple
@@ -471,7 +460,7 @@ if (AudioManager.Instance != null)
         
         if (enableDebug)
         {
-            Debug.Log($"{gameObject.name} Ã¨ morto!");
+            //Debug.Log($"{gameObject.name} Ã¨ morto!");
         }
         
         // Ferma tutti i movimenti
@@ -532,7 +521,7 @@ if (AudioManager.Instance != null)
         Destroy(gameObject);
     }
 
-    // ProprietÃ  pubbliche per accesso esterno
+    // Proprietà  pubbliche per accesso esterno
     public float GetCurrentHealth() => currentHealthPoints;
     public float GetMaxHealth() => maxHealthPoints;
     public float GetHealthPercentage() => currentHealthPoints / maxHealthPoints;
@@ -541,18 +530,24 @@ if (AudioManager.Instance != null)
 
     Vector2 FindPlayer()
     {
-        // Se Ã¨ in rinculo, non muoversi attivamente
+        // Se è in rinculo, non muoversi attivamente
         if (isKnockedBack) return Vector2.zero;
         
         if (playerTransform == null) 
         {
-            if (enableDebug) Debug.Log("Player non trovato!");
+            if (enableDebug)
+            {
+                //Debug.Log("Player non trovato!");
+            }
             return GetRandomPatrolDirection();
         }
 
         if (mapManager == null || !mapManager.wallCalculated)
         {
-            if (enableDebug) Debug.Log("MapManager non disponibile, usando movimento casuale");
+            if (enableDebug)
+            {
+                //Debug.Log("MapManager non disponibile, usando movimento casuale");
+            }
             return GetRandomPatrolDirection();
         }
 
@@ -572,12 +567,12 @@ if (AudioManager.Instance != null)
         // Decide il comportamento in base alla distanza
         if (distanceToPlayer >= 0 && distanceToPlayer <= intelligentChaseDistance)
         {
-            // MODALITÃ€ INTELLIGENTE: Usa la matrice BFS per trovare il percorso ottimale
+            // MODALITA' INTELLIGENTE: Usa la matrice BFS per trovare il percorso ottimale
             return GetIntelligentDirection(enemyArrayPos);
         }
         else
         {
-            // MODALITÃ€ PATROL: Movimento pseudo-casuale con bias verso il player
+            // MODALITA' PATROL: Movimento pseudo-casuale con bias verso il player
             return GetPatrolDirection(enemyArrayPos, playerArrayPos);
         }
     }
@@ -591,25 +586,31 @@ if (AudioManager.Instance != null)
         
         if (currentDistance <= 0)
         {
-            if (enableDebug) Debug.Log("GiÃ  raggiunto il player o distanza non valida");
+            if (enableDebug)
+            {
+                //Debug.Log("Già  raggiunto il player o distanza non valida");
+            }
             return Vector2.zero;
         }
 
-        // FIXED: Controlla se puÃ² attaccare (stessa tile o adiacente)
+        // Controlla se puÃ² attaccare (stessa tile o adiacente)
         if (currentDistance <= stopDistance)
         {
             closeToPlayer = true;
-            if (enableDebug) Debug.Log($"Nemico a distanza di attacco dal player (distanza: {currentDistance}).");
+            if (enableDebug)
+            {
+                //Debug.Log($"Nemico a distanza di attacco dal player (distanza: {currentDistance}).");
+            }
             
-            // Se Ã¨ sulla stessa tile (distanza 0), non muoversi
+            // Se è sulla stessa tile (distanza 0), non muoversi
             if (currentDistance == 0)
             {
                 return Vector2.zero;
             }
-            // Se Ã¨ a distanza 1, puÃ² scegliere di muoversi o fermarsi per attaccare
+            // Se è a distanza 1, può scegliere di muoversi o fermarsi per attaccare
             else if (currentDistance == 1)
             {
-                // 50% possibilitÃ  di fermarsi per attaccare
+                // 50% possibilità  di fermarsi per attaccare
                 if (UnityEngine.Random.Range(0f, 1f) < 0.5f)
                 {
                     return Vector2.zero;
@@ -632,14 +633,14 @@ if (AudioManager.Instance != null)
             if (!mapManager.IsValidArrayCoordinate(nextArrayPos))
                 continue;
 
-            // IMPORTANTE: Verifica se la cella Ã¨ camminabile per AI (solo corridoi)
+            // IMPORTANTE: Verifica se la cella è camminabile per AI (solo corridoi)
             if (!mapManager.IsWalkableForAI(nextArrayPos))
                 continue;
 
             // Ottieni la distanza BFS della cella adiacente
             int nextDistance = mapManager.Distances[nextArrayPos.x, nextArrayPos.y];
             
-            // Se la distanza Ã¨ valida (>= 0), significa che c'Ã¨ un percorso verso il player
+            // Se la distanza è valida (>= 0), significa che c'è un percorso verso il player
             if (nextDistance >= 0)
             {
                 validDirections.Add(new DirectionInfo
@@ -650,30 +651,36 @@ if (AudioManager.Instance != null)
 
                 if (enableDebug)
                 {
-                    Debug.Log($"Direzione {directions[i]}: distanza {nextDistance}");
+                    //Debug.Log($"Direzione {directions[i]}: distanza {nextDistance}");
                 }
             }
         }
 
         if (validDirections.Count == 0)
         {
-            if (enableDebug) Debug.Log("Nessuna direzione valida trovata nell'inseguimento intelligente");
+            if (enableDebug)
+            {
+                //Debug.Log("Nessuna direzione valida trovata nell'inseguimento intelligente");
+            }
             return Vector2.zero;
         }
 
-        // Trova la direzione con la distanza minore (piÃ¹ vicina al player)
+        // Trova la direzione con la distanza minore (più vicina al player)
         DirectionInfo bestDirection = validDirections.OrderBy(d => d.distance).First();
         
         // CONTROLLO AGGIUNTIVO: Non muoversi se la prossima mossa ci porterebbe alla distanza di stop o meno
         if (bestDirection.distance < stopDistance)
         {
-            if (enableDebug) Debug.Log($"Prossima mossa troppo vicina al player (distanza: {bestDirection.distance}, stop: {stopDistance}). Stop movimento.");
+            if (enableDebug)
+            {
+                //Debug.Log($"Prossima mossa troppo vicina al player (distanza: {bestDirection.distance}, stop: {stopDistance}). Stop movimento.");
+            }
             return Vector2.zero;
         }
         
         if (enableDebug)
         {
-            Debug.Log($"Direzione scelta: {bestDirection.direction} (distanza: {bestDirection.distance})");
+            //Debug.Log($"Direzione scelta: {bestDirection.direction} (distanza: {bestDirection.distance})");
         }
 
         return bestDirection.direction;
@@ -707,7 +714,7 @@ if (AudioManager.Instance != null)
                 
                 if (enableDebug)
                 {
-                    Debug.Log($"Nuova direzione patrol: {currentPatrolDirection}");
+                    //Debug.Log($"Nuova direzione patrol: {currentPatrolDirection}");
                 }
             }
         }
@@ -752,7 +759,10 @@ if (AudioManager.Instance != null)
 
         if (validDirections.Count == 0)
         {
-            if (enableDebug) Debug.Log("Nessuna direzione valida per patrol");
+            if (enableDebug)
+            {
+                //Debug.Log("Nessuna direzione valida per patrol");
+            }
             return Vector2.zero;
         }
 
@@ -761,14 +771,20 @@ if (AudioManager.Instance != null)
         {
             // Scegli una direzione che si avvicina al player
             DirectionInfo chosenDir = playerDirections[UnityEngine.Random.Range(0, playerDirections.Count)];
-            if (enableDebug) Debug.Log($"Patrol con bias verso player: {chosenDir.direction}");
+            if (enableDebug)
+            {
+                //Debug.Log($"Patrol con bias verso player: {chosenDir.direction}");
+            }
             return chosenDir.direction;
         }
         else
         {
             // Scegli una direzione casuale tra quelle valide
             DirectionInfo chosenDir = validDirections[UnityEngine.Random.Range(0, validDirections.Count)];
-            if (enableDebug) Debug.Log($"Patrol casuale: {chosenDir.direction}");
+            if (enableDebug)
+            {
+                //Debug.Log($"Patrol casuale: {chosenDir.direction}");
+            }
             return chosenDir.direction;
         }
     }
@@ -796,7 +812,7 @@ if (AudioManager.Instance != null)
         return Vector2.zero;
     }
 
-    // IMPORTANTE: Nuovo metodo che usa il MapManager per controllare se l'AI puÃ² camminare
+    // IMPORTANTE: Nuovo metodo che usa il MapManager per controllare se l'AI può camminare
     bool IsDirectionWalkableForAI(Vector2Int fromArrayPos, Vector2 direction)
     {
         Vector2Int directionOffset = Vector2Int.zero;
@@ -819,7 +835,7 @@ if (AudioManager.Instance != null)
 
     void HandleMovement()
     {
-        // Non muoversi se Ã¨ in rinculo o morto
+        // Non muoversi se è in rinculo o morto
         if (isKnockedBack || isDead) 
         {
             animator.SetBool("isMoving", false);
@@ -836,7 +852,9 @@ if (AudioManager.Instance != null)
             if (input.x != 0) input.y = 0;
 
             if (enableDebug && input != Vector2.zero)
-                Debug.Log($"Input movimento: {input}");
+            {
+                //Debug.Log($"Input movimento: {input}");
+            }
 
             if (input != Vector2.zero)
             {
@@ -847,17 +865,25 @@ if (AudioManager.Instance != null)
                 targetPos.y += input.y;
 
                 if (enableDebug)
-                    Debug.Log($"Tentativo movimento da {transform.position} a {targetPos}");
+                {
+                    //Debug.Log($"Tentativo movimento da {transform.position} a {targetPos}");
+                }
 
                 if (IsWalkable(targetPos))
                 {
-                    if (enableDebug) Debug.Log("Movimento iniziato!");
+                    if (enableDebug)
+                    {
+                        //Debug.Log("Movimento iniziato!");
+                    }
                     StartCoroutine(Move(targetPos));
                 }
                 else
                 {
-                    if (enableDebug) Debug.Log("Movimento bloccato - posizione non camminabile");
-                    // Reset della direzione patrol se Ã¨ bloccata
+                    if (enableDebug)
+                    {
+                        //Debug.Log("Movimento bloccato - posizione non camminabile");
+                    }
+                    // Reset della direzione patrol se è bloccata
                     if (currentPatrolDirection == input)
                     {
                         currentPatrolDirection = Vector2.zero;
@@ -867,7 +893,10 @@ if (AudioManager.Instance != null)
             }
             else
             {
-                if (enableDebug) Debug.Log("Nessun input movimento");
+                if (enableDebug)
+                {
+                    //Debug.Log("Nessun input movimento");
+                }
             }
         }
 
@@ -913,7 +942,7 @@ if (AudioManager.Instance != null)
             // Fallback al sistema originale se MapManager non Ã¨ disponibile
             if (tilemap == null)
             {
-                Debug.LogWarning("Tilemap non assegnata!");
+                //Debug.LogWarning("Tilemap non assegnata!");
                 return true;
             }
 
@@ -971,7 +1000,7 @@ if (AudioManager.Instance != null)
         }
     }
 
-    // FIXED: Corretto il bug del cooldown dell'attacco
+    // Corretto il bug del cooldown dell'attacco
     IEnumerator DamagePlayer()
     {
         isAttacking = true;
@@ -986,7 +1015,7 @@ if (AudioManager.Instance != null)
             
             if (enableDebug)
             {
-                Debug.Log($"{gameObject.name} ha attaccato il player per {attackDamage} danni!");
+                //Debug.Log($"{gameObject.name} ha attaccato il player per {attackDamage} danni!");
             }
         }
 
@@ -1013,11 +1042,11 @@ if (AudioManager.Instance != null)
         }
         else if (IsInIntelligentMode())
         {
-            Gizmos.color = Color.red; // ModalitÃ  inseguimento intelligente
+            Gizmos.color = Color.red; // Modalità  inseguimento intelligente
         }
         else
         {
-            Gizmos.color = Color.yellow; // ModalitÃ  patrol
+            Gizmos.color = Color.yellow; // Modalità  patrol
         }
         
         Gizmos.DrawWireSphere(transform.position, 0.3f);
@@ -1038,7 +1067,7 @@ if (AudioManager.Instance != null)
             Gizmos.DrawLine(transform.position, knockbackPos);
         }
         
-        // Mostra se puÃ² attaccare
+        // Mostra se può attaccare
         if (closeToPlayer && canAttack)
         {
             Gizmos.color = Color.red;

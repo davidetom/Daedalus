@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.EventSystems;
 using TMPro;
-using Unity.VisualScripting; // serve per i pulsanti mobile
+using Unity.VisualScripting;
 
 public class PlayerController : MonoBehaviour
 {
@@ -79,13 +79,13 @@ public class PlayerController : MonoBehaviour
 
     [Header("Damage Feedback")]
     public float damageFeedbackDuration = 0.2f;
-    public float invincibilityDuration = 0.5f; // NUOVO: Durata dell'invincibilità
+    public float invincibilityDuration = 0.5f; // Durata dell'invincibilità
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
     private bool takingDamage = false;
-    private bool isInvincible = false; // NUOVO: Stato di invincibilità
+    private bool isInvincible = false; // Stato di invincibilità
     private Coroutine currentDamageFeedbackCoroutine = null;
-    private Coroutine currentInvincibilityCoroutine = null; // NUOVO: Coroutine per invincibilità
+    private Coroutine currentInvincibilityCoroutine = null; // Coroutine per invincibilità
 
     [Header("Health Settings")]
     public float maxHealthPoints = 100f;
@@ -143,7 +143,7 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         animator = GetComponent<Animator>();
-        spriteRenderer = GetComponent<SpriteRenderer>(); // AGGIUNTO: inizializzazione
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     void Start()
@@ -157,11 +157,11 @@ public class PlayerController : MonoBehaviour
             footprintManager = FindFirstObjectByType<FootprintManager>();
             if (footprintManager == null)
             {
-                Debug.LogWarning("FootprintManager non trovato! Le impronte non funzioneranno.");
+                //Debug.LogWarning("FootprintManager non trovato! Le impronte non funzioneranno.");
             }
         }
 
-        // AGGIUNTO: Salva il colore originale per il feedback del danno
+        // Salva il colore originale per il feedback del danno
         if (spriteRenderer != null)
         {
             originalColor = spriteRenderer.color;
@@ -192,7 +192,6 @@ public class PlayerController : MonoBehaviour
 
         HandleMovement();
 
-        // CHIAMALA SEMPRE, non solo quando si muove
         HandleFogReveal();
 
         // Controlla input per aprire la porta
@@ -213,10 +212,10 @@ public class PlayerController : MonoBehaviour
 
     void HandleMovement()
     {
-        // MODIFICA: Rimosso il controllo !takingDamage - ora può muoversi anche durante il danno
+        // Rimosso il controllo !takingDamage - ora può muoversi anche durante il danno
         if (!isMoving && (!isAttacking || canAttackWhileMoving) && !isDead)
         {
-            // 🔹 Se sto usando pulsanti mobile → uso mobileInput
+            // Se sto usando pulsanti mobile → uso mobileInput
             // altrimenti uso Input da tastiera
             if (mobileInput != Vector2.zero)
             {
@@ -234,7 +233,7 @@ public class PlayerController : MonoBehaviour
             {
                 lastDirection = input;
 
-                // 🔧 Aggiorna sempre i parametri di movimento per permettere la transizione corretta
+                // Aggiorna sempre i parametri di movimento per permettere la transizione corretta
                 animator.SetFloat("moveX", input.x);
                 animator.SetFloat("moveY", input.y);
 
@@ -257,7 +256,7 @@ public class PlayerController : MonoBehaviour
 
         while ((targetPos - transform.position).sqrMagnitude > Mathf.Epsilon)
         {
-            // MODIFICA: Rimosso il controllo takingDamage - ferma solo se muore
+            // Rimosso il controllo takingDamage - ferma solo se muore
             if (isDead)
             {
                 SnapToNearestGridPosition();
@@ -312,7 +311,7 @@ public class PlayerController : MonoBehaviour
             {
                 if (enableDebug)
                 {
-                    Debug.Log($"Movimento bloccato: erba rilevata nell'outer hub in {targetPos}");
+                    //Debug.Log($"Movimento bloccato: erba rilevata nell'outer hub in {targetPos}");
                 }
                 return false;
             }
@@ -326,13 +325,13 @@ public class PlayerController : MonoBehaviour
                 {
                     if (enableDebug)
                     {
-                        Debug.Log($"Movimento bloccato: nebbia rilevata in {targetPos} e player non ha il visore");
+                        //Debug.Log($"Movimento bloccato: nebbia rilevata in {targetPos} e player non ha il visore");
                     }
                     return false;
                 }
                 else if (enableDebug)
                 {
-                    Debug.Log($"Player attraversa la nebbia in {targetPos} (ha il visore)");
+                    //Debug.Log($"Player attraversa la nebbia in {targetPos} (ha il visore)");
                 }
             }
     
@@ -392,7 +391,7 @@ public class PlayerController : MonoBehaviour
             {
                 if (enableDebug)
                 {
-                    Debug.Log($"Movimento bloccato: edificio rilevato in {targetPos}");
+                    //Debug.Log($"Movimento bloccato: edificio rilevato in {targetPos}");
                 }
                 return false;
             }
@@ -415,7 +414,7 @@ public class PlayerController : MonoBehaviour
 
             if (enableDebug)
             {
-                Debug.Log($"Hub: Pos world {targetPos} -> Pos cella {cellPosition} -> Tile: {(backgroundTile != null ? backgroundTile.name : "NULL")}");
+                //Debug.Log($"Hub: Pos world {targetPos} -> Pos cella {cellPosition} -> Tile: {(backgroundTile != null ? backgroundTile.name : "NULL")}");
             }
         }
 
@@ -423,7 +422,7 @@ public class PlayerController : MonoBehaviour
         {
             if (enableDebug)
             {
-                Debug.Log($"Hub: Nessun tile background alla cella {cellPosition} (world: {targetPos})");
+                //Debug.Log($"Hub: Nessun tile background alla cella {cellPosition} (world: {targetPos})");
             }
             return false;
         }
@@ -436,7 +435,7 @@ public class PlayerController : MonoBehaviour
             {
                 if (enableDebug)
                 {
-                    Debug.Log($"Hub: Tile solido base trovato alla cella {cellPosition}");
+                    //Debug.Log($"Hub: Tile solido base trovato alla cella {cellPosition}");
                 }
                 return false;
             }
@@ -450,7 +449,7 @@ public class PlayerController : MonoBehaviour
             {
                 if (enableDebug)
                 {
-                    Debug.Log($"Hub: Tile solido trovato alla cella {cellPosition}");
+                    //Debug.Log($"Hub: Tile solido trovato alla cella {cellPosition}");
                 }
                 return false;
             }
@@ -458,7 +457,7 @@ public class PlayerController : MonoBehaviour
 
         if (enableDebug)
         {
-            Debug.Log($"Hub: Posizione {targetPos} (cella {cellPosition}) è camminabile");
+            //Debug.Log($"Hub: Posizione {targetPos} (cella {cellPosition}) è camminabile");
         }
 
         return true;
@@ -484,7 +483,7 @@ public class PlayerController : MonoBehaviour
         {
             if (enableDebug)
             {
-                Debug.LogWarning("hubTilemap non assegnata, impossibile controllare l'erba");
+                //Debug.LogWarning("hubTilemap non assegnata, impossibile controllare l'erba");
             }
             return false; // Se non c'è la tilemap, non blocchiamo il movimento
         }
@@ -494,7 +493,7 @@ public class PlayerController : MonoBehaviour
         {
             if (enableDebug)
             {
-                Debug.LogWarning("erbaTile non assegnata, impossibile controllare l'erba");
+                //Debug.LogWarning("erbaTile non assegnata, impossibile controllare l'erba");
             }
             return false; // Se non c'è il tile di riferimento, non blocchiamo il movimento
         }
@@ -510,7 +509,7 @@ public class PlayerController : MonoBehaviour
 
         if (enableDebug && hasGrass)
         {
-            Debug.Log($"Erba trovata nell'outer hub alla posizione {targetPos} (cella: {cellPosition})");
+            //Debug.Log($"Erba trovata nell'outer hub alla posizione {targetPos} (cella: {cellPosition})");
         }
 
         return hasGrass;
@@ -527,7 +526,7 @@ public class PlayerController : MonoBehaviour
                 hubBackgroundTilemap = backgroundObj.GetComponent<Tilemap>();
                 if (enableDebug && hubBackgroundTilemap != null)
                 {
-                    Debug.Log("Hub BackGround tilemap trovata automaticamente");
+                    //Debug.Log("Hub BackGround tilemap trovata automaticamente");
                 }
             }
         }
@@ -540,7 +539,7 @@ public class PlayerController : MonoBehaviour
                 hubSolidObjectsBaseTilemap = solidBaseObj.GetComponent<Tilemap>();
                 if (enableDebug && hubSolidObjectsBaseTilemap != null)
                 {
-                    Debug.Log("Hub SolidObjectsBase tilemap trovata automaticamente");
+                    //Debug.Log("Hub SolidObjectsBase tilemap trovata automaticamente");
                 }
             }
         }
@@ -553,7 +552,7 @@ public class PlayerController : MonoBehaviour
                 hubSolidObjectsTilemap = solidObj.GetComponent<Tilemap>();
                 if (enableDebug && hubSolidObjectsTilemap != null)
                 {
-                    Debug.Log("Hub SolidObjects tilemap trovata automaticamente");
+                    //Debug.Log("Hub SolidObjects tilemap trovata automaticamente");
                 }
             }
         }
@@ -564,7 +563,7 @@ public class PlayerController : MonoBehaviour
             outerHubController = FindFirstObjectByType<OuterHubController>();
             if (enableDebug && outerHubController != null)
             {
-                Debug.Log("OuterHubController trovato automaticamente");
+                //Debug.Log("OuterHubController trovato automaticamente");
             }
         }
 
@@ -573,7 +572,7 @@ public class PlayerController : MonoBehaviour
             innerHubController = FindFirstObjectByType<InnerHubController>();
             if (enableDebug && innerHubController != null)
             {
-                Debug.Log("InnerHubController trovato automaticamente");
+                //Debug.Log("InnerHubController trovato automaticamente");
             }
         }
     }
@@ -606,7 +605,7 @@ public class PlayerController : MonoBehaviour
             AudioManager.Instance.PlaySwordHit();
                 }
 
-        // 🔧 Durante l'attacco, forza la transizione all'animazione di attacco
+        // Durante l'attacco, forza la transizione all'animazione di attacco
         // sovrascrivendo temporaneamente l'animazione di movimento
         animator.SetBool("isMoving", false);
 
@@ -631,7 +630,7 @@ public class PlayerController : MonoBehaviour
         isAttacking = false;
         animator.SetBool("isAttacking", false);
 
-        // 🔧 Dopo l'attacco, ripristina immediatamente l'animazione di movimento se necessario
+        // Dopo l'attacco, ripristina immediatamente l'animazione di movimento se necessario
         // L'HandleMovement() si occuperà di mantenere aggiornati i parametri
         animator.SetBool("isMoving", isMoving);
 
@@ -741,19 +740,19 @@ public class PlayerController : MonoBehaviour
         {
             if (isInvincible && enableDebug)
             {
-                Debug.Log("Danno bloccato: player invincibile");
+                //Debug.Log("Danno bloccato: player invincibile");
             }
             return;
         }
 
-        Debug.Log($"Player riceve {damage} danni. Vita prima: {currentHealthPoints}");
+        //Debug.Log($"Player riceve {damage} danni. Vita prima: {currentHealthPoints}");
 
         currentHealthPoints -= damage;
         currentHealthPoints = Mathf.Max(0, currentHealthPoints);
 
-        Debug.Log($"Vita dopo danno: {currentHealthPoints}");
+        //Debug.Log($"Vita dopo danno: {currentHealthPoints}");
 
-        // MODIFICA: Rimossa la gestione del movimento durante il danno
+        // Rimossa la gestione del movimento durante il danno
         // Il player può continuare a muoversi liberamente
 
         // Avvia l'invincibilità prima del feedback visivo
@@ -772,7 +771,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // NUOVO METODO: Gestione del feedback visivo del danno
+    // Gestione del feedback visivo del danno
     void StartDamageFeedback()
     {
         // Ferma il feedback precedente se esiste
@@ -789,7 +788,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // NUOVO METODO: Coroutine per il lampeggiamento del player
+    // Coroutine per il lampeggiamento del player
     IEnumerator DamageFeedbackCoroutine()
     {
         if (spriteRenderer == null || isDead)
@@ -864,7 +863,7 @@ public class PlayerController : MonoBehaviour
 
         if (enableDebug)
         {
-            Debug.Log($"Player invincibile per {invincibilityDuration} secondi");
+            //Debug.Log($"Player invincibile per {invincibilityDuration} secondi");
         }
 
         yield return new WaitForSeconds(invincibilityDuration);
@@ -876,63 +875,64 @@ public class PlayerController : MonoBehaviour
 
             if (enableDebug)
             {
-                Debug.Log("Invincibilità terminata");
+                //Debug.Log("Invincibilità terminata");
             }
         }
 
         currentInvincibilityCoroutine = null;
     }
 
-   void Die()
-{
-    if (isDead) return;
-
-    Debug.Log("Player morto!");
-    isDead = true;
-
-    if (AudioManager.Instance != null)
+    void Die()
     {
-        AudioManager.Instance.PlayDeath();
+        if (isDead) return;
+
+        //Debug.Log("Player morto!");
+        isDead = true;
+
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayDeath();
+        }
+
+        // NUOVO: Ferma la musica del labirinto quando muore
+        LabyrinthMusicManager labyrinthMusic = FindFirstObjectByType<LabyrinthMusicManager>();
+        if (labyrinthMusic != null)
+        {
+            labyrinthMusic.PauseMusicForDeath();
+        }
+
+        GemSpawner gemSpawner = FindFirstObjectByType<GemSpawner>();
+        if (gemSpawner != null)
+        {
+            gemSpawner.OnPlayerDeath();
+        }
+
+        // NUOVO: Ferma anche l'invincibilità
+        if (currentInvincibilityCoroutine != null)
+        {
+            StopCoroutine(currentInvincibilityCoroutine);
+            currentInvincibilityCoroutine = null;
+        }
+        isInvincible = false;
+
+        // Ferma il feedback del danno se attivo
+        if (currentDamageFeedbackCoroutine != null)
+        {
+            StopCoroutine(currentDamageFeedbackCoroutine);
+            currentDamageFeedbackCoroutine = null;
+        }
+        takingDamage = false;
+
+        // NUOVO: Ferma anche il ciclo giorno/notte
+        if (dayNightCycleManager != null)
+        {
+            dayNightCycleManager.PauseSystem();
+        }
+
+        StopAllCoroutines();
+        StartCoroutine(DeathSequence());
     }
 
-    // NUOVO: Ferma la musica del labirinto quando muore
-    LabyrinthMusicManager labyrinthMusic = FindFirstObjectByType<LabyrinthMusicManager>();
-    if (labyrinthMusic != null)
-    {
-        labyrinthMusic.PauseMusicForDeath();
-    }
-
-    GemSpawner gemSpawner = FindFirstObjectByType<GemSpawner>();
-    if (gemSpawner != null)
-    {
-        gemSpawner.OnPlayerDeath();
-    }
-
-    // NUOVO: Ferma anche l'invincibilità
-    if (currentInvincibilityCoroutine != null)
-    {
-        StopCoroutine(currentInvincibilityCoroutine);
-        currentInvincibilityCoroutine = null;
-    }
-    isInvincible = false;
-
-    // Ferma il feedback del danno se attivo
-    if (currentDamageFeedbackCoroutine != null)
-    {
-        StopCoroutine(currentDamageFeedbackCoroutine);
-        currentDamageFeedbackCoroutine = null;
-    }
-    takingDamage = false;
-
-    // NUOVO: Ferma anche il ciclo giorno/notte
-    if (dayNightCycleManager != null)
-    {
-        dayNightCycleManager.PauseSystem();
-    }
-
-    StopAllCoroutines();
-    StartCoroutine(DeathSequence());
-}
     IEnumerator DeathSequence()
     {
         // Ferma tutti i movimenti e azioni
@@ -1036,7 +1036,7 @@ public class PlayerController : MonoBehaviour
 
     public void InizializeSettings(bool isQuitting)
     {
-        Debug.Log("Reinizializzazione player...");
+        //Debug.Log("Reinizializzazione player...");
 
         isDead = false;
         currentHealthPoints = maxHealthPoints;
@@ -1059,7 +1059,7 @@ public class PlayerController : MonoBehaviour
             currentDamageFeedbackCoroutine = null;
         }
 
-        // NUOVO: Reset coroutine invincibilità
+        // Reset coroutine invincibilità
         if (currentInvincibilityCoroutine != null)
         {
             StopCoroutine(currentInvincibilityCoroutine);
@@ -1117,7 +1117,7 @@ public class PlayerController : MonoBehaviour
                 // Forza il reset della direzione patrol
                 if (enemy.enableDebug)
                 {
-                    Debug.Log($"Reset stato nemico: {enemy.name}");
+                    //Debug.Log($"Reset stato nemico: {enemy.name}");
                 }
 
                 // Usa reflection per resettare le variabili private se necessario
@@ -1152,7 +1152,7 @@ public class PlayerController : MonoBehaviour
             for (int y = 0; y < height; y++)
                 mapManager.Distances[x, y] = -1;
 
-        Debug.Log("Distanze BFS invalidate - i nemici dovranno attendere il ricalcolo");
+        //Debug.Log("Distanze BFS invalidate - i nemici dovranno attendere il ricalcolo");
     }
 
     IEnumerator RecalculateDistancesNextFrame()
@@ -1162,7 +1162,7 @@ public class PlayerController : MonoBehaviour
         // Ricalcola le distanze dalla nuova posizione
         CalcoloDistanze();
 
-        Debug.Log($"Distanze BFS ricalcolate dopo respawn a posizione: {transform.position}");
+        //Debug.Log($"Distanze BFS ricalcolate dopo respawn a posizione: {transform.position}");
     }
 
     public float Heal(float healAmount)
@@ -1204,14 +1204,14 @@ public class PlayerController : MonoBehaviour
         {
             if (door.isPlayerOnDoor)
             {
-                // NUOVO: Solo le outer doors possono essere aperte dal player
+                // Solo le outer doors possono essere aperte dal player
                 if (door.IsOuterDoor())
                 {
                     door.TryOpen(this);
                 }
                 else if (door.IsInnerDoor())
                 {
-                    Debug.Log("Le porte interne si aprono automaticamente!");
+                    //Debug.Log("Le porte interne si aprono automaticamente!");
                 }
                 break;
             }
@@ -1239,16 +1239,13 @@ public class PlayerController : MonoBehaviour
         BFS_CorridorsOnly(playerArrayPos, mapManager.Distances, mapManager.TileTypes);
     }
 
-    /// <summary>
     /// Metodo pubblico per ricalcolare le distanze BFS.
-    /// Chiamato dal MazeManager quando cambia la tilemap.
-    /// </summary>
     public void RecalculateDistances()
     {
         CalcoloDistanze();
     }
 
-    // Nuovo metodo BFS che considera solo i corridoi per l'AI
+    // Metodo BFS che considera solo i corridoi per l'AI
     void BFS_CorridorsOnly(Vector2Int start, int[,] dist, TileType[,] tileTypes)
     {
         int width = dist.GetLength(0);
@@ -1309,12 +1306,8 @@ public class PlayerController : MonoBehaviour
         return mapManager.GetDistanceAtWorldPosition(worldPos);
     }
 
-    // Aggiungi questo metodo pubblico alla fine della classe PlayerController
-
-    /// <summary>
     /// Trasporta il player in modo sicuro alla posizione specificata, 
     /// fermando tutti i movimenti e correggendo la posizione sulla griglia.
-    /// </summary>
     public void SafeTransportTo(Vector3 targetPosition)
     {
         // Ferma tutte le coroutine attive (inclusa Move())
@@ -1350,7 +1343,7 @@ public class PlayerController : MonoBehaviour
             fogManager.CheckPlayerWarningZone(transform.position);
         }
 
-        Debug.Log($"Player trasportato in modo sicuro a: {transform.position}");
+        //Debug.Log($"Player trasportato in modo sicuro a: {transform.position}");
     }
 
     // Metodi pubblici per accesso esterno allo stato del player
@@ -1383,7 +1376,7 @@ public class PlayerController : MonoBehaviour
     public void PulsanteAzione()
     {
         // Prima controlla se siamo nell'inner hub (la priorità più alta)
-        if (IsPlayerInInnerHub())                                        // se il player è nell'inner hub
+        if (IsPlayerInInnerHub())   // se il player è nell'inner hub
         {
             if (innerHubController != null && innerHubController.IsPlayerInExitPoint)
             {
@@ -1408,7 +1401,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Se siamo nell'outer hub (ma non nell'inner hub)
-        if (mazeManager.IsPlayerInOuterHub)                              // se il player è nell'outer hub
+        if (mazeManager.IsPlayerInOuterHub) // se il player è nell'outer hub
         {
             if (outerHubController != null && outerHubController.IsPlayerInEnterPoint)
             {
@@ -1419,11 +1412,11 @@ public class PlayerController : MonoBehaviour
         }
 
         // Se siamo nel labirinto (fuori da entrambi gli hub)
-        if (isNightTime)                                            // se è notte
+        if (isNightTime)    // se è notte
         {
             HandleAttack();
         }
-        else                                                        // se è giorno
+        else    // se è giorno
         {
             TryOpenNearbyDoor();
         }
@@ -1432,7 +1425,7 @@ public class PlayerController : MonoBehaviour
     public void KeyBoardKeyAzione()
     {
         // Prima controlla se siamo nell'inner hub (la priorità più alta)
-        if (IsPlayerInInnerHub())                                        // se il player è nell'inner hub
+        if (IsPlayerInInnerHub())   // se il player è nell'inner hub
         {
             if (innerHubController != null && innerHubController.IsPlayerInExitPoint)
             {
@@ -1457,7 +1450,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Se siamo nell'outer hub (ma non nell'inner hub)
-        if (mazeManager.IsPlayerInOuterHub)                              // se il player è nell'outer hub
+        if (mazeManager.IsPlayerInOuterHub) // se il player è nell'outer hub
         {
             if (outerHubController != null && outerHubController.IsPlayerInEnterPoint)
             {
@@ -1468,11 +1461,11 @@ public class PlayerController : MonoBehaviour
         }
 
         // Se siamo nel labirinto (fuori da entrambi gli hub)
-        if (isNightTime)                                            // se è notte
+        if (isNightTime)    // se è notte
         {
             HandleAttack();
         }
-        else                                                        // se è giorno
+        else    // se è giorno
         {
             TryOpenNearbyDoor();
         }
@@ -1494,14 +1487,14 @@ public class PlayerController : MonoBehaviour
     {
         if (inventory.HasItem(boots) && !hasBoots)
         {
-            Debug.Log("SPEED BOOST APPLIED");
+            //Debug.Log("SPEED BOOST APPLIED");
             moveSpeed = moveSpeed * 1.3f;
             hasBoots = true;
         }
 
         if (inventory.HasItem(potion) && !hasPotion)
         {
-            Debug.Log("HEALTH BOOST APPLIED");
+            //Debug.Log("HEALTH BOOST APPLIED");
             maxHealthPoints = maxHealthPoints * 2;
             currentHealthPoints = 200f;
             healthText1.healthSuffix = "/200";
@@ -1512,26 +1505,25 @@ public class PlayerController : MonoBehaviour
 
         if (inventory.HasItem(sword) && !hasSword)
         {
-            Debug.Log("ATTACK BOOST APPLIED");
+            //Debug.Log("ATTACK BOOST APPLIED");
             attackDamage = attackDamage * 2f;
             hasSword = true;
         }
 
         if (inventory.HasItem(goggles) && !hasGoggles)
         {
-            Debug.Log("FOG REVEALED - VISORE ATTIVATO!");
-
+            //Debug.Log("FOG REVEALED - VISORE ATTIVATO!");
             canPassFog = true;
             hasGoggles = true;
 
             if (fogManager != null)
             {
                 fogManager.SetPlayerCanPassFog(true);
-                Debug.Log("FogManager aggiornato: player può ora attraversare la nebbia");
+                //Debug.Log("FogManager aggiornato: player può ora attraversare la nebbia");
             }
             else
             {
-                Debug.LogError("FogManager non trovato! Il visore non funzionerà correttamente.");
+                //Debug.LogError("FogManager non trovato! Il visore non funzionerà correttamente.");
             }
 
             if (gemSpawner != null)
@@ -1540,7 +1532,7 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("GemSpawner non trovato per UnlockFogVisibility");
+                //Debug.LogWarning("GemSpawner non trovato per UnlockFogVisibility");
             }
 
             if (fogManager != null)
@@ -1551,18 +1543,18 @@ public class PlayerController : MonoBehaviour
 
         if (inventory.HasItem(binocular) && !hasBinocular)
         {
-            Debug.Log("FOOTPRINTS NOW VISIBLE - BINOCOLO ATTIVATO!");
+            //Debug.Log("FOOTPRINTS NOW VISIBLE - BINOCOLO ATTIVATO!");
             hasBinocular = true;
 
             // Attiva il sistema di impronte
             if (footprintManager != null)
             {
                 footprintManager.EnableFootprints();
-                Debug.Log("Sistema di impronte abilitato dal binocolo");
+                //Debug.Log("Sistema di impronte abilitato dal binocolo");
             }
             else
             {
-                Debug.LogError("FootprintManager non trovato! Il binocolo non funzionerà correttamente.");
+                //Debug.LogError("FootprintManager non trovato! Il binocolo non funzionerà correttamente.");
             }
         }
     }
@@ -1575,16 +1567,14 @@ public class PlayerController : MonoBehaviour
         {
             Vector3Int playerPos = fogManager.fogTilemap.WorldToCell(transform.position);
 
-            // Parametri per l'effetto "torcia":
-            // - innerRadius: raggio completamente libero da nebbia
-            // - outerRadius: raggio dove la nebbia si dirada gradualmente
+            // Parametro per l'effetto "torcia": raggio completamente libero da nebbia
             float radius = 3f;  // 3.5 tile di diradamento graduale
 
             fogManager.RevealFogInRadius(playerPos, radius);
 
             if (enableDebug)
             {
-                Debug.Log($"Nebbia diradata attorno al player in posizione: {playerPos}");
+                //Debug.Log($"Nebbia diradata attorno al player in posizione: {playerPos}");
             }
         }
     }

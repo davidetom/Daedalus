@@ -8,13 +8,11 @@ public class InventoryManager : MonoBehaviour
     public InventorySlot[] inventorySlots;
     public GameObject InventoryItemPrefab;
 
-    //FOR SAVING AND LOADING
     [Header("Item Database")]
     public Item[] allItems;
 
     public bool AddItem(Item item)
     {
-        //Check if any slot has same item lower than max
         for (int i = 0; i < inventorySlots.Length; i++)
         {
             InventorySlot slot = inventorySlots[i];
@@ -41,8 +39,6 @@ public class InventoryManager : MonoBehaviour
             }
         }
         return false;
-        //Variable used to display with UI if an Object has been addded
-        //To the inventory or not
     }
 
     void SpawnNewItem(Item item, InventorySlot slot)
@@ -52,7 +48,6 @@ public class InventoryManager : MonoBehaviour
         inventoryItem.InitializeItem(item);
     }
 
-    //Finds the item on the Database using the name
     public Item FindItemByName(string name)
     {
         foreach (var item in allItems)
@@ -60,7 +55,7 @@ public class InventoryManager : MonoBehaviour
             if (item.name == name)
                 return item;
         }
-        Debug.LogWarning($"Item con Nome '{name}' not found");
+        //Debug.LogWarning($"Item con Nome '{name}' not found");
         return null;
     }
 

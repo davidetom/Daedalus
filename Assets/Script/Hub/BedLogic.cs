@@ -54,14 +54,18 @@ public class BedLogic : MonoBehaviour
         if (playerController == null)
         {
             if (enableDebug)
-                Debug.LogWarning("PlayerController non trovato! Impossibile dormire.");
+            {
+                //Debug.LogWarning("PlayerController non trovato! Impossibile dormire.");
+            }
             return;
         }
         
         if (playerController.IsDead())
         {
             if (enableDebug)
-                Debug.Log("Il player morto non può dormire!");
+            {
+                //Debug.Log("Il player morto non può dormire!");
+            }
             return;
         }
         
@@ -85,7 +89,9 @@ public class BedLogic : MonoBehaviour
         if (dayNightManager == null)
         {
             if (enableDebug)
-                Debug.LogWarning("DayNightManager non trovato! Assumendo che non sia notte.");
+            {
+                //Debug.LogWarning("DayNightManager non trovato! Assumendo che non sia notte.");
+            }
             return false;
         }
         
@@ -95,7 +101,9 @@ public class BedLogic : MonoBehaviour
     private void SleepThroughNight()
     {
         if (enableDebug)
-            Debug.Log("Player sta dormendo - cura completa e salta alla mattina");
+        {
+            //Debug.Log("Player sta dormendo - cura completa e salta alla mattina");
+        }
             
         // 1. Cura completa del player
         HealPlayer();
@@ -107,17 +115,21 @@ public class BedLogic : MonoBehaviour
         if (mazeManager != null)
         {
             mazeManager.SleepToNextDay();
-            
+
             if (enableDebug)
-                Debug.Log("Chiamato MazeManager.SleepToNextDay() - notte saltata");
+            {
+                //Debug.Log("Chiamato MazeManager.SleepToNextDay() - notte saltata");
+            }
         }
         else if (dayNightManager != null)
         {
             // Fallback: se MazeManager non è disponibile, usa il metodo diretto
             dayNightManager.ForceToDawn();
-            
+
             if (enableDebug)
-                Debug.Log("Fallback: notte saltata usando DayNightManager direttamente");
+            {
+                //Debug.Log("Fallback: notte saltata usando DayNightManager direttamente");
+            }
         }
         
         // 4. Mostra effetto di cura se disponibile
@@ -127,7 +139,9 @@ public class BedLogic : MonoBehaviour
     private void RestWithoutSleep()
     {
         if (enableDebug)
-            Debug.Log("Player si sta riposando - solo cura, senza dormire");
+        {
+            //Debug.Log("Player si sta riposando - solo cura, senza dormire");
+        }
             
         // 1. Cura completa del player
         HealPlayer();
@@ -146,9 +160,11 @@ public class BedLogic : MonoBehaviour
             float previousHealth = playerController.GetCurrentHealth();
             playerController.FullHeal();
             float newHealth = playerController.GetCurrentHealth();
-            
+
             if (enableDebug)
-                Debug.Log($"Player curato: {previousHealth} -> {newHealth} HP");
+            {
+                //Debug.Log($"Player curato: {previousHealth} -> {newHealth} HP");
+            }
         }
     }
     
@@ -209,7 +225,7 @@ public class BedLogic : MonoBehaviour
         if (playerController != null)
         {
             playerController.TakeDamage(50f);
-            Debug.Log($"Player danneggiato per test. Vita attuale: {playerController.GetCurrentHealth()}");
+            //Debug.Log($"Player danneggiato per test. Vita attuale: {playerController.GetCurrentHealth()}");
         }
     }
 }

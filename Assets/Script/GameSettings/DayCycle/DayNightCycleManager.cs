@@ -88,11 +88,11 @@ public class DayNightCycleManager : MonoBehaviour
             phaseTimer = 0f;
         }
 
-        Debug.Log($"Gioco iniziato al giorno {dayCount}");
+        //Debug.Log($"Gioco iniziato al giorno {dayCount}");
 
         // Stampa immediata della porta del giorno
         int doorOfTheDay = ((dayCount - 1) % 8) + 1;
-        Debug.Log($"All'avvio della scena: Porta del giorno {dayCount} → Porta {doorOfTheDay}");
+        //Debug.Log($"All'avvio della scena: Porta del giorno {dayCount} → Porta {doorOfTheDay}");
 
         // Aggiorna immediatamente le luci
         UpdateLighting();
@@ -123,7 +123,7 @@ public class DayNightCycleManager : MonoBehaviour
         if (startFromDay && currentPhase == DayPhase.Day)
         {
             events.OnNewDay?.Invoke(); // Invoca evento nuovo giorno
-            events.OnDayStart?.Invoke(); // AGGIUNTO: Invoca anche OnDayStart per far spawnare le gemme gialle
+            events.OnDayStart?.Invoke(); // Invoca anche OnDayStart per far spawnare le gemme gialle
             yield return StartCoroutine(RunPhase(DayPhase.Day, dayDuration, DAY_START, SUNSET_START));
             startFromDay = false; // Evita di saltare l'alba nei cicli successivi
         }
@@ -166,11 +166,11 @@ public class DayNightCycleManager : MonoBehaviour
     private void IncrementDay()
     {
         dayCount++;
-        Debug.Log($"Iniziato nuovo giorno: Giorno {dayCount}");
+        //Debug.Log($"Iniziato nuovo giorno: Giorno {dayCount}");
 
         // Calcola quale porta sarà quella del giorno oggi
         int doorOfTheDay = ((dayCount - 1) % 8) + 1;
-        Debug.Log($"Porta del giorno {dayCount}: Porta {doorOfTheDay}");
+        //Debug.Log($"Porta del giorno {dayCount}: Porta {doorOfTheDay}");
     }
 
     IEnumerator RunPhase(DayPhase phase, float duration, float startTime, float endTime)
@@ -270,7 +270,7 @@ public class DayNightCycleManager : MonoBehaviour
 
     public void ResetToDay()
     {
-        Debug.Log("Reset del ciclo giorno/notte all'inizio del giorno (da sonno)");
+        //Debug.Log("Reset del ciclo giorno/notte all'inizio del giorno (da sonno)");
 
         // Ferma il ciclo corrente
         StopAllCoroutines();
@@ -305,7 +305,7 @@ public class DayNightCycleManager : MonoBehaviour
         events.OnNewDay?.Invoke();
         events.OnDayStart?.Invoke();
 
-        // NUOVO: Attendi un momento per assicurarsi che tutto sia sincronizzato
+        // Attendi un momento per assicurarsi che tutto sia sincronizzato
         yield return new WaitForSeconds(1f);
 
         // Ora apri le porte (il labirinto è già cambiato)
@@ -445,7 +445,7 @@ public class DayNightCycleManager : MonoBehaviour
         data.phaseTimer = phaseTimer;
         data.wasRunning = isRunning;
 
-        Debug.Log("DayNight salvato - Tempo: " + dayTime + " Fase: " + currentPhase);
+        //Debug.Log("DayNight salvato - Tempo: " + dayTime + " Fase: " + currentPhase);
     }
 
     public void Load(DayNightSaveData data)
@@ -476,7 +476,7 @@ public class DayNightCycleManager : MonoBehaviour
             StartCoroutine(DayNightCycle());
         }
 
-        Debug.Log("DayNight caricato - Tempo: " + dayTime + " Fase: " + currentPhase);
+        //Debug.Log("DayNight caricato - Tempo: " + dayTime + " Fase: " + currentPhase);
     }
 
     #endregion

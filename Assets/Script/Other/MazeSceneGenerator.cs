@@ -11,7 +11,7 @@ using UnityEditor.SceneManagement;
 public class MazeSceneGenerator : MonoBehaviour
 {
     [Header("Prefab Settings")]
-    public GameObject tilemapPrefab; // Prefab base con Tilemap e TilemapRenderer
+    public GameObject tilemapPrefab;
     
     [Header("Tiles")]
     public TileBase muraTile;
@@ -30,7 +30,7 @@ public class MazeSceneGenerator : MonoBehaviour
     
     private void SetupOptimizedCollider(Tilemap tilemap, int[,] mazeData, int mazeSize)
     {
-        // Approccio 1: Usa TilemapCollider2D nativo
+        // Approccio 1: TilemapCollider2D nativo
         TilemapCollider2D tilemapCollider = tilemap.gameObject.AddComponent<TilemapCollider2D>();
         
         // Aggiungi CompositeCollider2D per un singolo collider ottimizzato
@@ -43,7 +43,7 @@ public class MazeSceneGenerator : MonoBehaviour
         // Configura per combinare in un singolo collider
         tilemapCollider.compositeOperation = Collider2D.CompositeOperation.Merge;
         
-        // TRUCCO EFFICIENTE: Imposta ColliderType per ogni tile
+        // Imposta ColliderType per ogni tile
         for (int i = 0; i < mazeSize; i++)
         {
             for (int j = 0; j < mazeSize; j++)
@@ -61,7 +61,7 @@ public class MazeSceneGenerator : MonoBehaviour
             }
         }
         
-        Debug.Log("Collider nativo ottimizzato configurato - UN SOLO collider composito creato!");
+        //Debug.Log("Collider nativo ottimizzato configurato - UN SOLO collider composito creato!");
     }
     
     #if UNITY_EDITOR
@@ -80,7 +80,7 @@ public class MazeSceneGenerator : MonoBehaviour
         }
         
         AssetDatabase.Refresh();
-        Debug.Log("Tutte le 8 scene dei labirinti sono state generate!");
+        //Debug.Log("Tutte le 8 scene dei labirinti sono state generate!");
     }
     
     private void GeneraScenaLabirinto(int numeroLabirinto)
@@ -90,7 +90,7 @@ public class MazeSceneGenerator : MonoBehaviour
         
         if (!File.Exists(percorsoCompleto))
         {
-            Debug.LogError($"File non trovato: {percorsoCompleto}");
+            //Debug.LogError($"File non trovato: {percorsoCompleto}");
             return;
         }
         
@@ -114,7 +114,7 @@ public class MazeSceneGenerator : MonoBehaviour
             string percorsoScena = $"{cartellaScene}Labirinto_{numeroLabirinto:D2}.unity";
             EditorSceneManager.SaveScene(nuovaScena, percorsoScena);
             
-            Debug.Log($"Scena e prefab labirinto {numeroLabirinto} salvati!");
+            //Debug.Log($"Scena e prefab labirinto {numeroLabirinto} salvati!");
         }
         
         // Chiudi la scena
@@ -126,22 +126,22 @@ public class MazeSceneGenerator : MonoBehaviour
         try
         {
             // Controlli di sicurezza iniziali
-            Debug.Log($"Generando labirinto {numeroLabirinto}...");
+            //Debug.Log($"Generando labirinto {numeroLabirinto}...");
             
             // Verifica che i tile siano assegnati
             if (muraTile == null)
             {
-                Debug.LogError("muraTile non è assegnato nell'inspector!");
+                //Debug.LogError("muraTile non è assegnato nell'inspector!");
                 return null;
             }
             if (corridoioTile == null)
             {
-                Debug.LogError("corridoioTile non è assegnato nell'inspector!");
+                //Debug.LogError("corridoioTile non è assegnato nell'inspector!");
                 return null;
             }
             if (pratoTile == null)
             {
-                Debug.LogError("pratoTile non è assegnato nell'inspector!");
+                //Debug.LogError("pratoTile non è assegnato nell'inspector!");
                 return null;
             }
             
@@ -149,12 +149,12 @@ public class MazeSceneGenerator : MonoBehaviour
             string[] righe = File.ReadAllLines(percorsoFile);
             if (righe == null || righe.Length == 0)
             {
-                Debug.LogError($"File vuoto o non leggibile: {percorsoFile}");
+                //Debug.LogError($"File vuoto o non leggibile: {percorsoFile}");
                 return null;
             }
             
             int mazeSize = int.Parse(righe[0]);
-            Debug.Log($"Dimensione labirinto: {mazeSize}x{mazeSize}");
+            //Debug.Log($"Dimensione labirinto: {mazeSize}x{mazeSize}");
             
             int[,] mazeData = new int[mazeSize, mazeSize];
             
@@ -162,14 +162,14 @@ public class MazeSceneGenerator : MonoBehaviour
             {
                 if (i + 1 >= righe.Length)
                 {
-                    Debug.LogError($"File del labirinto incompleto alla riga {i + 1}");
+                    //Debug.LogError($"File del labirinto incompleto alla riga {i + 1}");
                     return null;
                 }
                 
                 string riga = righe[i + 1];
                 if (riga.Length < mazeSize)
                 {
-                    Debug.LogError($"Riga {i + 1} troppo corta: {riga.Length} caratteri invece di {mazeSize}");
+                    //Debug.LogError($"Riga {i + 1} troppo corta: {riga.Length} caratteri invece di {mazeSize}");
                     return null;
                 }
                 
@@ -177,7 +177,7 @@ public class MazeSceneGenerator : MonoBehaviour
                 {
                     if (!int.TryParse(riga[j].ToString(), out mazeData[i, j]))
                     {
-                        Debug.LogError($"Carattere non valido alla posizione [{i},{j}]: '{riga[j]}'");
+                        //Debug.LogError($"Carattere non valido alla posizione [{i},{j}]: '{riga[j]}'");
                         return null;
                     }
                 }
@@ -189,7 +189,7 @@ public class MazeSceneGenerator : MonoBehaviour
             
             if (tilemapPrefab != null)
             {
-                Debug.Log("Usando tilemapPrefab...");
+                //Debug.Log("Usando tilemapPrefab...");
                 tilemapObj = Instantiate(tilemapPrefab);
                 
                 // Cerca la Tilemap in modo più robusto
@@ -202,32 +202,32 @@ public class MazeSceneGenerator : MonoBehaviour
                 // Se ancora non trova la tilemap, verifica la struttura del prefab
                 if (tilemap == null)
                 {
-                    Debug.LogError($"Il prefab {tilemapPrefab.name} non contiene un componente Tilemap!");
-                    Debug.LogError("Struttura del prefab:");
+                    //Debug.LogError($"Il prefab {tilemapPrefab.name} non contiene un componente Tilemap!");
+                    //Debug.LogError("Struttura del prefab:");
                     LogGameObjectStructure(tilemapObj, 0);
                     
                     // Fallback: crea manualmente la struttura
-                    Debug.Log("Creando manualmente la struttura Tilemap...");
+                    //Debug.Log("Creando manualmente la struttura Tilemap...");
                     CreateTilemapStructure(tilemapObj, out tilemap);
                 }
             }
             else
             {
-                Debug.Log("Creando nuovo GameObject tilemap...");
+                //Debug.Log("Creando nuovo GameObject tilemap...");
                 tilemapObj = new GameObject($"Labirinto_{numeroLabirinto:D2}");
                 CreateTilemapStructure(tilemapObj, out tilemap);
             }
             
             if (tilemap == null)
             {
-                Debug.LogError("Impossibile creare o trovare il componente Tilemap!");
+                //Debug.LogError("Impossibile creare o trovare il componente Tilemap!");
                 return null;
             }
             
-            Debug.Log($"Tilemap trovata: {tilemap.name} su GameObject: {tilemap.gameObject.name}");
+            //Debug.Log($"Tilemap trovata: {tilemap.name} su GameObject: {tilemap.gameObject.name}");
             
             // Popola la tilemap con tutti i tile
-            Debug.Log("Popolando la tilemap...");
+            //Debug.Log("Popolando la tilemap...");
             int muriCount = 0, corridoiCount = 0, pratoCount = 0;
             
             for (int i = 0; i < mazeSize; i++)
@@ -260,7 +260,7 @@ public class MazeSceneGenerator : MonoBehaviour
                 }
             }
             
-            Debug.Log($"Tilemap popolata - Muri: {muriCount}, Corridoi: {corridoiCount}, Prato: {pratoCount}");
+            //Debug.Log($"Tilemap popolata - Muri: {muriCount}, Corridoi: {corridoiCount}, Prato: {pratoCount}");
             
             // Aggiungi il collider nativo ottimizzato
             GameObject tilemapGameObject = tilemap.gameObject;
@@ -279,13 +279,13 @@ public class MazeSceneGenerator : MonoBehaviour
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"Errore nella generazione del labirinto {numeroLabirinto}: {e.Message}");
-            Debug.LogError($"Stack trace: {e.StackTrace}");
+            //Debug.LogError($"Errore nella generazione del labirinto {numeroLabirinto}: {e.Message}");
+            //Debug.LogError($"Stack trace: {e.StackTrace}");
             return null;
         }
     }
     
-    // Nuova funzione per creare la struttura Tilemap manualmente
+    // Funzione per creare la struttura Tilemap manualmente
     private void CreateTilemapStructure(GameObject parent, out Tilemap tilemap)
     {
         // Assicurati che il parent abbia un Grid component
@@ -303,7 +303,7 @@ public class MazeSceneGenerator : MonoBehaviour
         tilemap = tilemapChild.AddComponent<Tilemap>();
         TilemapRenderer renderer = tilemapChild.AddComponent<TilemapRenderer>();
         
-        Debug.Log($"Struttura Tilemap creata manualmente: {tilemap.name}");
+        //Debug.Log($"Struttura Tilemap creata manualmente: {tilemap.name}");
     }
     
     // Funzione di debug per loggare la struttura del GameObject
@@ -317,7 +317,7 @@ public class MazeSceneGenerator : MonoBehaviour
             componentList += comp.GetType().Name + " ";
         }
         
-        Debug.Log($"{indent}{obj.name} - Components: {componentList}");
+        //Debug.Log($"{indent}{obj.name} - Components: {componentList}");
         
         for (int i = 0; i < obj.transform.childCount; i++)
         {
@@ -390,7 +390,7 @@ public class MazeSceneGenerator : MonoBehaviour
                     string percorsoPrefab = $"{cartellaPrefab}Labirinto_{i:D2}.prefab";
                     PrefabUtility.SaveAsPrefabAsset(tilemapObj, percorsoPrefab);
                     DestroyImmediate(tilemapObj);
-                    Debug.Log($"Prefab labirinto {i} salvato!");
+                    //Debug.Log($"Prefab labirinto {i} salvato!");
                 }
             }
         }

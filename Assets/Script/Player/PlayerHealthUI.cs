@@ -38,7 +38,7 @@ public class PlayerHealthUI : MonoBehaviour
             playerController = Object.FindFirstObjectByType<PlayerController>();
             if (playerController == null)
             {
-                Debug.LogError("PlayerController non trovato! Assegna il riferimento manualmente.");
+                //Debug.LogError("PlayerController non trovato! Assegna il riferimento manualmente.");
                 return;
             }
         }
@@ -51,7 +51,7 @@ public class PlayerHealthUI : MonoBehaviour
             hpBarTransform.anchoredPosition = Vector2.zero;
         }
 
-        // NUOVO: Disabilita l'interazione con lo slider per evitare input accidentali
+        // Disabilita l'interazione con lo slider per evitare input accidentali
         if (hpSlider != null)
         {
             hpSlider.interactable = false;
@@ -110,7 +110,7 @@ public class PlayerHealthUI : MonoBehaviour
         lastKnownHealth = currentHealth;
         wasAlive = isAlive;
 
-        // TEST - Controlli di test solo se il player è vivo e non sta prendendo danno
+        // Controlli di test solo se il player è vivo e non sta prendendo danno
         if (isAlive && !playerController.IsTakingDamage())
         {
             TestControls();
@@ -120,7 +120,7 @@ public class PlayerHealthUI : MonoBehaviour
     // Chiamato quando il player subisce danno
     private void OnDamageTaken(float damage)
     {
-        Debug.Log($"UI: Player ha subito {damage} danni");
+        //Debug.Log($"UI: Player ha subito {damage} danni");
         
         // Attiva effetti solo se il player è vivo
         if (playerController.IsAlive())
@@ -133,9 +133,9 @@ public class PlayerHealthUI : MonoBehaviour
     // Chiamato quando il player muore
     private void OnPlayerDied()
     {
-        Debug.Log("UI: Player è morto");
+        //Debug.Log("UI: Player è morto");
         
-        // NUOVO: Ferma tutti gli effetti quando il player muore
+        // Ferma tutti gli effetti quando il player muore
         StopAllCoroutines();
         
         // Reset immediato della posizione della barra se è stata spostata
@@ -144,15 +144,12 @@ public class PlayerHealthUI : MonoBehaviour
             hpBarTransform.localPosition = Vector3.zero;
             hpBarTransform.anchoredPosition = Vector2.zero;
         }
-        
-        // Qui potresti aggiungere effetti speciali per la morte
-        // Ad esempio, far lampeggiare la barra o cambiarle colore
     }
 
     // Chiamato quando il player respawna
     private void OnPlayerRespawned()
     {
-        Debug.Log("UI: Player è respawnato");
+        //Debug.Log("UI: Player è respawnato");
         // Ferma eventuali effetti in corso e resetta l'UI
         StopAllCoroutines();
         
@@ -182,7 +179,7 @@ public class PlayerHealthUI : MonoBehaviour
         // Reinizializza tutti i valori UI
         InitializeUI();
         
-        Debug.Log("UI completamente resettata dopo respawn");
+        //Debug.Log("UI completamente resettata dopo respawn");
     }
 
     private void UpdateUI()
@@ -232,7 +229,7 @@ public class PlayerHealthUI : MonoBehaviour
         {
             // Ora usa il metodo Heal del PlayerController
             float actualHeal = playerController.Heal(amount);
-            Debug.Log($"Player curato di {actualHeal} HP tramite UI");
+            //Debug.Log($"Player curato di {actualHeal} HP tramite UI");
         }
     }
 
@@ -281,11 +278,11 @@ public class PlayerHealthUI : MonoBehaviour
         {
             hpBarTransform.localPosition = Vector3.zero;
             hpBarTransform.anchoredPosition = Vector2.zero;
-            Debug.LogWarning("Posizione barra della vita forzatamente resettata dopo shake");
+            //Debug.LogWarning("Posizione barra della vita forzatamente resettata dopo shake");
         }
     }
 
-    // MODIFICATO: Controlli di test - ora controlla lo stato del player prima di agire
+    // Controlli di test - ora controlla lo stato del player prima di agire
     private void TestControls()
     {
         // Non eseguire test se il player è morto o sta prendendo danno

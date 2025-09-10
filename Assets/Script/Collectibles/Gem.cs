@@ -20,16 +20,16 @@ public class Gem : Collectible
                  AudioManager.Instance.PlayGemPickup();
                 }
             else
-         {
-            Debug.LogWarning("AudioManager non trovato! Suono gemma non riprodotto.");
-         }
+            {
+                //Debug.LogWarning("AudioManager non trovato! Suono gemma non riprodotto.");
+            }
 
         Destroy(gameObject);
     }
 
     public override void NotifyOnPick(GemSpawner gemSpawner)
     {
-        // MODIFICATO: Usa le coordinate array corrette
+        // Usa le coordinate array corrette
         Vector2Int arrayPos = mapManager != null ?
             mapManager.WorldToArrayCoordinates(transform.position) :
             new Vector2Int((int)transform.position.x, (int)transform.position.y);

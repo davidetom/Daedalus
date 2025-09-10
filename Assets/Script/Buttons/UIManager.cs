@@ -27,7 +27,7 @@ public class UIManager : MonoBehaviour
     {
         if (DifficultyManager.Instance == null)
         {
-            Debug.LogWarning("DifficultyManager non trovato! Attivando minimappa di default.");
+            //Debug.LogWarning("DifficultyManager non trovato! Attivando minimappa di default.");
             minimapCanvas.gameObject.SetActive(true);
             return;
         }

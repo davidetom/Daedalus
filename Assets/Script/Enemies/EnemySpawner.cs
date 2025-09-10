@@ -85,11 +85,11 @@ public class EnemySpawner : MonoBehaviour
         {
             // Usa le posizioni generate
             CreateTransformsFromPositions();
-            Debug.Log($"🎯 Utilizzando {generatedSpawnPositions.Length} spawn points generati");
+            //Debug.Log($"🎯 Utilizzando {generatedSpawnPositions.Length} spawn points generati");
         }
         else
         {
-            Debug.Log("🎯 Tentativo di usare spawn points tradizionali...");
+            //Debug.Log("🎯 Tentativo di usare spawn points tradizionali...");
             
             // Usa il metodo originale SOLO se il tag esiste
             if (HasEnemySpawnTag())
@@ -103,14 +103,14 @@ public class EnemySpawner : MonoBehaviour
                         spawnPoints[i] = spawnObjects[i].transform;
                     }
                 }
-                Debug.Log($"🎯 Utilizzando {spawnPoints.Length} spawn points tradizionali");
+                //Debug.Log($"🎯 Utilizzando {spawnPoints.Length} spawn points tradizionali");
             }
             else
             {
-                Debug.LogWarning("⚠️ Tag 'EnemySpawn' non definito e nessun spawn point generato disponibile!");
-                Debug.LogWarning("🔄 Tentativo di recuperare spawn points dal SpawnPointGenerator...");
+                //Debug.LogWarning("⚠️ Tag 'EnemySpawn' non definito e nessun spawn point generato disponibile!");
+                //Debug.LogWarning("🔄 Tentativo di recuperare spawn points dal SpawnPointGenerator...");
                 
-                // NUOVO: Tenta di recuperare gli spawn points dal generator se non ci sono spawn points tradizionali
+                // Tenta di recuperare gli spawn points dal generator se non ci sono spawn points tradizionali
                 TryGetSpawnPointsFromGenerator();
             }
         }
@@ -136,7 +136,7 @@ public class EnemySpawner : MonoBehaviour
         
         if (generator == null)
         {
-            Debug.LogError("❌ SpawnPointGenerator non trovato nella scena!");
+            //Debug.LogError("❌ SpawnPointGenerator non trovato nella scena!");
             return;
         }
         
@@ -144,7 +144,7 @@ public class EnemySpawner : MonoBehaviour
         
         if (spawnPointsList.Count == 0)
         {
-            Debug.LogWarning("⚠️ Nessun spawn point disponibile nel generator! Forzo la generazione...");
+            //Debug.LogWarning("⚠️ Nessun spawn point disponibile nel generator! Forzo la generazione...");
             
             // Forza la generazione degli spawn points
             generator.GeneraSpawnPoints();
@@ -152,7 +152,7 @@ public class EnemySpawner : MonoBehaviour
             
             if (spawnPointsList.Count == 0)
             {
-                Debug.LogError("❌ Impossibile generare spawn points!");
+                //Debug.LogError("❌ Impossibile generare spawn points!");
                 return;
             }
         }
@@ -171,7 +171,7 @@ public class EnemySpawner : MonoBehaviour
         // Crea i Transform
         CreateTransformsFromPositions();
         
-        Debug.Log($"✅ Recuperati {generatedSpawnPositions.Length} spawn points dal SpawnPointGenerator");
+        //Debug.Log($"✅ Recuperati {generatedSpawnPositions.Length} spawn points dal SpawnPointGenerator");
     }
 
     public void UpdateGeneratedSpawnPoints(Vector3[] newPositions)
@@ -192,7 +192,7 @@ public class EnemySpawner : MonoBehaviour
             validSpawnPoints.Clear();
             lastDistanceUpdateTime = 0f;
 
-            Debug.Log($"Aggiornati {newPositions.Length} spawn points per il nuovo labirinto");
+            //Debug.Log($"Aggiornati {newPositions.Length} spawn points per il nuovo labirinto");
         }
 
 #if UNITY_EDITOR
@@ -244,7 +244,7 @@ public class EnemySpawner : MonoBehaviour
         
         if (generator == null)
         {
-            Debug.LogError("❌ Nessun SpawnPointGenerator trovato nella scena!");
+            //Debug.LogError("❌ Nessun SpawnPointGenerator trovato nella scena!");
             return;
         }
         
@@ -252,7 +252,7 @@ public class EnemySpawner : MonoBehaviour
         
         if (spawnPointsList.Count == 0)
         {
-            Debug.LogWarning("⚠️ Nessun spawn point disponibile nel generator! Genera prima gli spawn points.");
+            //Debug.LogWarning("⚠️ Nessun spawn point disponibile nel generator! Genera prima gli spawn points.");
             return;
         }
         
@@ -267,7 +267,7 @@ public class EnemySpawner : MonoBehaviour
         // Attiva l'uso delle posizioni generate
         useGeneratedSpawnPoints = true;
         
-        Debug.Log($"✅ Copiate {generatedSpawnPositions.Length} posizioni dal SpawnPointGenerator");
+        //Debug.Log($"✅ Copiate {generatedSpawnPositions.Length} posizioni dal SpawnPointGenerator");
         
         // Se siamo in play mode, ricrea i punti di spawn
         if (Application.isPlaying)
@@ -299,7 +299,7 @@ public class EnemySpawner : MonoBehaviour
             }
         }
         
-        Debug.Log("🧹 Posizioni generate pulite");
+        //Debug.Log("🧹 Posizioni generate pulite");
         
         #if UNITY_EDITOR
         UnityEditor.EditorUtility.SetDirty(this);
@@ -325,9 +325,7 @@ public class EnemySpawner : MonoBehaviour
         }
     }
     
-    /// <summary>
-    /// Gestisce la rimozione dei nemici morti e avvia il processo di respawn
-    /// </summary>
+    // Gestisce la rimozione dei nemici morti e avvia il processo di respawn
     void HandleDeadEnemies()
     {
         int enemiesBeforeCleanup = activeEnemies.Count;
@@ -341,7 +339,9 @@ public class EnemySpawner : MonoBehaviour
         if (enemiesKilled > 0 && enableRespawn && isSpawning)
         {
             if (enableSpawnDebug)
-                Debug.Log($"💀 {enemiesKilled} nemici uccisi. Avvio respawn con delay di {respawnDelay}s");
+            {
+                //Debug.Log($"💀 {enemiesKilled} nemici uccisi. Avvio respawn con delay di {respawnDelay}s");
+            }
             
             // Avvia il respawn per ogni nemico ucciso
             for (int i = 0; i < enemiesKilled; i++)
@@ -351,17 +351,17 @@ public class EnemySpawner : MonoBehaviour
         }
     }
     
-    /// <summary>
-    /// Controlla se il numero di nemici attivi è sotto il minimo e triggera il respawn se necessario
-    /// </summary>
+    // Controlla se il numero di nemici attivi è sotto il minimo e triggera il respawn se necessario
     void CheckAndTriggerRespawn()
     {
         if (activeEnemies.Count < minActiveEnemies && activeEnemies.Count < maxEnemies)
         {
             int enemiesToSpawn = Mathf.Min(minActiveEnemies - activeEnemies.Count, maxEnemies - activeEnemies.Count);
-            
+
             if (enableSpawnDebug)
-                Debug.Log($"📈 Sotto il minimo di nemici ({activeEnemies.Count}/{minActiveEnemies}). Spawning {enemiesToSpawn} nemici immediati.");
+            {
+                //Debug.Log($"📈 Sotto il minimo di nemici ({activeEnemies.Count}/{minActiveEnemies}). Spawning {enemiesToSpawn} nemici immediati."); 
+            }
             
             for (int i = 0; i < enemiesToSpawn; i++)
             {
@@ -371,9 +371,7 @@ public class EnemySpawner : MonoBehaviour
         }
     }
     
-    /// <summary>
-    /// Coroutine per respawnare un nemico dopo un delay
-    /// </summary>
+    // Coroutine per respawnare un nemico dopo un delay
     IEnumerator RespawnEnemyAfterDelay()
     {
         yield return new WaitForSeconds(respawnDelay);
@@ -385,10 +383,12 @@ public class EnemySpawner : MonoBehaviour
             
             if (enableSpawnDebug)
             {
+                /*
                 if (spawned)
                     Debug.Log("🔄 Nemico respawnato con successo");
                 else
                     Debug.LogWarning("⚠️ Impossibile respawnare nemico - nessun punto valido");
+                */
             }
         }
     }
@@ -397,7 +397,9 @@ public class EnemySpawner : MonoBehaviour
         if (mapManager == null || !mapManager.wallCalculated || playerTarget == null)
         {
             if (enableSpawnDebug)
-                Debug.LogWarning("MapManager non disponibile o player non trovato per aggiornamento cache spawn");
+            {
+                //Debug.LogWarning("MapManager non disponibile o player non trovato per aggiornamento cache spawn");
+            }
             return;
         }
         
@@ -435,13 +437,11 @@ public class EnemySpawner : MonoBehaviour
         
         if (enableSpawnDebug)
         {
-            Debug.Log($"Cache spawn aggiornata: {validSpawnPoints.Count}/{spawnPoints.Length} punti validi");
+            //Debug.Log($"Cache spawn aggiornata: {validSpawnPoints.Count}/{spawnPoints.Length} punti validi");
         }
     }
     
-    /// <summary>
-    /// Ottiene una lista di punti di spawn validi entro un range di distanza specificato
-    /// </summary>
+    // Ottiene una lista di punti di spawn validi entro un range di distanza specificato
     List<SpawnPointInfo> GetValidSpawnPointsInRange(int minDistance, int maxDistance)
     {
         return validSpawnPoints.Where(sp => sp.distance >= minDistance && sp.distance <= maxDistance).ToList();
@@ -451,7 +451,7 @@ public class EnemySpawner : MonoBehaviour
     {
         if (isSpawning) return;
         
-        Debug.Log("🔥 Inizio spawn nemici notturni");
+        //Debug.Log("🔥 Inizio spawn nemici notturni");
         isSpawning = true;
         
         // Aggiorna immediatamente la cache
@@ -465,7 +465,9 @@ public class EnemySpawner : MonoBehaviour
             if (!SpawnEnemyAtDistanceRange(initialSpawnMinDistance, initialSpawnMaxDistance, true))
             {
                 if (enableSpawnDebug)
-                    Debug.LogWarning($"Impossibile spawnare nemico iniziale {i+1}/{initialSpawn}");
+                {
+                    //Debug.LogWarning($"Impossibile spawnare nemico iniziale {i+1}/{initialSpawn}");
+                }
             }
         }
         
@@ -488,20 +490,20 @@ public class EnemySpawner : MonoBehaviour
                 if (!SpawnEnemyAtDistanceRange(continuousSpawnMinDistance, continuousSpawnMaxDistance, false))
                 {
                     if (enableSpawnDebug)
-                        Debug.LogWarning("Impossibile spawnare nemico continuo - nessun punto valido trovato");
+                    {
+                        //Debug.LogWarning("Impossibile spawnare nemico continuo - nessun punto valido trovato");
+                    }
                 }
             }
         }
     }
     
-    /// <summary>
-    /// Spawna un nemico in un punto casuale entro il range di distanza specificato
-    /// </summary>
+    // Spawna un nemico in un punto casuale entro il range di distanza specificato
     bool SpawnEnemyAtDistanceRange(int minDistance, int maxDistance, bool isInitialSpawn)
     {
         if (spawnPoints.Length == 0 || enemyPrefab == null)
         {
-            Debug.LogWarning("Nessun punto di spawn o prefab nemico configurato!");
+            //Debug.LogWarning("Nessun punto di spawn o prefab nemico configurato!");
             return false;
         }
         
@@ -513,11 +515,11 @@ public class EnemySpawner : MonoBehaviour
             if (enableSpawnDebug)
             {
                 string spawnType = isInitialSpawn ? "iniziale" : "continuo";
-                Debug.LogWarning($"Nessun punto di spawn {spawnType} trovato nel range {minDistance}-{maxDistance} tile dal player");
+                //Debug.LogWarning($"Nessun punto di spawn {spawnType} trovato nel range {minDistance}-{maxDistance} tile dal player");
                 
                 // Debug: mostra le distanze disponibili
-                var allDistances = validSpawnPoints.Select(sp => sp.distance).Distinct().OrderBy(d => d);
-                Debug.Log($"Distanze disponibili: [{string.Join(", ", allDistances)}]");
+                //var allDistances = validSpawnPoints.Select(sp => sp.distance).Distinct().OrderBy(d => d);
+                //Debug.Log($"Distanze disponibili: [{string.Join(", ", allDistances)}]");
             }
             return false;
         }
@@ -534,15 +536,17 @@ public class EnemySpawner : MonoBehaviour
         {
             newEnemy.SetActive(true);
             if (enableSpawnDebug)
-                Debug.Log($"Nemico era disattivato, ora attivato: {newEnemy.name}");
+            {
+                //Debug.Log($"Nemico era disattivato, ora attivato: {newEnemy.name}");
+            }
         }
         
         activeEnemies.Add(newEnemy);
         
         if (enableSpawnDebug)
         {
-            string spawnType = isInitialSpawn ? "iniziale" : "continuo";
-            Debug.Log($"👹 Nemico {spawnType} spawnato a distanza {chosenSpawn.distance} tile dal player (posizione {spawnPoint.position})");
+            //string spawnType = isInitialSpawn ? "iniziale" : "continuo";
+            //Debug.Log($"👹 Nemico {spawnType} spawnato a distanza {chosenSpawn.distance} tile dal player (posizione {spawnPoint.position})");
         }
         
         return true;
@@ -556,7 +560,7 @@ public class EnemySpawner : MonoBehaviour
     
     public void ClearAllEnemies()
     {
-        Debug.Log($"🧹 Rimozione di {activeEnemies.Count} nemici");
+        //Debug.Log($"🧹 Rimozione di {activeEnemies.Count} nemici");
         
         foreach (GameObject enemy in activeEnemies)
         {
@@ -573,7 +577,7 @@ public class EnemySpawner : MonoBehaviour
     {
         if (spawnIndex < 0 || spawnIndex >= spawnPoints.Length)
         {
-            Debug.LogWarning($"Indice spawn {spawnIndex} non valido!");
+            //Debug.LogWarning($"Indice spawn {spawnIndex} non valido!");
             return;
         }
         
@@ -583,7 +587,7 @@ public class EnemySpawner : MonoBehaviour
         
         if (enableSpawnDebug)
         {
-            Debug.Log($"👹 Nemico spawnato manualmente al punto {spawnIndex} (posizione {spawnPoint.position})");
+            //Debug.Log($"👹 Nemico spawnato manualmente al punto {spawnIndex} (posizione {spawnPoint.position})");
         }
     }
     
@@ -627,9 +631,7 @@ public class EnemySpawner : MonoBehaviour
         return $"Nemici: {activeEnemies.Count}/{maxEnemies} (min:{minActiveEnemies}) | Spawning: {(isSpawning ? "ATTIVO" : "FERMATO")} | Respawn: {respawnStatus} | Tipo: {spawnType} | Spawn validi: {validSpawnsCount}";
     }
     
-    /// <summary>
-    /// Metodo di debug per visualizzare le distanze dei punti di spawn
-    /// </summary>
+    // Metodo di debug per visualizzare le distanze dei punti di spawn
     [ContextMenu("Debug Spawn Distances")]
     public void DebugSpawnDistances()
     {
@@ -843,9 +845,7 @@ public class EnemySpawner : MonoBehaviour
 #endif
 }
 
-/// <summary>
-/// Struttura per contenere informazioni sui punti di spawn con distanza
-/// </summary>
+// Struttura per contenere informazioni sui punti di spawn con distanza
 [System.Serializable]
 public class SpawnPointInfo
 {

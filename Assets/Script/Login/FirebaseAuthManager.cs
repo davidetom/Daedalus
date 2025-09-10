@@ -6,7 +6,7 @@ using Firebase.Firestore;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System;
-using System.Collections; // <-- necessario per IEnumerator
+using System.Collections;
 
 public class FirebaseAuthManager : MonoBehaviour
 {
@@ -211,11 +211,11 @@ public class FirebaseAuthManager : MonoBehaviour
     {
         if (auth.CurrentUser != null)
         {
-            Debug.Log("Utente autenticato: " + auth.CurrentUser.UserId);
+            //Debug.Log("Utente autenticato: " + auth.CurrentUser.UserId);
         }
         else
         {
-            Debug.Log("Utente disconnesso");
+            //Debug.Log("Utente disconnesso");
             // Pulisci i dati quando l'utente si disconnette
             SaveSystem.ClearCurrentUserData();
         }

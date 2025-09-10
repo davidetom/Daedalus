@@ -126,14 +126,14 @@ public class MapManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"Tile configurati - Corridoi: {corridorTileSet.Count}, Prato: {grassTileSet.Count}, Muri: {wallTileSet.Count}, Porte: {doorTileSet.Count}");
+        //Debug.Log($"Tile configurati - Corridoi: {corridorTileSet.Count}, Prato: {grassTileSet.Count}, Muri: {wallTileSet.Count}, Porte: {doorTileSet.Count}");
     }
 
     void CalculateMapDimensions()
     {
         if (tilemap == null)
         {
-            Debug.LogError("Tilemap non assegnata in MapManager!");
+            //Debug.LogError("Tilemap non assegnata in MapManager!");
             return;
         }
 
@@ -142,8 +142,8 @@ public class MapManager : MonoBehaviour
         mapHeight = bounds.size.y;
         mapOffset = new Vector2Int(bounds.xMin, bounds.yMin);
 
-        Debug.Log($"Dimensioni mappa: {mapWidth}x{mapHeight}");
-        Debug.Log($"Offset mappa: ({mapOffset.x}, {mapOffset.y})");
+        //Debug.Log($"Dimensioni mappa: {mapWidth}x{mapHeight}");
+        //Debug.Log($"Offset mappa: ({mapOffset.x}, {mapOffset.y})");
     }
 
     void InitializeArrays()
@@ -156,7 +156,7 @@ public class MapManager : MonoBehaviour
     {
         if (tilemap == null)
         {
-            Debug.LogError("Tilemap non assegnata in MapManager!");
+            //Debug.LogError("Tilemap non assegnata in MapManager!");
             return;
         }
 
@@ -222,16 +222,12 @@ public class MapManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"Matrice TileTypes calcolata: {mapWidth}x{mapHeight}");
-        Debug.Log($"Corridoi: {corridorCount}, Prato: {grassCount}, Muri: {wallCount}, Porte: {doorCount}, Vuoti: {emptyCount}");
+        //Debug.Log($"Matrice TileTypes calcolata: {mapWidth}x{mapHeight}");
+        //Debug.Log($"Corridoi: {corridorCount}, Prato: {grassCount}, Muri: {wallCount}, Porte: {doorCount}, Vuoti: {emptyCount}");
     }
 
     // Metodi per determinare se una posizione è camminabile per diversi scopi
-
-    /// <summary>
-    /// Determina se una posizione è camminabile per l'AI (nemici)
-    /// Solo i corridoi sono camminabili per l'AI
-    /// </summary>
+    // Determina se una posizione è camminabile (corridoi) per l'AI (nemici)
     public bool IsWalkableForAI(int arrayX, int arrayY)
     {
         if (!IsValidArrayCoordinate(arrayX, arrayY))
@@ -239,7 +235,6 @@ public class MapManager : MonoBehaviour
 
         TileType type = tileTypes[arrayX, arrayY];
         return type == TileType.Corridor;
-        // Potresti aggiungere TileType.Door qui se i nemici possono attraversare porte aperte
     }
 
     public bool IsWalkableForAI(Vector2Int arrayPos)
@@ -247,10 +242,7 @@ public class MapManager : MonoBehaviour
         return IsWalkableForAI(arrayPos.x, arrayPos.y);
     }
 
-    /// <summary>
-    /// Determina se una posizione è camminabile per il player
-    /// Corridoi, prato e porte sono camminabili per il player
-    /// </summary>
+    // Corridoi, prato e porte sono camminabili per il player
     public bool IsWalkableForPlayer(int arrayX, int arrayY)
     {
         if (!IsValidArrayCoordinate(arrayX, arrayY))
@@ -266,10 +258,7 @@ public class MapManager : MonoBehaviour
         return IsWalkableForPlayer(arrayPos.x, arrayPos.y);
     }
 
-    /// <summary>
-    /// Determina se una posizione è visibile (non un muro solido)
-    /// Corridoi, prato e porte sono visibili
-    /// </summary>
+    // Corridoi, prato e porte sono visibili
     public bool IsVisible(int arrayX, int arrayY)
     {
         if (!IsValidArrayCoordinate(arrayX, arrayY))
@@ -284,10 +273,7 @@ public class MapManager : MonoBehaviour
         return IsVisible(arrayPos.x, arrayPos.y);
     }
 
-    /// <summary>
-    /// Determina se una posizione è valida per spawn di monete
-    /// Solo i corridoi sono validi per le monete
-    /// </summary>
+    // Solo i corridoi sono validi per le monete
     public bool IsValidForCoinSpawn(int arrayX, int arrayY)
     {
         if (!IsValidArrayCoordinate(arrayX, arrayY))
@@ -391,13 +377,10 @@ public class MapManager : MonoBehaviour
             wallTileSet.Add(tile);
         }
     }
-    
-    // Aggiungi questi metodi al MapManager.cs per permettere l'aggiornamento
 
     public void RecalculateMap()
     {
         wallCalculated = false;
-        //CalculateMapDimensions();
         InitializeArrays();
         CalculateTileTypeMatrix();
         wallCalculated = true;

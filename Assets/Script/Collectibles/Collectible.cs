@@ -15,7 +15,7 @@ public abstract class Collectible : MonoBehaviour
         if (gemSpawner == null)
             gemSpawner = FindFirstObjectByType<GemSpawner>();
 
-        // MODIFICATO: Usa le coordinate array corrette invece di cast diretto
+        // Usa le coordinate array corrette invece di cast diretto
         Vector2Int arrayPos = mapManager != null ? 
             mapManager.WorldToArrayCoordinates(transform.position) : 
             new Vector2Int((int)transform.position.x, (int)transform.position.y);
@@ -35,7 +35,7 @@ public abstract class Collectible : MonoBehaviour
             PlayerController player = other.GetComponent<PlayerController>();
             if (player != null)
             {
-                // MODIFICATO: Usa le coordinate corrette della gemma
+                // Usa le coordinate corrette della gemma
                 NotifyOnPick(gemSpawner);
                 OnCollect(player); // comportamento specifico
             }

@@ -51,12 +51,12 @@ public class InnerHubController : MonoBehaviour
                 exitPoint = exitPointTransform.GetComponent<Collider2D>();
                 if (exitPoint == null)
                 {
-                    Debug.LogError("ExitPoint trovato ma non ha un Collider2D!");
+                    //Debug.LogError("ExitPoint trovato ma non ha un Collider2D!");
                 }
             }
             else
             {
-                Debug.LogError("Oggetto figlio 'ExitPoint' non trovato!");
+                //Debug.LogError("Oggetto figlio 'ExitPoint' non trovato!");
             }
         }
 
@@ -69,7 +69,7 @@ public class InnerHubController : MonoBehaviour
             }
             else
             {
-                Debug.LogError("Oggetto figlio 'DoorIndicator' non trovato!");
+                //Debug.LogError("Oggetto figlio 'DoorIndicator' non trovato!");
             }
         }
 
@@ -82,7 +82,7 @@ public class InnerHubController : MonoBehaviour
             }
             else
             {
-                Debug.LogError("Oggetto figlio 'BedIndicator' non trovato!");
+                //Debug.LogError("Oggetto figlio 'BedIndicator' non trovato!");
             }
         }
 
@@ -95,7 +95,7 @@ public class InnerHubController : MonoBehaviour
             }
             else
             {
-                Debug.LogError("Oggetto figlio 'AltarIndicator' non trovato!");
+                //Debug.LogError("Oggetto figlio 'AltarIndicator' non trovato!");
             }
         }
 
@@ -115,7 +115,7 @@ public class InnerHubController : MonoBehaviour
             outerHubController = FindFirstObjectByType<OuterHubController>();
             if (outerHubController != null && enableDebug)
             {
-                Debug.Log("OuterHubController trovato automaticamente");
+                //Debug.Log("OuterHubController trovato automaticamente");
             }
         }
 
@@ -124,7 +124,7 @@ public class InnerHubController : MonoBehaviour
             bed = FindFirstObjectByType<BedLogic>();
             if (bed != null && enableDebug)
             {
-                Debug.Log("Letto trovato automaticamente");
+                //Debug.Log("Letto trovato automaticamente");
             }
         }
 
@@ -133,14 +133,14 @@ public class InnerHubController : MonoBehaviour
             gemSpawner = FindFirstObjectByType<GemSpawner>();
             if (gemSpawner != null && enableDebug)
             {
-                Debug.Log("GemSpawner trovato automaticamente");
+                //Debug.Log("GemSpawner trovato automaticamente");
             }
         }
 
         // Verifica che l'ExitPoint sia configurato come trigger
             if (exitPoint != null && !exitPoint.isTrigger)
             {
-                Debug.LogWarning("ExitPoint Collider2D dovrebbe essere configurato come Trigger!");
+                //Debug.LogWarning("ExitPoint Collider2D dovrebbe essere configurato come Trigger!");
             }
     }
 
@@ -190,7 +190,7 @@ public class InnerHubController : MonoBehaviour
         // Notifica al player che può interagire (opzionale)
         if (playerController != null && enableDebug)
         {
-            Debug.Log("Premi E per uscire dall'hub");
+            //Debug.Log("Premi E per uscire dall'hub");
         }
     }
 
@@ -227,7 +227,7 @@ public class InnerHubController : MonoBehaviour
         // Notifica al player che può interagire (opzionale)
         if (playerController != null && enableDebug)
         {
-            Debug.Log("Premi E per dormire");
+            //Debug.Log("Premi E per dormire");
         }
     }
 
@@ -264,7 +264,7 @@ public class InnerHubController : MonoBehaviour
         // Notifica al player che può interagire (opzionale)
         if (playerController != null && enableDebug)
         {
-            Debug.Log("Premi E per interagire");
+            //Debug.Log("Premi E per interagire");
         }
     }
 
@@ -374,7 +374,9 @@ public class InnerHubController : MonoBehaviour
     public void ExitHub()
     {
         if (enableDebug)
-            Debug.Log("Player sta uscendo dall'hub");
+        {
+            //Debug.Log("Player sta uscendo dall'hub");
+        }
 
         // Chiama il metodo TeleportOutOfHub dell'OuterHubController
         if (outerHubController != null)
@@ -386,14 +388,16 @@ public class InnerHubController : MonoBehaviour
         }
         else
         {
-            Debug.LogError("OuterHubController non trovato! Impossibile uscire dall'hub.");
+            //Debug.LogError("OuterHubController non trovato! Impossibile uscire dall'hub.");
         }
     }
 
     public void BedSleep()
     {
         if (enableDebug)
-            Debug.Log("Player sta provando a dormire");
+        {
+            //Debug.Log("Player sta provando a dormire");
+        }
         
         if (bed != null)
             bed.TrySleep();
@@ -402,7 +406,9 @@ public class InnerHubController : MonoBehaviour
     public void InteractWithAltar()
     {
         if (enableDebug)
-            Debug.Log("Player sta provando ad interagire con l'altare");
+        {
+            //Debug.Log("Player sta provando ad interagire con l'altare");
+        }
 
         if (gemSpawner.currentPlayerDeaths < gemSpawner.deathsRequiredForRedGem)
             StartCoroutine(AltarInteraction());
@@ -416,11 +422,13 @@ public class InnerHubController : MonoBehaviour
             {
                 AudioManager.Instance.PlayGemPickup();
                 if (enableDebug)
-                    Debug.Log("Suono gemma riprodotto!");
+                {
+                    //Debug.Log("Suono gemma riprodotto!");
+                }
             }
             else
             {
-                Debug.LogWarning("AudioManager.Instance non trovato!");
+                //Debug.LogWarning("AudioManager.Instance non trovato!");
             }
         }
     }

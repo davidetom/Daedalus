@@ -47,12 +47,12 @@ public class HubCameraMovement : MonoBehaviour
                 player = playerObj;
                 if (enableDebug)
                 {
-                    Debug.Log("Player trovato automaticamente per HubCamera");
+                    //Debug.Log("Player trovato automaticamente per HubCamera");
                 }
             }
             else
             {
-                Debug.LogError("Player non trovato! Assegna il player manualmente o usa il tag 'Player'.");
+                //Debug.LogError("Player non trovato! Assegna il player manualmente o usa il tag 'Player'.");
             }
         }
 
@@ -85,7 +85,7 @@ public class HubCameraMovement : MonoBehaviour
 
             if (hubTilemap != null && enableDebug)
             {
-                Debug.Log($"HubTilemap trovata automaticamente: {hubTilemap.name}");
+                //Debug.Log($"HubTilemap trovata automaticamente: {hubTilemap.name}");
             }
         }
     }
@@ -127,7 +127,7 @@ public class HubCameraMovement : MonoBehaviour
 
         if (enableDebug && Time.frameCount % 60 == 0) // Debug ogni secondo circa
         {
-            Debug.Log($"HubCamera - Player Y: {player.transform.position.y:F2}, Camera Y: {transform.position.y:F2}");
+            //Debug.Log($"HubCamera - Player Y: {player.transform.position.y:F2}, Camera Y: {transform.position.y:F2}");
         }
     }
 
@@ -148,7 +148,7 @@ public class HubCameraMovement : MonoBehaviour
         fixedXPosition = newX;
         if (enableDebug)
         {
-            Debug.Log($"HubCamera X position aggiornata a: {newX}");
+            //Debug.Log($"HubCamera X position aggiornata a: {newX}");
         }
     }
 

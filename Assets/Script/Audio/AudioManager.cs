@@ -181,8 +181,8 @@ public class AudioManager : MonoBehaviour
     public void PlayVictory() => PlaySound(victory);
     public void StopVictory() => StopSound();
 
-     public void PlayDamageTaken() => PlaySound(damageTaken);    // NUOVO
-    public void PlayDeath() => PlaySound(death);                // NUOVO
+     public void PlayDamageTaken() => PlaySound(damageTaken);
+    public void PlayDeath() => PlaySound(death);
 
     // --- Musica ---
     public void PlayMusic(AudioClip clip)

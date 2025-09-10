@@ -12,7 +12,9 @@ public class BedInteractLogic : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             if (enableDebug)
-                Debug.Log("Player entrato nell'area del letto");
+            {
+                //Debug.Log("Player entrato nell'area del letto");
+            }
             
             hub.OnPlayerEnterBedArea();
         }
@@ -23,7 +25,9 @@ public class BedInteractLogic : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             if (enableDebug)
-                Debug.Log("Player uscito dall'area del letto");
+            {
+                //Debug.Log("Player uscito dall'area del letto");
+            }
             
             hub.OnPlayerExitBedArea();
         }

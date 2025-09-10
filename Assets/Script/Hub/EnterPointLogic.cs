@@ -12,7 +12,9 @@ public class EnterPointLogic : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             if (enableDebug)
-                Debug.Log("Player entrato nell'area dell'hub");
+            {
+                //Debug.Log("Player entrato nell'area dell'hub");
+            }
             
             hub.OnPlayerEnterArea();
         }
@@ -23,7 +25,9 @@ public class EnterPointLogic : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             if (enableDebug)
-                Debug.Log("Player uscito dall'area dell'hub");
+            {
+                //Debug.Log("Player uscito dall'area dell'hub");
+            }
             
             hub.OnPlayerExitArea();
         }

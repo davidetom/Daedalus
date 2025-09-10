@@ -12,7 +12,9 @@ public class ExitPointLogic : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             if (enableDebug)
-                Debug.Log("Player entrato nell'area della porta");
+            {
+                //Debug.Log("Player entrato nell'area della porta");
+            }
             
             hub.OnPlayerEnterDoorArea();
         }
@@ -23,7 +25,9 @@ public class ExitPointLogic : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             if (enableDebug)
-                Debug.Log("Player uscito dall'area della porta");
+            {
+                //Debug.Log("Player uscito dall'area della porta");
+            }
             
             hub.OnPlayerExitDoorArea();
         }

@@ -26,14 +26,14 @@ public class PlayerColliderFix : MonoBehaviour
     [ContextMenu("Fix Player Colliders")]
     public void FixPlayerColliders()
     {
-        Debug.Log("Fixing player colliders...");
+        //Debug.Log("Fixing player colliders...");
         
         // 1. Assicurati che ci sia un Rigidbody2D configurato correttamente
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         if (rb == null)
         {
             rb = gameObject.AddComponent<Rigidbody2D>();
-            Debug.Log("Aggiunto Rigidbody2D al player");
+            //Debug.Log("Aggiunto Rigidbody2D al player");
         }
         
         // Configurazione corretta del Rigidbody2D
@@ -43,7 +43,7 @@ public class PlayerColliderFix : MonoBehaviour
         rb.angularDamping = 5f;
         rb.freezeRotation = true; // Impedisce al player di ruotare
         
-        Debug.Log("Rigidbody2D configurato");
+        //Debug.Log("Rigidbody2D configurato");
         
         // 2. Assicurati che ci sia un collider appropriato
         Collider2D collider = GetComponent<Collider2D>();
@@ -53,19 +53,19 @@ public class PlayerColliderFix : MonoBehaviour
             CircleCollider2D circleCollider = gameObject.AddComponent<CircleCollider2D>();
             circleCollider.radius = 0.4f; // Regola in base alla dimensione del player
             collider = circleCollider;
-            Debug.Log("Aggiunto CircleCollider2D al player");
+            //Debug.Log("Aggiunto CircleCollider2D al player");
         }
         
         // Assicurati che il collider NON sia un trigger
         collider.isTrigger = false;
         
-        Debug.Log($"Player collider: {collider.GetType().Name}, isTrigger: {collider.isTrigger}");
+        //Debug.Log($"Player collider: {collider.GetType().Name}, isTrigger: {collider.isTrigger}");
         
         // 3. Rimuovi eventuali CompositeCollider2D dal player (non dovrebbe averlo)
         CompositeCollider2D composite = GetComponent<CompositeCollider2D>();
         if (composite != null)
         {
-            Debug.LogWarning("Rimosso CompositeCollider2D dal player - non dovrebbe averlo!");
+            //Debug.LogWarning("Rimosso CompositeCollider2D dal player - non dovrebbe averlo!");
             DestroyImmediate(composite);
         }
         
@@ -75,8 +75,8 @@ public class PlayerColliderFix : MonoBehaviour
             gameObject.layer = LayerMask.NameToLayer("Default");
         }
         
-        Debug.Log($"Player layer: {LayerMask.LayerToName(gameObject.layer)}");
-        Debug.Log("Player colliders fixed!");
+        //Debug.Log($"Player layer: {LayerMask.LayerToName(gameObject.layer)}");
+        //Debug.Log("Player colliders fixed!");
     }
     
     void Update()

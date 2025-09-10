@@ -19,15 +19,15 @@ public class StartMessageUI : MonoBehaviour
         {
             HideStart();
             startMessageCanvas.SetActive(true);
-            Debug.Log("START GAME MESSAGE ON");
-            //Resetta il flag, così non resta attivo
+            //Debug.Log("START GAME MESSAGE ON");
+            //Resetta il flag, cosï¿½ non resta attivo
             StartCoroutine(HideMessageAfterDelay());
             SaveSystem.isNewGame = false;
         }
         else
         {
             startMessageCanvas.SetActive(false);
-            Debug.Log("START MESSAGE OFF");
+            //Debug.Log("START MESSAGE OFF");
         }
     }
 
@@ -86,6 +86,4 @@ public class StartMessageUI : MonoBehaviour
             saveUI.SetActive(true);
         }
     }
-
-
 }

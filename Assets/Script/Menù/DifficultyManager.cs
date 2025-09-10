@@ -23,13 +23,13 @@ public class DifficultyManager : MonoBehaviour
     public void SetDifficulty(DifficultyLevel difficulty)
     {
         currentDifficulty = difficulty;
-        Debug.Log($"Difficolt‡ impostata a: {difficulty}");
+        //Debug.Log($"DifficoltÔøΩ impostata a: {difficulty}");
     }
 
     public void SetDifficulty(int difficultyIndex)
     {
         currentDifficulty = (DifficultyLevel)difficultyIndex;
-        Debug.Log($"Difficolt‡ impostata a: {currentDifficulty}");
+        //Debug.Log($"DifficoltÔøΩ impostata a: {currentDifficulty}");
     }
 
     public DifficultyLevel GetCurrentDifficulty()
@@ -37,7 +37,7 @@ public class DifficultyManager : MonoBehaviour
         return currentDifficulty;
     }
 
-    //Metodi per controllare la difficolt‡
+    //Metodi per controllare la difficoltÔøΩ
     public bool IsEasy() => currentDifficulty == DifficultyLevel.Easy;
     public bool IsNormal() => currentDifficulty == DifficultyLevel.Normal;
     public bool IsHard() => currentDifficulty == DifficultyLevel.Hard;
@@ -58,7 +58,7 @@ public class DifficultyManager : MonoBehaviour
     #endregion
 }
 
-//ENUM per le difficolt‡
+//ENUM per le difficolt√†
 public enum DifficultyLevel
 {
     Easy,

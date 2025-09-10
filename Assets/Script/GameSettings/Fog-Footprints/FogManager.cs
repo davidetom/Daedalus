@@ -37,7 +37,7 @@ public class FogManager : MonoBehaviour
     private bool boundsInitialized = false;
     private bool isInitialized = false;
     
-    // Cache per warning zone - NUOVO
+    // Cache per warning zone
     private Vector3Int lastPlayerCellPos = Vector3Int.zero;
     private float lastWarningCheck = 0f;
     private const float WARNING_CHECK_INTERVAL = 0.1f; // Controlla ogni 100ms invece che ogni frame
@@ -74,7 +74,7 @@ public class FogManager : MonoBehaviour
         }
     }
 
-    // NUOVO: Inizializzazione completamente in background
+    // Inizializzazione completamente in background
     private IEnumerator InitializeFogBackground()
     {
         // Aspetta che altri sistemi si inizializzino
@@ -105,11 +105,11 @@ public class FogManager : MonoBehaviour
             fogRenderer.enabled = wasEnabled;
             isInitialized = true;
             
-            Debug.Log("FogManager: Inizializzazione completata in background");
+            //Debug.Log("FogManager: Inizializzazione completata in background");
         }
     }
 
-    // NUOVO: Caricamento silenzioso senza impatto sul gameplay
+    // Caricamento silenzioso senza impatto sul gameplay
     private IEnumerator LoadFogSilently()
     {
         // Carica dati dal save system se disponibili
@@ -119,24 +119,15 @@ public class FogManager : MonoBehaviour
             yield break;
         }
 
-        // Simula caricamento (implementa la logica del tuo SaveSystem)
-        // BitArray bitArray = SaveSystem.LoadFogData();
-        // if (bitArray != null)
-        // {
-        //     SetFogBitArray(bitArray);
-        //     yield return StartCoroutine(ApplyMatrixToTilemapSilently());
-        // }
-        
-        // Per ora usa il prefab
         yield return StartCoroutine(LoadPrefabSilently());
     }
 
-    // NUOVO: Caricamento prefab ottimizzato
+    // Caricamento prefab ottimizzato
     private IEnumerator LoadPrefabSilently()
     {
         if (fogPrefab == null || fogTilemap == null)
         {
-            Debug.LogError("FogManager: Componenti mancanti");
+            //Debug.LogError("FogManager: Componenti mancanti");
             yield break;
         }
 
@@ -162,7 +153,7 @@ public class FogManager : MonoBehaviour
         yield return StartCoroutine(ApplyMatrixToTilemapSilently());
     }
 
-    // NUOVO: Copia solo nella matrice (operazione veloce)
+    // Copia solo nella matrice (operazione veloce)
     private IEnumerator CopyPrefabToMatrix(Tilemap sourceTilemap)
     {
         BoundsInt bounds = sourceTilemap.cellBounds;
@@ -191,7 +182,7 @@ public class FogManager : MonoBehaviour
         }
     }
 
-    // NUOVO: Applica matrice alla tilemap in micro-batch
+    // Applica matrice alla tilemap in micro-batch
     private IEnumerator ApplyMatrixToTilemapSilently()
     {
         // Pre-calcola tutte le posizioni (operazione veloce)
@@ -226,7 +217,7 @@ public class FogManager : MonoBehaviour
         }
     }
 
-    // NUOVO: Pulizia ottimizzata per build
+    // Pulizia ottimizzata per build
     private void ClearFogTilemapFast()
     {
         if (fogTilemap == null) return;
@@ -430,7 +421,7 @@ public class FogManager : MonoBehaviour
         return new Vector2Int(matrixX, matrixY);
     }
 
-    // NUOVO: Metodo per sapere se l'inizializzazione è completata
+    // Metodo per sapere se l'inizializzazione è completata
     public bool IsInitialized()
     {
         return isInitialized;
@@ -456,7 +447,7 @@ public class FogManager : MonoBehaviour
     {
         if (bitArray == null || bitArray.Length != MAZE_SIZE * MAZE_SIZE)
         {
-            Debug.LogError($"BitArray invalido! Dimensione attesa: {MAZE_SIZE * MAZE_SIZE}");
+            //Debug.LogError($"BitArray invalido! Dimensione attesa: {MAZE_SIZE * MAZE_SIZE}");
             return;
         }
 
@@ -523,7 +514,7 @@ public class FogManager : MonoBehaviour
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"Errore deserializzazione BitArray: {e.Message}");
+            //Debug.LogError($"Errore deserializzazione BitArray: {e.Message}");
             return null;
         }
     }

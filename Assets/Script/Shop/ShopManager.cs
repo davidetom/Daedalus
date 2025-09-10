@@ -52,17 +52,18 @@ public class ShopManager : MonoBehaviour
             if (item.requiresGems)
             {
                 ConsumeRequiredGems(item);
-                Debug.Log($"Purchased: {item.itemData.name} with gems");
+                //Debug.Log($"Purchased: {item.itemData.name} with gems");
             }
             else
             {
                 playerController.coinsPicked -= item.price;
-                Debug.Log($"Purchased: {item.itemData.name} for {item.price}$ - Remaining coins: {playerController.coinsPicked}");
+                //Debug.Log($"Purchased: {item.itemData.name} for {item.price}$ - Remaining coins: {playerController.coinsPicked}");
             }
 
             item.isPurchased = true;
             //SUONO OGGETTO COMPRATO
-            AudioManager.Instance.PlayItemPurchase();
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlayItemPurchase();
 
             //Aggiungi all'inventario
             if (inventoryManager != null)
@@ -77,7 +78,7 @@ public class ShopManager : MonoBehaviour
             //Disabilita il bottone e cambia aspetto
             HandlePurchasedItem(item);
 
-            Debug.Log($"Purchased: {item.itemData.name} for {item.price}$ - Remaining coins: {playerController.coinsPicked}");
+            //Debug.Log($"Purchased: {item.itemData.name} for {item.price}$ - Remaining coins: {playerController.coinsPicked}");
         }
         else
         {
@@ -89,7 +90,7 @@ public class ShopManager : MonoBehaviour
     {
         if (playerController == null)
         {
-            Debug.LogWarning("PlayerController reference is missing!");
+            //Debug.LogWarning("PlayerController reference is missing!");
             return false;
         }
 
@@ -115,7 +116,7 @@ public class ShopManager : MonoBehaviour
             
             if (!inventoryManager.HasItem(requiredGem))
             {
-                Debug.Log("Inventory doesn't have the " + requiredGem.name);
+                //Debug.Log("Inventory doesn't have the " + requiredGem.name);
                 return false;
             }
         }
@@ -166,7 +167,7 @@ public class ShopManager : MonoBehaviour
         }
         else
         {
-            Debug.Log($"Insufficient funds for purchase! Current coins: {playerController.coinsPicked}");
+            //Debug.Log($"Insufficient funds for purchase! Current coins: {playerController.coinsPicked}");
         }
     }
 
@@ -222,7 +223,7 @@ public class ShopManager : MonoBehaviour
                 }
             }
             coinUIManager.UpdateCoinDisplay();
-            Debug.Log("Shop data loaded - Items: " + data.purchasedItems.Length);
+            //Debug.Log("Shop data loaded - Items: " + data.purchasedItems.Length);
         }
     }
 

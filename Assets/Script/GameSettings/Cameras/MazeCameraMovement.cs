@@ -47,9 +47,11 @@ public class CameraMovement : MonoBehaviour
             
         // Trova il MazeManager per controllare lo stato delle porte
         mazeManager = FindFirstObjectByType<MazeManager>();
-        
+
         if (mazeManager == null)
-            Debug.LogWarning("MazeManager non trovato! I controlli della telecamera potrebbero non funzionare correttamente.");
+        {
+            //Debug.LogWarning("MazeManager non trovato! I controlli della telecamera potrebbero non funzionare correttamente.");
+        }
             
         // Calcola i bounds iniziali dai GameObject
         CalculateBoundsFromGameObjects();
@@ -112,7 +114,7 @@ public class CameraMovement : MonoBehaviour
             // Timeout raggiunto - forza il completamento della transizione
             transform.position = targetPosition;
             isTransitioning = false;
-            Debug.LogWarning("Transizione telecamera forzata per timeout (5 secondi) - ritorno al follow normale");
+            //Debug.LogWarning("Transizione telecamera forzata per timeout (5 secondi) - ritorno al follow normale");
             return;
         }
 
@@ -126,7 +128,7 @@ public class CameraMovement : MonoBehaviour
             // Transizione completata
             transform.position = targetPosition;
             isTransitioning = false;
-            Debug.Log("Transizione telecamera completata - ritorno al follow normale");
+            //Debug.Log("Transizione telecamera completata - ritorno al follow normale");
         }
     }
 
@@ -151,7 +153,7 @@ public class CameraMovement : MonoBehaviour
             // Timeout raggiunto - forza il completamento della transizione
             transform.position = targetPosition;
             isTransitioningAtNight = false;
-            Debug.LogWarning("Transizione notturna forzata per timeout (5 secondi) - ritorno al follow normale");
+            //Debug.LogWarning("Transizione notturna forzata per timeout (5 secondi) - ritorno al follow normale");
             return;
         }
 
@@ -165,7 +167,7 @@ public class CameraMovement : MonoBehaviour
             // Transizione completata
             transform.position = targetPosition;
             isTransitioning = false;
-            Debug.Log("Transizione notturna completata - ritorno al follow normale con bounds");
+            //Debug.Log("Transizione notturna completata - ritorno al follow normale con bounds");
         }
     }
     
@@ -192,7 +194,7 @@ public class CameraMovement : MonoBehaviour
 
         if (topLeftBound == null || topRightBound == null || bottomLeftBound == null || bottomRightBound == null)
         {
-            Debug.LogWarning("Non tutti i GameObject bounds sono assegnati! Assegna topLeftBound, topRightBound, bottomLeftBound, bottomRightBound nell'Inspector.");
+            //Debug.LogWarning("Non tutti i GameObject bounds sono assegnati! Assegna topLeftBound, topRightBound, bottomLeftBound, bottomRightBound nell'Inspector.");
             boundsCalculated = false;
             return;
         }
@@ -229,12 +231,12 @@ public class CameraMovement : MonoBehaviour
         float distance = Vector3.Distance(transform.position, idealPosition);
         if (distance > 1f) // Se la distanza è significativa
         {
-            Debug.Log("Porte aperte - iniziando transizione dolce verso il player");
+            //Debug.Log("Porte aperte - iniziando transizione dolce verso il player");
             StartSmoothTransition(idealPosition);
         }
         else
         {
-            Debug.Log("Porte aperte - telecamera già centrata sul player");
+            //Debug.Log("Porte aperte - telecamera già centrata sul player");
         }
     }
 
@@ -263,13 +265,13 @@ public class CameraMovement : MonoBehaviour
         float distance = Vector3.Distance(transform.position, nightPosition);
         if (distance > 1f) // Se la distanza è significativa
         {
-            Debug.Log("Notte iniziata - iniziando transizione dolce verso posizione con bounds");
+            //Debug.Log("Notte iniziata - iniziando transizione dolce verso posizione con bounds");
             StartSmoothTransition(nightPosition);
             isTransitioningAtNight = true;
         }
         else
         {
-            Debug.Log("Notte iniziata - telecamera già nella posizione corretta");
+            //Debug.Log("Notte iniziata - telecamera già nella posizione corretta");
         }
     }
     
@@ -277,7 +279,7 @@ public class CameraMovement : MonoBehaviour
     public void SetConstraintsActive(bool active)
     {
         useConstraints = active;
-        Debug.Log($"Vincoli telecamera: {(active ? "ATTIVATI" : "DISATTIVATI")}");
+        //Debug.Log($"Vincoli telecamera: {(active ? "ATTIVATI" : "DISATTIVATI")}");
     }
     
     // Metodo per debug - mostra i bounds e i GameObject nel Scene View

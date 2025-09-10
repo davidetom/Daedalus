@@ -61,8 +61,8 @@ public class MinimapFollow : MonoBehaviour
             minimapDisplay.texture = renderTexture;
             minimapDisplay.uvRect = new Rect(0, 0, 1, 1);
 
-            Debug.Log($"Render Texture creata: {actualSize.x} x {actualSize.y}");
-            Debug.Log($"RawImage size: {minimapDisplay.rectTransform.sizeDelta}");
+            //Debug.Log($"Render Texture creata: {actualSize.x} x {actualSize.y}");
+            //Debug.Log($"RawImage size: {minimapDisplay.rectTransform.sizeDelta}");
         }
     }
 

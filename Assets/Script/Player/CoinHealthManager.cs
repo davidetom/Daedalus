@@ -1,5 +1,5 @@
 using UnityEngine;
-using TMPro; // Se usi TextMeshPro
+using TMPro;
 
 public class CoinUIManager : MonoBehaviour
 {
@@ -40,6 +40,7 @@ public class CoinUIManager : MonoBehaviour
             healthText.text = player.GetCurrentHealth().ToString() + healthSuffix;
         }
     }
+
     //SAVE AND LOAD
     #region Save and Load
     public void Save(ref CurrencyData data)

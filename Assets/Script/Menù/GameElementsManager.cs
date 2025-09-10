@@ -29,12 +29,12 @@ public class GameElementsManager : MonoBehaviour
     {
         if(DifficultyManager.Instance == null)
         {
-            Debug.Log("DifficultyManager non trovato! Usando difficoltà Normal di default.");
+            //Debug.Log("DifficultyManager non trovato! Usando difficoltà Normal di default.");
             return;
         }
 
         DifficultyLevel currentDifficulty = DifficultyManager.Instance.GetCurrentDifficulty();
-        Debug.Log($"Configurando elementi per difficolt�: {currentDifficulty}");
+        //Debug.Log($"Configurando elementi per difficoltà: {currentDifficulty}");
 
         //Gestisci elementi specifici
         ConfigureSpecificElements(currentDifficulty);
@@ -45,7 +45,7 @@ public class GameElementsManager : MonoBehaviour
             {
                 bool shouldEnable = ShouldElementBeEnabled(element, currentDifficulty);
                 element.gameObjectToToggle.SetActive(shouldEnable);
-                Debug.Log($"Elemento '{element.elementName}' {(shouldEnable ? "abilitato" : "disabilitato")}");
+                //Debug.Log($"Elemento '{element.elementName}' {(shouldEnable ? "abilitato" : "disabilitato")}");
             }
         }
     }
@@ -85,7 +85,7 @@ public class GameElementsManager : MonoBehaviour
         if (minimap != null)
         {
             minimap.gameObject.SetActive(active);
-            Debug.Log($"Minimappa {(active ? "abilitata" : "disabilitata")}");
+            //Debug.Log($"Minimappa {(active ? "abilitata" : "disabilitata")}");
         }
     }
 }

@@ -96,7 +96,7 @@ public class GemSpawner : MonoBehaviour
 
     private GameObject redGemInstance;
 
-    // NUOVO: Strutture dati per ottimizzazione LOD
+    // Strutture dati per ottimizzazione LOD
     [System.Serializable]
     public class GemSpawnData
     {
@@ -140,7 +140,7 @@ public class GemSpawner : MonoBehaviour
             coinGenerator = FindFirstObjectByType<DynamicCoinGenerator>();
 
         StartSpawnCoroutine();
-        StartLODCoroutine(); // NUOVO: Avvia controllo LOD
+        StartLODCoroutine(); // Avvia controllo LOD
 
         // Sottoscrivi agli eventi del ciclo giorno/notte
         if (dayNightManager != null)
@@ -149,7 +149,7 @@ public class GemSpawner : MonoBehaviour
             dayNightManager.events.OnNightStart.AddListener(OnNightStart);
         }
 
-        // AGGIUNTO: Se il gioco inizia dal giorno, genera posizioni gemme gialle dopo l'inizializzazione
+        // Se il gioco inizia dal giorno, genera posizioni gemme gialle dopo l'inizializzazione
         StartCoroutine(CheckInitialDaySpawn());
     }
 
@@ -162,7 +162,7 @@ public class GemSpawner : MonoBehaviour
         if (dayNightManager != null && dayNightManager.IsDay && !yellowGemCollected)
         {
             if (enableDebug)
-                Debug.Log("GemSpawner: Generando posizioni gemme gialle per avvio iniziale dal giorno");
+                //Debug.Log("GemSpawner: Generando posizioni gemme gialle per avvio iniziale dal giorno");
 
             GenerateYellowGemPositions();
         }
@@ -202,7 +202,7 @@ public class GemSpawner : MonoBehaviour
             FogGemText.gameObject.SetActive(false);
     }
 
-    // NUOVO: Coroutine per gestione LOD
+    // Coroutine per gestione LOD
     void StartLODCoroutine()
     {
         if (lodCoroutine != null)
@@ -231,7 +231,7 @@ public class GemSpawner : MonoBehaviour
 
         Vector2Int playerPos = mapManager.WorldToArrayCoordinates(playerController.transform.position);
 
-        // NUOVO: Controlla se il player è nell'inner hub (fuori dai bounds del labirinto)
+        // Controlla se il player è nell'inner hub (fuori dai bounds del labirinto)
         bool playerInInnerHub = !mapManager.IsValidArrayCoordinate(playerPos);
 
         // Aggiorna LOD per gemme gialle solo durante il giorno
@@ -289,7 +289,7 @@ public class GemSpawner : MonoBehaviour
         }
     }
 
-    // NUOVO: Gestione LOD per un tipo specifico di gemma
+    // Gestione LOD per un tipo specifico di gemma
     void UpdateGemTypeLOD(List<GemSpawnData> gemPositions, GameObject gemPrefab, List<GameObject> activeGems, Vector2Int playerPos)
     {
         for (int i = 0; i < gemPositions.Count; i++)
@@ -312,7 +312,7 @@ public class GemSpawner : MonoBehaviour
         }
     }
 
-    // NUOVO: Istanzia una gemma
+    // Istanzia una gemma
     void InstantiateGem(GemSpawnData gemData, GameObject gemPrefab, List<GameObject> activeGems)
     {
         GameObject gem = Instantiate(gemPrefab, gemData.worldPosition, Quaternion.identity);
@@ -325,7 +325,7 @@ public class GemSpawner : MonoBehaviour
             Debug.Log($"GemSpawner LOD: Istanziata gemma a {gemData.worldPosition}");
     }
 
-    // NUOVO: Distrugge una gemma istanziata
+    // Distrugge una gemma istanziata
     void DestroyGem(GemSpawnData gemData, List<GameObject> activeGems)
     {
         if (gemData.instancedGem != null)
@@ -345,7 +345,7 @@ public class GemSpawner : MonoBehaviour
         if (mapManager == null || !mapManager.IsValidArrayCoordinate(arrayPos))
             return -1;
 
-        // NUOVO: Controllo aggiuntivo per evitare IndexOutOfRangeException
+        // Controllo aggiuntivo per evitare IndexOutOfRangeException
         if (arrayPos.x < 0 || arrayPos.x >= mapManager.Distances.GetLength(0) ||
             arrayPos.y < 0 || arrayPos.y >= mapManager.Distances.GetLength(1))
             return -1;
@@ -407,7 +407,7 @@ public class GemSpawner : MonoBehaviour
             // Pulisci reference a gemme distrutte
             CleanupDestroyedGems();
 
-            // MODIFICATO: Controlla solo se generare posizioni per gemme grigie
+            // Controlla solo se generare posizioni per gemme grigie
             if (fogVisibilityUnlocked && !grayGemCollected && grayGemPositions.Count < maxGrayGemsOnMap)
             {
                 GenerateGrayGemPositions();
@@ -422,13 +422,13 @@ public class GemSpawner : MonoBehaviour
         activeGrayGems.RemoveAll(gem => gem == null);
         activeGreenGems.RemoveAll(gem => gem == null);
 
-        // NUOVO: Pulisci anche i riferimenti nelle liste posizioni
+        // Pulisci anche i riferimenti nelle liste posizioni
         CleanupGemPositionsList(yellowGemPositions, activeYellowGems);
         CleanupGemPositionsList(blueGemPositions, activeBlueGems);
         CleanupGemPositionsList(grayGemPositions, activeGrayGems);
     }
 
-    // NUOVO: Pulisci riferimenti nelle liste posizioni
+    // Pulisci riferimenti nelle liste posizioni
     void CleanupGemPositionsList(List<GemSpawnData> positions, List<GameObject> activeGems)
     {
         for (int i = 0; i < positions.Count; i++)
@@ -445,20 +445,22 @@ public class GemSpawner : MonoBehaviour
     void OnDayStart()
     {
         if (enableDebug)
-            Debug.Log("GemSpawner: Giorno iniziato - rimuovendo gemme blu e verdi, gestendo posizioni gemme gialle");
+        {
+            //Debug.Log("GemSpawner: Giorno iniziato - rimuovendo gemme blu e verdi, gestendo posizioni gemme gialle");
+        }
 
         // Rimuovi tutte le gemme blu quando inizia il giorno
         DestroyAllGemsOfType(blueGemPositions, activeBlueGems);
-        // AGGIUNTO: Pulisci anche le posizioni blu per rigenerarle alla prossima notte
+        // Pulisci anche le posizioni blu per rigenerarle alla prossima notte
         blueGemPositions.Clear();
 
-        // NUOVO: Rimuovi tutte le gemme verdi attive quando inizia il giorno
+        // Rimuovi tutte le gemme verdi attive quando inizia il giorno
         DestroyAllActiveGreenGems();
 
         // Genera posizioni gemme gialle se non sono state raccolte
         if (!yellowGemCollected)
         {
-            // MODIFICATO: Se Ã¨ il primissimo avvio (startFromDay), genera immediatamente
+            // Se è il primissimo avvio (startFromDay), genera immediatamente
             if (dayNightManager != null && dayNightManager.startFromDay)
             {
                 GenerateYellowGemPositions(); // Generazione immediata
@@ -473,11 +475,13 @@ public class GemSpawner : MonoBehaviour
     void OnNightStart()
     {
         if (enableDebug)
-            Debug.Log("GemSpawner: Notte iniziata - rimuovendo gemme gialle e generando posizioni gemme blu");
+        {
+            //Debug.Log("GemSpawner: Notte iniziata - rimuovendo gemme gialle e generando posizioni gemme blu");
+        }
 
         // Rimuovi tutte le gemme gialle quando inizia la notte
         DestroyAllGemsOfType(yellowGemPositions, activeYellowGems);
-        // AGGIUNTO: Pulisci anche le posizioni gialle per rigenerarle al prossimo giorno
+        // Pulisci anche le posizioni gialle per rigenerarle al prossimo giorno
         yellowGemPositions.Clear();
 
         // Genera posizioni gemme blu se non sono state raccolte
@@ -500,7 +504,9 @@ public class GemSpawner : MonoBehaviour
         if (yellowGemPrefab == null || playerController == null || mapManager == null || yellowGemCollected)
         {
             if (enableDebug && yellowGemCollected)
-                Debug.Log("GemSpawner: Gemma gialla già raccolta - skip generazione");
+            {
+                //Debug.Log("GemSpawner: Gemma gialla già raccolta - skip generazione");
+            }
             return;
         }
 
@@ -510,7 +516,9 @@ public class GemSpawner : MonoBehaviour
             GenerateGemPositionsInRadius(yellowGemPositions, yellowGemMinDistance, yellowGemMaxDistance, maxYellowGemsOnMap);
 
             if (enableDebug)
-                Debug.Log($"GemSpawner: Generate {yellowGemPositions.Count} posizioni per gemme gialle");
+            {
+                //Debug.Log($"GemSpawner: Generate {yellowGemPositions.Count} posizioni per gemme gialle");
+            }
         }
     }
 
@@ -529,7 +537,9 @@ public class GemSpawner : MonoBehaviour
         if (blueGemPrefab == null || playerController == null || mapManager == null || blueGemCollected)
         {
             if (enableDebug && blueGemCollected)
-                Debug.Log("GemSpawner: Gemma blu già raccolta - skip generazione");
+            {
+                //Debug.Log("GemSpawner: Gemma blu già raccolta - skip generazione");
+            }
             return;
         }
 
@@ -539,7 +549,9 @@ public class GemSpawner : MonoBehaviour
             GenerateGemPositionsInRadius(blueGemPositions, blueGemMinDistance, blueGemMaxDistance, maxBlueGemsOnMap);
 
             if (enableDebug)
-                Debug.Log($"GemSpawner: Generate {blueGemPositions.Count} posizioni per gemme blu");
+            {
+                //Debug.Log($"GemSpawner: Generate {blueGemPositions.Count} posizioni per gemme blu");
+            }
         }
     }
 
@@ -547,16 +559,15 @@ public class GemSpawner : MonoBehaviour
 
     #region Green Gem Spawning (Zombie Drop)
 
-    /// <summary>
-    /// Chiamato dai nemici quando muoiono per tentare il drop di una gemma verde
-    /// </summary>
-    /// <param name="enemyPosition">Posizione del nemico morto</param>
+    // Chiamato dai nemici quando muoiono per tentare il drop di una gemma verde
     public void TryDropGreenGem(Vector3 enemyPosition)
     {
         if (greenGemPrefab == null || greenGemCollected)
         {
             if (enableDebug && greenGemCollected)
-                Debug.Log("GemSpawner: Gemma verde giÃ  raccolta - skip drop");
+            {
+                //Debug.Log("GemSpawner: Gemma verde già  raccolta - skip drop");
+            }
             return;
         }
 
@@ -568,25 +579,29 @@ public class GemSpawner : MonoBehaviour
             {
                 Vector2Int arrayPos = mapManager.WorldToArrayCoordinates(dropPosition);
 
-                // Controlla se c'Ã¨ una moneta da rimuovere
+                // Controlla se c'è una moneta da rimuovere
                 RemoveCoinAtPosition(arrayPos);
 
                 // Spawna la gemma verde
                 GameObject gem = Instantiate(greenGemPrefab, dropPosition, Quaternion.identity);
 
-                // NUOVO: Aggiungi alla lista delle gemme verdi attive
+                // Aggiungi alla lista delle gemme verdi attive
                 activeGreenGems.Add(gem);
 
                 // Registra la posizione come occupata
                 RegisterOccupiedPosition(arrayPos, gem);
 
                 if (enableDebug)
-                    Debug.Log($"GemSpawner: Gemma verde droppata a {dropPosition} (snappato) dal nemico in {enemyPosition}");
+                {
+                    //Debug.Log($"GemSpawner: Gemma verde droppata a {dropPosition} (snappato) dal nemico in {enemyPosition}");
+                }
             }
             else
             {
                 if (enableDebug)
-                    Debug.Log($"GemSpawner: Nessuna posizione valida trovata vicino a {enemyPosition} per gemma verde");
+                {
+                    //Debug.Log($"GemSpawner: Nessuna posizione valida trovata vicino a {enemyPosition} per gemma verde");
+                }
             }
         }
     }
@@ -674,7 +689,9 @@ public class GemSpawner : MonoBehaviour
             coinGenerator.OnCoinCollected(arrayPos);
 
             if (enableDebug)
-                Debug.Log($"GemSpawner: Rimossa moneta alla posizione {arrayPos} per spawn gemma verde");
+            {
+                //Debug.Log($"GemSpawner: Rimossa moneta alla posizione {arrayPos} per spawn gemma verde");
+            }
         }
     }
 
@@ -682,15 +699,16 @@ public class GemSpawner : MonoBehaviour
 
     #region Red Gem Spawning (Blood)
 
-    /// <summary>
-    /// Chiamato quando il player muore
-    /// </summary>
+
+    // Chiamato quando il player muore
     public void OnPlayerDeath()
     {
         currentPlayerDeaths++;
 
         if (enableDebug)
-            Debug.Log($"GemSpawner: Player morto {currentPlayerDeaths}/{deathsRequiredForRedGem} volte");
+        {
+            //Debug.Log($"GemSpawner: Player morto {currentPlayerDeaths}/{deathsRequiredForRedGem} volte");
+        }
 
         if (currentPlayerDeaths >= deathsRequiredForRedGem && !redGemSpawned && !redGemCollected)
         {
@@ -703,7 +721,9 @@ public class GemSpawner : MonoBehaviour
         if (redGemPrefab == null || redGemCollected)
         {
             if (enableDebug && redGemCollected)
-                Debug.Log("GemSpawner: Gemma rossa già raccolta - skip spawn");
+            {
+                //Debug.Log("GemSpawner: Gemma rossa già raccolta - skip spawn");
+            }
             return;
         }
 
@@ -712,22 +732,24 @@ public class GemSpawner : MonoBehaviour
         redGemSpawned = true;
 
         if (enableDebug)
-            Debug.Log($"GemSpawner: Gemma rossa spawnata alla posizione fissa {redGemSpawnPosition} dopo {currentPlayerDeaths} morti");
+        {
+            //Debug.Log($"GemSpawner: Gemma rossa spawnata alla posizione fissa {redGemSpawnPosition} dopo {currentPlayerDeaths} morti");
+        }
     }
 
     #endregion
 
     #region Gray Gem Generation (Fog)
 
-    /// <summary>
-    /// Chiamato quando si sblocca la visibilità della nebbia
-    /// </summary>
+    // Chiamato quando si sblocca la visibilità della nebbia
     public void UnlockFogVisibility()
     {
         fogVisibilityUnlocked = true;
 
         if (enableDebug)
-            Debug.Log("GemSpawner: Visibilità nebbia sbloccata");
+        {
+            //Debug.Log("GemSpawner: Visibilità nebbia sbloccata");
+        }
     }
 
     void GenerateGrayGemPositions()
@@ -735,7 +757,9 @@ public class GemSpawner : MonoBehaviour
         if (grayGemPrefab == null || playerController == null || mapManager == null || grayGemCollected)
         {
             if (enableDebug && grayGemCollected)
-                Debug.Log("GemSpawner: Gemma grigia già raccolta - skip generazione");
+            {
+                //Debug.Log("GemSpawner: Gemma grigia già raccolta - skip generazione");
+            }
             return;
         }
 
@@ -746,7 +770,9 @@ public class GemSpawner : MonoBehaviour
             GenerateGemPositionsInRadius(grayGemPositions, grayGemMinDistance, grayGemMaxDistance, positionsToGenerate);
 
             if (enableDebug)
-                Debug.Log($"GemSpawner: Generate {positionsToGenerate} nuove posizioni per gemme grigie");
+            {
+                //Debug.Log($"GemSpawner: Generate {positionsToGenerate} nuove posizioni per gemme grigie");
+            }
         }
     }
 
@@ -754,9 +780,7 @@ public class GemSpawner : MonoBehaviour
 
     #region Position Generation
 
-    /// <summary>
-    /// NUOVO: Genera posizioni per gemme in un raggio dal centro del labirinto
-    /// </summary>
+    // Genera posizioni per gemme in un raggio dal centro del labirinto
     void GenerateGemPositionsInRadius(List<GemSpawnData> targetList, int minDistance, int maxDistance, int maxPositions)
     {
         if (mapManager == null || !mapManager.wallCalculated)
@@ -806,12 +830,12 @@ public class GemSpawner : MonoBehaviour
         }
 
         if (enableDebug)
-            Debug.Log($"GemSpawner: Generate {positionsGenerated}/{maxPositions} posizioni valide");
+        {
+            //Debug.Log($"GemSpawner: Generate {positionsGenerated}/{maxPositions} posizioni valide");
+        }
     }
 
-    /// <summary>
-    /// NUOVO: Controlla se una posizione è già nella lista
-    /// </summary>
+    // Controlla se una posizione è già nella lista
     bool IsPositionAlreadyInList(Vector2Int arrayPos, List<GemSpawnData> list)
     {
         foreach (var data in list)
@@ -822,9 +846,7 @@ public class GemSpawner : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// Trova una posizione valida vicino a un punto specificato (solo su corridoi)
-    /// </summary>
+    // Trova una posizione valida vicino a un punto specificato (solo su corridoi)
     Vector3 FindNearbyValidGemPosition(Vector3 centerPosition, int maxRadius)
     {
         if (mapManager == null || !mapManager.wallCalculated)
@@ -876,9 +898,7 @@ public class GemSpawner : MonoBehaviour
         return Vector3.zero;
     }
 
-    /// <summary>
-    /// Controlla se una posizione è un tile corridoio valido per spawn gemme
-    /// </summary>
+    // Controlla se una posizione è un tile corridoio valido per spawn gemme
     bool IsValidCorridorTile(Vector2Int arrayPos)
     {
         // Usa la stessa logica delle monete ma assicurati che sia un corridoio
@@ -893,9 +913,7 @@ public class GemSpawner : MonoBehaviour
 
     #region Gem Collection Methods
 
-    /// <summary>
-    /// Chiamato quando il player raccoglie una gemma gialla
-    /// </summary>
+    // Chiamato quando il player raccoglie una gemma gialla
     public void OnYellowGemCollected()
     {
         yellowGemCollected = true;
@@ -904,12 +922,12 @@ public class GemSpawner : MonoBehaviour
         StartCoroutine(ShowGemCollected(LightGemText));
 
         if (enableDebug)
-            Debug.Log("GemSpawner: Gemma gialla raccolta - non spawneranno più gemme gialle");
+        {
+            //Debug.Log("GemSpawner: Gemma gialla raccolta - non spawneranno più gemme gialle");
+        }
     }
 
-    /// <summary>
-    /// Chiamato quando il player raccoglie una gemma blu
-    /// </summary>
+    // Chiamato quando il player raccoglie una gemma blu
     public void OnBlueGemCollected()
     {
         blueGemCollected = true;
@@ -918,12 +936,12 @@ public class GemSpawner : MonoBehaviour
         StartCoroutine(ShowGemCollected(NightGemText));
 
         if (enableDebug)
-            Debug.Log("GemSpawner: Gemma blu raccolta - non spawneranno più gemme blu");
+        {
+            //Debug.Log("GemSpawner: Gemma blu raccolta - non spawneranno più gemme blu");
+        }
     }
 
-    /// <summary>
-    /// Chiamato quando il player raccoglie una gemma verde
-    /// </summary>
+    // Chiamato quando il player raccoglie una gemma verde
     public void OnGreenGemCollected()
     {
         greenGemCollected = true;
@@ -932,12 +950,12 @@ public class GemSpawner : MonoBehaviour
         StartCoroutine(ShowGemCollected(ZombieGemText));
 
         if (enableDebug)
-            Debug.Log("GemSpawner: Gemma verde raccolta - tutte le altre gemme verdi rimosse");
+        {
+            //Debug.Log("GemSpawner: Gemma verde raccolta - tutte le altre gemme verdi rimosse");
+        }
     }
 
-    /// <summary>
-    /// Chiamato quando il player raccoglie una gemma grigia
-    /// </summary>
+    // Chiamato quando il player raccoglie una gemma grigia
     public void OnGrayGemCollected()
     {
         grayGemCollected = true;
@@ -946,12 +964,12 @@ public class GemSpawner : MonoBehaviour
         StartCoroutine(ShowGemCollected(FogGemText));
 
         if (enableDebug)
-            Debug.Log("GemSpawner: Gemma grigia raccolta - non spawneranno più gemme grigie");
+        {
+            //Debug.Log("GemSpawner: Gemma grigia raccolta - non spawneranno più gemme grigie");
+        }
     }
 
-    /// <summary>
-    /// Chiamato quando il player raccoglie una gemma rossa
-    /// </summary>
+    // Chiamato quando il player raccoglie una gemma rossa
     public void OnRedGemCollected()
     {
         redGemCollected = true;
@@ -961,14 +979,16 @@ public class GemSpawner : MonoBehaviour
         StartCoroutine(ShowGemCollected(BloodGemText));
 
         if (enableDebug)
-            Debug.Log("GemSpawner: Gemma rossa raccolta - non spawneranno più gemme rosse");
+        {
+            //Debug.Log("GemSpawner: Gemma rossa raccolta - non spawneranno più gemme rosse");
+        }
     }
 
     #endregion
 
     #region Utility Methods
 
-    // MODIFICATO: Distrugge tutte le gemme di un tipo specifico
+    // Distrugge tutte le gemme di un tipo specifico
     void DestroyAllGemsOfType(List<GemSpawnData> gemPositions, List<GameObject> activeGems)
     {
         // Distruggi tutte le gemme istanziate
@@ -990,7 +1010,7 @@ public class GemSpawner : MonoBehaviour
         {
             if (gemPositions[i].instancedGem != null)
             {
-                // AGGIUNTO: Libera anche le posizioni occupate dalle posizioni non istanziate
+                // Libera anche le posizioni occupate dalle posizioni non istanziate
                 UnregisterOccupiedPosition(gemPositions[i].arrayPosition);
             }
             gemPositions[i].instancedGem = null;
@@ -1013,7 +1033,9 @@ public class GemSpawner : MonoBehaviour
         activeGreenGems.Clear();
 
         if (enableDebug && activeGreenGems.Count > 0)
-            Debug.Log("GemSpawner: Tutte le gemme verdi attive sono state distrutte");
+        {
+            //Debug.Log("GemSpawner: Tutte le gemme verdi attive sono state distrutte");
+        }
     }
 
     IEnumerator ShowGemCollected(TextMeshProUGUI gemText)
@@ -1032,9 +1054,7 @@ public class GemSpawner : MonoBehaviour
         gemCollectedPanel.SetActive(false);
     }
 
-    /// <summary>
-    /// Reset dello spawner per nuovo gioco
-    /// </summary>
+    // Reset dello spawner per nuovo gioco
     public void ResetSpawner()
     {
         currentPlayerDeaths = 0;
@@ -1053,7 +1073,7 @@ public class GemSpawner : MonoBehaviour
         DestroyAllGemsOfType(blueGemPositions, activeBlueGems);
         DestroyAllGemsOfType(grayGemPositions, activeGrayGems);
 
-        // NUOVO: Rimuovi anche tutte le gemme verdi
+        // Rimuovi anche tutte le gemme verdi
         DestroyAllActiveGreenGems();
 
         // Pulisci completamente le liste posizioni
@@ -1064,12 +1084,12 @@ public class GemSpawner : MonoBehaviour
         ClearAllOccupiedPositions();
 
         if (enableDebug)
-            Debug.Log("GemSpawner: Reset completato con ottimizzazione LOD e gestione gemme verdi");
+        {
+            //Debug.Log("GemSpawner: Reset completato con ottimizzazione LOD e gestione gemme verdi");
+        }
     }
 
-    /// <summary>
-    /// NUOVO: Force update del LOD quando il player si teletrasporta
-    /// </summary>
+    // Force update del LOD quando il player si teletrasporta
     public void ForceUpdateLOD()
     {
         if (playerController != null && mapManager != null && mapManager.wallCalculated)
@@ -1077,13 +1097,13 @@ public class GemSpawner : MonoBehaviour
             UpdateGemLOD();
 
             if (enableDebug)
-                Debug.Log("GemSpawner: LOD forzato dopo teletrasporto player");
+            {
+                //Debug.Log("GemSpawner: LOD forzato dopo teletrasporto player");
+            }
         }
     }
 
-    /// <summary>
-    /// Ottieni statistiche correnti dello spawner
-    /// </summary>
+    // Ottieni statistiche correnti dello spawner
     public string GetSpawnerStats()
     {
         int yellowInstanced = 0, blueInstanced = 0, grayInstanced = 0;
@@ -1105,9 +1125,7 @@ public class GemSpawner : MonoBehaviour
                $"Gemme Raccolte - G:{yellowGemCollected}, B:{blueGemCollected}, V:{greenGemCollected}, Gr:{grayGemCollected}, R:{redGemCollected}";
     }
 
-    /// <summary>
-    /// NUOVO: Ottieni informazioni LOD per debug
-    /// </summary>
+    // Ottieni informazioni LOD per debug
     public string GetLODInfo()
     {
         if (playerController == null || mapManager == null)
@@ -1149,7 +1167,7 @@ public class GemSpawner : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(redGemSpawnPosition, Vector3.one);
 
-        // NUOVO: Visualizza posizioni generate
+        // Visualizza posizioni generate
         if (Application.isPlaying)
         {
             // Posizioni gemme gialle (cerchi gialli)
@@ -1182,7 +1200,7 @@ public class GemSpawner : MonoBehaviour
                     Gizmos.DrawWireSphere(pos.worldPosition, 0.3f);
             }
 
-            // NUOVO: Visualizza range LOD del player
+            // Visualizza range LOD del player
             if (playerController != null && mapManager != null)
             {
                 Vector3 playerWorldPos = playerController.transform.position;
@@ -1225,7 +1243,7 @@ public class GemSpawner : MonoBehaviour
         // Etichetta gemma rossa
         UnityEditor.Handles.Label(redGemSpawnPosition + Vector3.up + Vector3.left * 0.5f, "Red Gem Position", labelStyle);
 
-        // NUOVO: Etichette LOD
+        // Etichette LOD
         if (Application.isPlaying && playerController != null)
         {
             Vector3 playerPos = playerController.transform.position;
@@ -1266,16 +1284,14 @@ public class GemSpawner : MonoBehaviour
             StopCoroutine(spawnCoroutine);
         }
 
-        // NUOVO: Ferma anche la coroutine LOD
+        // Ferma anche la coroutine LOD
         if (lodCoroutine != null)
         {
             StopCoroutine(lodCoroutine);
         }
     }
 
-    /// <summary>
-    /// METODO DEBUG: Testa il sistema di spawn gemme verdi
-    /// </summary>
+    // METODO DEBUG: Testa il sistema di spawn gemme verdi
     [ContextMenu("Test Green Gem Drop")]
     void TestGreenGemDrop()
     {

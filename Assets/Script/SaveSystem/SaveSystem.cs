@@ -82,7 +82,7 @@ public class SaveSystem
             if (shop != null)
             {
                 shop.Save(ref currentSaveData.shopData);
-                Debug.Log("Dati shop salvati");
+                //Debug.Log("Dati shop salvati");
             }
             else
             {
@@ -90,7 +90,7 @@ public class SaveSystem
                 if (foundShop != null)
                 {
                     foundShop.Save(ref currentSaveData.shopData);
-                    Debug.Log("ShopManager trovato automaticamente e salvato");
+                    //Debug.Log("ShopManager trovato automaticamente e salvato");
                 }
             }
 
@@ -98,7 +98,7 @@ public class SaveSystem
             if(difficultyManager != null)
             {
                 difficultyManager.Save(ref currentSaveData.difficultyData);
-                Debug.Log("Difficolt� salvata!");
+                //Debug.Log("Difficolt� salvata!");
             }
             else
             {
@@ -112,7 +112,7 @@ public class SaveSystem
             if(fogManager != null)
             {
                 fogManager.Save(ref currentSaveData.fogData);
-                Debug.Log("Dati nebbia salvati");
+                //Debug.Log("Dati nebbia salvati");
             }
 
             currentSaveData.sceneIndex = SceneManager.GetActiveScene().buildIndex;
@@ -124,7 +124,7 @@ public class SaveSystem
 
             // Salvataggio locale
             File.WriteAllText(SaveFileName(), json);
-            Debug.Log($"Salvataggio locale completato per utente {GetCurrentUserId()}: {SaveFileName()}");
+            //Debug.Log($"Salvataggio locale completato per utente {GetCurrentUserId()}: {SaveFileName()}");
 
             // Salvataggio su Firebase
             SaveToFirebase(json);
@@ -135,7 +135,7 @@ public class SaveSystem
         }
         catch (System.Exception e)
         {
-            Debug.LogError("Errore durante il salvataggio: " + e.Message);
+            //Debug.LogError("Errore durante il salvataggio: " + e.Message);
         }
     }
 
@@ -146,7 +146,7 @@ public class SaveSystem
         {
             if (!success)
             {
-                Debug.LogWarning($"Caricamento dal cloud fallito per {GetCurrentUserId()}, provo dal locale...");
+                //Debug.LogWarning($"Caricamento dal cloud fallito per {GetCurrentUserId()}, provo dal locale...");
                 LoadLocal();
             }
         });
@@ -156,7 +156,7 @@ public class SaveSystem
     {
         if (!SaveExists())
         {
-            Debug.LogWarning($"Nessun file di salvataggio trovato per {GetCurrentUserId()}!");
+            //Debug.LogWarning($"Nessun file di salvataggio trovato per {GetCurrentUserId()}!");
             return;
         }
 
@@ -170,16 +170,16 @@ public class SaveSystem
             // Memorizza i dati per l'utente corrente
             SetCurrentUserSaveData(loadedData);
 
-            Debug.Log($"=== CARICAMENTO LOCALE INIZIATO PER {GetCurrentUserId()} ===");
-            Debug.Log("Dati caricati - Monete: " + loadedData.currencyData.CurrencyAmount);
-            Debug.Log("Scena da caricare: " + loadedData.sceneIndex);
+            //Debug.Log($"=== CARICAMENTO LOCALE INIZIATO PER {GetCurrentUserId()} ===");
+            //Debug.Log("Dati caricati - Monete: " + loadedData.currencyData.CurrencyAmount);
+            //Debug.Log("Scena da caricare: " + loadedData.sceneIndex);
 
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.LoadScene(loadedData.sceneIndex);
         }
         catch (System.Exception e)
         {
-            Debug.LogError("Errore durante il caricamento locale: " + e.Message);
+            //Debug.LogError("Errore durante il caricamento locale: " + e.Message);
         }
     }
 
@@ -213,11 +213,11 @@ public class SaveSystem
         GemSpawner gemSpawner = GameObject.FindFirstObjectByType<GemSpawner>();
         FogManager fogManager = GameObject.FindFirstObjectByType<FogManager>(); // NUOVO
 
-        Debug.Log($"=== CARICAMENTO COMPONENTI PER {GetCurrentUserId()} ===");
-        Debug.Log("CoinUIManager trovato: " + (coin != null));
-        Debug.Log("PlayerController trovato: " + (player != null));
-        Debug.Log("DayNightCycleManager trovato: " + (dayNight != null));
-        Debug.Log("FogManager trovato: " + (fogManager != null));
+        //Debug.Log($"=== CARICAMENTO COMPONENTI PER {GetCurrentUserId()} ===");
+        //Debug.Log("CoinUIManager trovato: " + (coin != null));
+        //Debug.Log("PlayerController trovato: " + (player != null));
+        //Debug.Log("DayNightCycleManager trovato: " + (dayNight != null));
+        //Debug.Log("FogManager trovato: " + (fogManager != null));
 
         if (player != null && coin != null && dayNight != null && shop != null)
         {
@@ -231,7 +231,7 @@ public class SaveSystem
             if(difficultyManager != null)
             {
                 difficultyManager.Load(currentUserData.difficultyData);
-                Debug.Log("Difficolt� caricata!");
+                //Debug.Log("Difficolt� caricata!");
 
                 yield return new WaitForEndOfFrame();
             }
@@ -239,18 +239,18 @@ public class SaveSystem
             if(fogManager != null)
             {
                 fogManager.Load(currentUserData.fogData);
-                Debug.Log("Dati nebbia caricati!");
+                //Debug.Log("Dati nebbia caricati!");
             }
 
 
             gameElementsManager.ConfigureGameElements();
             gemSpawner.Load(currentUserData.gemData);
 
-            Debug.Log($"Dati caricati in scena per utente {GetCurrentUserId()}!");
+            //Debug.Log($"Dati caricati in scena per utente {GetCurrentUserId()}!");
         }
         else
         {
-            Debug.LogError("SaveSystem: Componenti non trovati nella scena!");
+            //Debug.LogError("SaveSystem: Componenti non trovati nella scena!");
         }
     }
 
@@ -260,7 +260,7 @@ public class SaveSystem
         FirebaseUser user = FirebaseAuth.DefaultInstance.CurrentUser;
         if (user == null)
         {
-            Debug.LogWarning("Utente non autenticato, salvataggio cloud ignorato");
+            //Debug.LogWarning("Utente non autenticato, salvataggio cloud ignorato");
             return;
         }
 
@@ -277,11 +277,11 @@ public class SaveSystem
         {
             if (task.IsCompleted && !task.IsFaulted)
             {
-                Debug.Log($"Salvataggio su Firebase completato per {user.UserId}");
+                //Debug.Log($"Salvataggio su Firebase completato per {user.UserId}");
             }
             else
             {
-                Debug.LogError($"Errore salvataggio su Firebase per {user.UserId}: " + task.Exception);
+                //Debug.LogError($"Errore salvataggio su Firebase per {user.UserId}: " + task.Exception);
             }
         });
     }
@@ -292,7 +292,7 @@ public class SaveSystem
         FirebaseUser user = FirebaseAuth.DefaultInstance.CurrentUser;
         if (user == null)
         {
-            Debug.LogWarning("Utente non autenticato, caricamento cloud ignorato");
+            //Debug.LogWarning("Utente non autenticato, caricamento cloud ignorato");
             onComplete(false);
             return;
         }
@@ -313,20 +313,20 @@ public class SaveSystem
                     // Memorizza i dati per l'utente corrente
                     SetCurrentUserSaveData(loadedData);
 
-                    Debug.Log($"Dati caricati da Firebase per {user.UserId}");
+                    //Debug.Log($"Dati caricati da Firebase per {user.UserId}");
                     SceneManager.sceneLoaded += OnSceneLoaded;
                     SceneManager.LoadScene(loadedData.sceneIndex);
                     onComplete(true);
                 }
                 else
                 {
-                    Debug.Log($"Nessun salvataggio cloud trovato per {user.UserId}");
+                    //Debug.Log($"Nessun salvataggio cloud trovato per {user.UserId}");
                     onComplete(false);
                 }
             }
             else
             {
-                Debug.LogError($"Errore caricamento da Firebase per {user.UserId}: " + task.Exception);
+                //Debug.LogError($"Errore caricamento da Firebase per {user.UserId}: " + task.Exception);
                 onComplete(false);
             }
         });
@@ -339,7 +339,7 @@ public class SaveSystem
         if (_userSaveData.ContainsKey(userId))
         {
             _userSaveData.Remove(userId);
-            Debug.Log($"SaveSystem: dati rimossi dalla memoria per {userId}");
+            //Debug.Log($"SaveSystem: dati rimossi dalla memoria per {userId}");
         }
 
         // Rimuovi anche il file locale se esiste
@@ -348,11 +348,11 @@ public class SaveSystem
             try
             {
                 File.Delete(SaveFileName());
-                Debug.Log($"File locale rimosso per {userId}");
+                //Debug.Log($"File locale rimosso per {userId}");
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"Errore rimozione file locale: {e.Message}");
+                //Debug.LogError($"Errore rimozione file locale: {e.Message}");
             }
         }
     }
@@ -361,7 +361,7 @@ public class SaveSystem
     public static void ClearAllData()
     {
         _userSaveData.Clear();
-        Debug.Log("SaveSystem: tutti i dati in memoria azzerati");
+        //Debug.Log("SaveSystem: tutti i dati in memoria azzerati");
     }
 
     //Se nuova partita
@@ -381,7 +381,3 @@ public class SaveSystem
         return currentData.fogData.isInitialized && !string.IsNullOrEmpty(currentData.fogData.fogBitArrayData);
     }
 }
-
-
-
-

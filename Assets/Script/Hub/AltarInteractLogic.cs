@@ -12,7 +12,9 @@ public class AltarInteractLogic : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             if (enableDebug)
-                Debug.Log("Player entrato nell'area dell'altare");
+            {
+                //Debug.Log("Player entrato nell'area dell'altare");
+            }
             
             hub.OnPlayerEnterAltarArea();
         }
@@ -23,7 +25,9 @@ public class AltarInteractLogic : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             if (enableDebug)
-                Debug.Log("Player uscito dall'area del letto");
+            {
+                //Debug.Log("Player uscito dall'area del letto");
+            }
             
             hub.OnPlayerExitAltarArea();
         }

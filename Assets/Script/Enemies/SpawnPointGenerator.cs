@@ -45,33 +45,33 @@ public class SpawnPointGenerator : MonoBehaviour
 
     public void UpdateTilemapAndRegenerateSpawns(Tilemap newTilemap)
     {
-        Debug.Log($"UpdateTilemapAndRegenerateSpawns chiamato. AutoUpdate: {autoUpdateOnMazeChange}");
+        //Debug.Log($"UpdateTilemapAndRegenerateSpawns chiamato. AutoUpdate: {autoUpdateOnMazeChange}");
 
         if (!autoUpdateOnMazeChange)
         {
-            Debug.Log("AutoUpdateOnMazeChange è disattivato, skip aggiornamento");
+            //Debug.Log("AutoUpdateOnMazeChange è disattivato, skip aggiornamento");
             return;
         }
 
         if (newTilemap == null)
         {
-            Debug.LogError("Tilemap è NULL in UpdateTilemapAndRegenerateSpawns!");
+            //Debug.LogError("Tilemap è NULL in UpdateTilemapAndRegenerateSpawns!");
             return;
         }
 
         // Debug più dettagliato
-        Debug.Log($"Tilemap corrente: {(labirintoTilemap != null ? labirintoTilemap.name : "NULL")}");
-        Debug.Log($"Nuova tilemap: {newTilemap.name}");
-        Debug.Log($"Spawn points attuali: {spawnPoints.Count}");
+        //Debug.Log($"Tilemap corrente: {(labirintoTilemap != null ? labirintoTilemap.name : "NULL")}");
+        //Debug.Log($"Nuova tilemap: {newTilemap.name}");
+        //Debug.Log($"Spawn points attuali: {spawnPoints.Count}");
 
         // Controlla se è la stessa tilemap (evita rigenerazione inutile)
         if (labirintoTilemap == newTilemap && spawnPoints.Count > 0)
         {
-            Debug.Log("Tilemap non cambiata e spawn points già presenti, skip rigenerazione spawn points");
+            //Debug.Log("Tilemap non cambiata e spawn points già presenti, skip rigenerazione spawn points");
             return;
         }
 
-        Debug.Log("Tilemap cambiata o spawn points vuoti, procedendo con rigenerazione...");
+        //Debug.Log("Tilemap cambiata o spawn points vuoti, procedendo con rigenerazione...");
 
         // Aggiorna la tilemap
         labirintoTilemap = newTilemap;
@@ -86,24 +86,24 @@ public class SpawnPointGenerator : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("EnemySpawner non trovato per passaggio automatico spawn points!");
+            //Debug.LogWarning("EnemySpawner non trovato per passaggio automatico spawn points!");
             // Cerca di nuovo
             enemySpawner = FindFirstObjectByType<EnemySpawner>();
             if (enemySpawner != null)
             {
                 PassSpawnPointsToEnemySpawner();
-                Debug.Log("EnemySpawner trovato al secondo tentativo");
+                //Debug.Log("EnemySpawner trovato al secondo tentativo");
             }
         }
     }
 
     public void ForceRegenerateSpawns(Tilemap newTilemap)
     {
-        Debug.Log($"ForceRegenerateSpawns chiamato con tilemap: {(newTilemap != null ? newTilemap.name : "NULL")}");
+        //Debug.Log($"ForceRegenerateSpawns chiamato con tilemap: {(newTilemap != null ? newTilemap.name : "NULL")}");
 
         if (newTilemap == null)
         {
-            Debug.LogError("Tilemap è NULL in ForceRegenerateSpawns!");
+            //Debug.LogError("Tilemap è NULL in ForceRegenerateSpawns!");
             return;
         }
 
@@ -111,7 +111,7 @@ public class SpawnPointGenerator : MonoBehaviour
         labirintoTilemap = newTilemap;
 
         // Forza la rigenerazione senza controlli preventivi
-        Debug.Log("Avviando rigenerazione forzata spawn points...");
+        //Debug.Log("Avviando rigenerazione forzata spawn points...");
         GeneraSpawnPoints();
 
         // Passa automaticamente i nuovi spawn points all'EnemySpawner
@@ -126,11 +126,11 @@ public class SpawnPointGenerator : MonoBehaviour
             if (enemySpawner != null)
             {
                 PassSpawnPointsToEnemySpawner();
-                Debug.Log("EnemySpawner trovato al secondo tentativo");
+                //Debug.Log("EnemySpawner trovato al secondo tentativo");
             }
             else
             {
-                Debug.LogWarning("EnemySpawner non trovato per passaggio automatico spawn points!");
+                //Debug.LogWarning("EnemySpawner non trovato per passaggio automatico spawn points!");
             }
         }
     }
@@ -139,19 +139,19 @@ public class SpawnPointGenerator : MonoBehaviour
     {
         if (enemySpawner == null)
         {
-            Debug.LogWarning("EnemySpawner non assegnato, tentativo di ricerca...");
+            //Debug.LogWarning("EnemySpawner non assegnato, tentativo di ricerca...");
             enemySpawner = FindFirstObjectByType<EnemySpawner>();
         }
         
         if (enemySpawner == null)
         {
-            Debug.LogError("EnemySpawner non trovato nella scena!");
+            //Debug.LogError("EnemySpawner non trovato nella scena!");
             return;
         }
         
         if (spawnPoints.Count == 0)
         {
-            Debug.LogWarning("Nessun spawn point da passare all'EnemySpawner");
+            //Debug.LogWarning("Nessun spawn point da passare all'EnemySpawner");
             return;
         }
         
@@ -165,26 +165,24 @@ public class SpawnPointGenerator : MonoBehaviour
         // Passa i dati all'EnemySpawner
         enemySpawner.UpdateGeneratedSpawnPoints(positions);
         
-        Debug.Log($"Passati {positions.Length} spawn points all'EnemySpawner");
+        //Debug.Log($"Passati {positions.Length} spawn points all'EnemySpawner");
         
         // VERIFICA: Controlla che l'EnemySpawner stia effettivamente usando i generated spawn points
         if (!enemySpawner.useGeneratedSpawnPoints)
         {
-            Debug.LogWarning("ATTENZIONE: EnemySpawner non sta usando i generated spawn points!");
-            Debug.LogWarning("Forzando l'utilizzo dei generated spawn points...");
+            //Debug.LogWarning("ATTENZIONE: EnemySpawner non sta usando i generated spawn points!");
+            //Debug.LogWarning("Forzando l'utilizzo dei generated spawn points...");
             
-            // NUOVO: Forza l'utilizzo attraverso il metodo pubblico dell'inspector
+            // Forza l'utilizzo attraverso il metodo pubblico dell'inspector
             enemySpawner.CopiaPosizioniDaGenerator();
         }
         else
         {
-            Debug.Log("EnemySpawner configurato correttamente per usare generated spawn points");
+            //Debug.Log("EnemySpawner configurato correttamente per usare generated spawn points");
         }
     }
 
-    /// <summary>
-    /// Metodo pubblico per forzare l'aggiornamento manuale
-    /// </summary>
+    // Metodo pubblico per forzare l'aggiornamento manuale
     [ContextMenu("Aggiorna e Passa Spawn Points")]
     public void ForceUpdateAndPass()
     {
@@ -234,7 +232,7 @@ public class SpawnPointGenerator : MonoBehaviour
         
         if (labirintoTilemap == null)
         {
-            Debug.LogError("Nessuna Tilemap trovata! Assegna la tilemap del labirinto.");
+            //Debug.LogError("Nessuna Tilemap trovata! Assegna la tilemap del labirinto.");
             return;
         }
         
@@ -243,7 +241,7 @@ public class SpawnPointGenerator : MonoBehaviour
         
         if (posizioniValide.Count == 0)
         {
-            Debug.LogWarning("Nessuna posizione valida trovata per gli spawn points!");
+            //Debug.LogWarning("Nessuna posizione valida trovata per gli spawn points!");
             return;
         }
         
@@ -265,7 +263,7 @@ public class SpawnPointGenerator : MonoBehaviour
         
         if (mostraDebugInfo)
         {
-            Debug.Log($"Generati {spawnPointsDaGenerare} spawn points.");
+            //Debug.Log($"Generati {spawnPointsDaGenerare} spawn points.");
         }
         
         // RIMUOVI le chiamate agli EditorUtility durante runtime
@@ -285,7 +283,7 @@ public class SpawnPointGenerator : MonoBehaviour
 
         if (mostraDebugInfo)
         {
-            Debug.Log("Spawn points puliti.");
+            //Debug.Log("Spawn points puliti.");
         }
 
 #if UNITY_EDITOR
@@ -303,7 +301,7 @@ public class SpawnPointGenerator : MonoBehaviour
 
         if (mostraDebugInfo)
         {
-            Debug.Log($"Scansionando tilemap con bounds: {bounds}");
+            //Debug.Log($"Scansionando tilemap con bounds: {bounds}");
         }
 
         int posizioniScansionate = 0;
@@ -342,10 +340,10 @@ public class SpawnPointGenerator : MonoBehaviour
 
         if (mostraDebugInfo)
         {
-            Debug.Log($"Scansione completata:");
-            Debug.Log($"- Posizioni totali scansionate: {posizioniScansionate}");
-            Debug.Log($"- Posizioni con tile corridoio: {posizioniCorridoio}");
-            Debug.Log($"- Posizioni valide (nel range di distanza): {posizioniValide.Count}");
+            //Debug.Log($"Scansione completata:");
+            //Debug.Log($"- Posizioni totali scansionate: {posizioniScansionate}");
+            //Debug.Log($"- Posizioni con tile corridoio: {posizioniCorridoio}");
+            //Debug.Log($"- Posizioni valide (nel range di distanza): {posizioniValide.Count}");
         }
 
         return posizioniValide;

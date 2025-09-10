@@ -53,12 +53,12 @@ public class OuterHubController : MonoBehaviour
                 enterPoint = enterPointTransform.GetComponent<Collider2D>();
                 if (enterPoint == null)
                 {
-                    Debug.LogError("EnterPoint trovato ma non ha un Collider2D!");
+                    //Debug.LogError("EnterPoint trovato ma non ha un Collider2D!");
                 }
             }
             else
             {
-                Debug.LogError("Oggetto figlio 'EnterPoint' non trovato!");
+                //Debug.LogError("Oggetto figlio 'EnterPoint' non trovato!");
             }
         }
 
@@ -71,7 +71,7 @@ public class OuterHubController : MonoBehaviour
             }
             else
             {
-                Debug.LogError("Oggetto figlio 'DoorIndicator' non trovato!");
+                //Debug.LogError("Oggetto figlio 'DoorIndicator' non trovato!");
             }
         }
 
@@ -90,7 +90,7 @@ public class OuterHubController : MonoBehaviour
             dayNightManager = Object.FindFirstObjectByType<DayNightCycleManager>();
         }
 
-        // NUOVO: Trova le telecamere automaticamente se non assegnate
+        // Trova le telecamere automaticamente se non assegnate
         if (mazeCamera == null)
         {
             GameObject mazeCamObj = GameObject.Find("MazeCamera");
@@ -100,7 +100,7 @@ public class OuterHubController : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("MazeCamera non trovata! Assegnala manualmente nell'inspector.");
+                //Debug.LogWarning("MazeCamera non trovata! Assegnala manualmente nell'inspector.");
             }
         }
 
@@ -113,14 +113,14 @@ public class OuterHubController : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("HubCamera non trovata! Assegnala manualmente nell'inspector.");
+                //Debug.LogWarning("HubCamera non trovata! Assegnala manualmente nell'inspector.");
             }
         }
 
         // Verifica che l'EnterPoint sia configurato come trigger
         if (enterPoint != null && !enterPoint.isTrigger)
         {
-            Debug.LogWarning("EnterPoint Collider2D dovrebbe essere configurato come Trigger!");
+            //Debug.LogWarning("EnterPoint Collider2D dovrebbe essere configurato come Trigger!");
         }
     }
 
@@ -133,10 +133,10 @@ public class OuterHubController : MonoBehaviour
             doorIndicator.SetActive(false); // Inizialmente disattivo
         }
 
-        // NUOVO: Salva la posizione di uscita (posizione attuale dell'hub)
+        // Salva la posizione di uscita (posizione attuale dell'hub)
         exitSpawnPosition = new Vector3(155.5f, 151.7f, 0f);
 
-        // NUOVO: Setup iniziale delle telecamere
+        // Setup iniziale delle telecamere
         SetupCameras();
     }
 
@@ -151,12 +151,12 @@ public class OuterHubController : MonoBehaviour
             
             if (enableDebug)
             {
-                Debug.Log("Setup telecamere completato - MazeCamera attiva");
+                //Debug.Log("Setup telecamere completato - MazeCamera attiva");
             }
         }
         else
         {
-            Debug.LogError("Una o entrambe le telecamere non sono assegnate!");
+            //Debug.LogError("Una o entrambe le telecamere non sono assegnate!");
         }
     }
 
@@ -179,7 +179,7 @@ public class OuterHubController : MonoBehaviour
         // Notifica al player che può interagire (opzionale)
         if (playerController != null && enableDebug)
         {
-            Debug.Log("Premi E per entrare nell'hub");
+            //Debug.Log("Premi E per entrare nell'hub");
         }
     }
 
@@ -227,7 +227,9 @@ public class OuterHubController : MonoBehaviour
     public void EnterHub()
     {
         if (enableDebug)
-            Debug.Log("Player sta entrando nell'hub");
+        {
+            //Debug.Log("Player sta entrando nell'hub");
+        }
 
         // Trasporta il player all'interno dell'hub
         TeleportToHub();
@@ -237,12 +239,14 @@ public class OuterHubController : MonoBehaviour
     {
         if (playerController == null)
         {
-            Debug.LogError("PlayerController non trovato!");
+            //Debug.LogError("PlayerController non trovato!");
             return;
         }
 
         if (enableDebug)
-            Debug.Log($"Teletrasportando il player all'hub: {hubSpawnPosition}");
+        {
+            //Debug.Log($"Teletrasportando il player all'hub: {hubSpawnPosition}");
+        }
 
         // Usa il metodo SafeTransportTo del PlayerController
         playerController.SafeTransportTo(hubSpawnPosition);
@@ -254,18 +258,20 @@ public class OuterHubController : MonoBehaviour
     {
         if (playerController == null)
         {
-            Debug.LogError("PlayerController non trovato!");
+            //Debug.LogError("PlayerController non trovato!");
             return;
         }
 
         if (!playerInHub)
         {
-            Debug.LogWarning("Il player non è nell'hub!");
+            //Debug.LogWarning("Il player non è nell'hub!");
             return;
         }
 
         if (enableDebug)
-            Debug.Log($"Teletrasportando il player fuori dall'hub: {exitSpawnPosition}");
+        {
+            //Debug.Log($"Teletrasportando il player fuori dall'hub: {exitSpawnPosition}");
+        }
 
         // Teletrasporta alla posizione di uscita
         playerController.SafeTransportTo(exitSpawnPosition);
@@ -327,12 +333,12 @@ public class OuterHubController : MonoBehaviour
 
             if (enableDebug)
             {
-                Debug.Log("Switched to HubCamera");
+                //Debug.Log("Switched to HubCamera");
             }
         }
         else
         {
-            Debug.LogWarning("Non è possibile cambiare telecamera - riferimenti mancanti!");
+            //Debug.LogWarning("Non è possibile cambiare telecamera - riferimenti mancanti!");
         }
     }
 
@@ -345,12 +351,12 @@ public class OuterHubController : MonoBehaviour
             
             if (enableDebug)
             {
-                Debug.Log("Switched to MazeCamera");
+                //Debug.Log("Switched to MazeCamera");
             }
         }
         else
         {
-            Debug.LogWarning("Non è possibile cambiare telecamera - riferimenti mancanti!");
+            //Debug.LogWarning("Non è possibile cambiare telecamera - riferimenti mancanti!");
         }
     }
 
@@ -406,23 +412,7 @@ public class OuterHubController : MonoBehaviour
         SwitchToHubCamera();
         playerController.SafeTransportTo(playerController.savePos);
         shopButton.gameObject.SetActive(true);
-        
-
-        /**
-        playerInHub = data.playerInHubData;
-        if (playerInHub)
-        {
-            shopButton.gameObject.SetActive(true);
-            SwitchToHubCamera();
-            playerController.transform.position = playerController.savePos;
-        }
-        else
-        {
-            shopButton.gameObject.SetActive(false);
-        }
-        **/
     }
-
 
     #endregion
 }

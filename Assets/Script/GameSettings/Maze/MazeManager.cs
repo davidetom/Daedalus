@@ -147,7 +147,7 @@ public class MazeManager : MonoBehaviour
                 {
                     // Questa è la telecamera del labirinto (quella con CameraMovement)
                     cameraController = cameraMovement;
-                    Debug.Log($"Trovata telecamera labirinto: {cameraObj.name}");
+                    //Debug.Log($"Trovata telecamera labirinto: {cameraObj.name}");
                     break;
                 }
             }
@@ -165,11 +165,11 @@ public class MazeManager : MonoBehaviour
 
         if (cameraController == null)
         {
-            Debug.LogWarning("CameraMovement per il labirinto non trovato! Assegna manualmente la telecamera nell'Inspector del MazeManager.");
+            //Debug.LogWarning("CameraMovement per il labirinto non trovato! Assegna manualmente la telecamera nell'Inspector del MazeManager.");
         }
         else
         {
-            Debug.Log($"CameraMovement collegato: {cameraController.gameObject.name}");
+            //Debug.Log($"CameraMovement collegato: {cameraController.gameObject.name}");
             // Attiva i vincoli inizialmente se le porte sono chiuse
             if (!mazeDoorsOpen)
             {
@@ -223,22 +223,22 @@ public class MazeManager : MonoBehaviour
             if (prefab != null)
             {
                 tilemapPrefabs[i] = prefab;
-                Debug.Log($"Caricato prefab tilemap {i + 1}: {usedPath}");
+                //Debug.Log($"Caricato prefab tilemap {i + 1}: {usedPath}");
             }
             else
             {
-                Debug.LogError($"Impossibile caricare il prefab tilemap {i + 1}. Percorsi tentati: {string.Join(", ", possiblePaths)}");
-                Debug.LogWarning($"Assicurati che il prefab Tilemap_{(i + 1):D2} sia nella cartella Resources/Prefab/Tilemaps/ o Resources/Tilemaps/");
+                //Debug.LogError($"Impossibile caricare il prefab tilemap {i + 1}. Percorsi tentati: {string.Join(", ", possiblePaths)}");
+                //Debug.LogWarning($"Assicurati che il prefab Tilemap_{(i + 1):D2} sia nella cartella Resources/Prefab/Tilemaps/ o Resources/Tilemaps/");
             }
         }
 
-        Debug.Log("=== DEBUG: Contenuto cartella Resources ===");
+        //Debug.Log("=== DEBUG: Contenuto cartella Resources ===");
         GameObject[] allResources = Resources.LoadAll<GameObject>("");
         foreach (GameObject resource in allResources)
         {
             if (resource.name.Contains("Tilemap"))
             {
-                Debug.Log($"Trovato risorsa: {resource.name}");
+                //Debug.Log($"Trovato risorsa: {resource.name}");
             }
         }
     }
@@ -246,29 +246,29 @@ public class MazeManager : MonoBehaviour
     // # 1
     void LoadCurrentMaze()
     {
-        Debug.Log($"=== CARICAMENTO LABIRINTO {currentMazeNumber} ===");
+        //Debug.Log($"=== CARICAMENTO LABIRINTO {currentMazeNumber} ===");
 
         if (labirintoObject == null)
         {
-            Debug.LogError("Oggetto Labirinto non trovato!");
+            //Debug.LogError("Oggetto Labirinto non trovato!");
             return;
         }
 
         if (tilemapPrefabs == null || tilemapPrefabs.Length == 0)
         {
-            Debug.LogError("Array prefab tilemap non inizializzato!");
+            //Debug.LogError("Array prefab tilemap non inizializzato!");
             return;
         }
 
         if (currentMazeNumber < 1 || currentMazeNumber > tilemapPrefabs.Length)
         {
-            Debug.LogError($"Numero labirinto non valido: {currentMazeNumber}. Range valido: 1-{tilemapPrefabs.Length}");
+            //Debug.LogError($"Numero labirinto non valido: {currentMazeNumber}. Range valido: 1-{tilemapPrefabs.Length}");
             return;
         }
 
         if (currentTilemapInstance != null)
         {
-            Debug.Log($"Rimuovendo tilemap esistente: {currentTilemapInstance.name}");
+            //Debug.Log($"Rimuovendo tilemap esistente: {currentTilemapInstance.name}");
             DestroyImmediate(currentTilemapInstance);
             currentTilemapInstance = null;
         }
@@ -277,29 +277,28 @@ public class MazeManager : MonoBehaviour
 
         if (prefabToLoad != null)
         {
-            Debug.Log($"Istanziando prefab: {prefabToLoad.name}");
+            //Debug.Log($"Istanziando prefab: {prefabToLoad.name}");
             currentTilemapInstance = Instantiate(prefabToLoad, labirintoObject.transform);
             currentTilemapInstance.name = $"Tilemap_{currentMazeNumber:D2}_Instance";
 
-            Debug.Log($"Caricata tilemap del labirinto {currentMazeNumber} ({prefabToLoad.name})");
+            //Debug.Log($"Caricata tilemap del labirinto {currentMazeNumber} ({prefabToLoad.name})");
 
             // Verifica che la tilemap sia stata creata correttamente
             Tilemap newTilemap = currentTilemapInstance.GetComponentInChildren<Tilemap>();
             if (newTilemap != null)
             {
-                Debug.Log($"Tilemap trovata: {newTilemap.name}, Bounds: {newTilemap.cellBounds}");
+                //Debug.Log($"Tilemap trovata: {newTilemap.name}, Bounds: {newTilemap.cellBounds}");
             }
             else
             {
-                Debug.LogError("Tilemap non trovata nell'istanza creata!");
+                //Debug.LogError("Tilemap non trovata nell'istanza creata!");
             }
 
             UpdateMapManager();
         }
         else
         {
-            Debug.LogError($"Prefab tilemap non valido per il labirinto {currentMazeNumber}");
-            // ... resto del codice di fallback rimane uguale ...
+            //Debug.LogError($"Prefab tilemap non valido per il labirinto {currentMazeNumber}");
         }
     }
 
@@ -308,7 +307,7 @@ public class MazeManager : MonoBehaviour
     {
         if (mapManager == null)
         {
-            Debug.LogWarning("MapManager non trovato, impossibile aggiornare la mappa!");
+            //Debug.LogWarning("MapManager non trovato, impossibile aggiornare la mappa!");
             return;
         }
 
@@ -320,11 +319,11 @@ public class MazeManager : MonoBehaviour
 
         if (newTilemap == null)
         {
-            Debug.LogError("Tilemap non trovata nella nuova istanza!");
+            //Debug.LogError("Tilemap non trovata nella nuova istanza!");
             return;
         }
 
-        Debug.Log("Aggiornando MapManager e PlayerController con la nuova tilemap...");
+        //Debug.Log("Aggiornando MapManager e PlayerController con la nuova tilemap...");
 
         mapManager.tilemap = newTilemap;
 
@@ -334,14 +333,14 @@ public class MazeManager : MonoBehaviour
             if (playerController != null)
             {
                 playerController.tilemap = newTilemap;
-                Debug.Log("Riferimento tilemap aggiornato nel PlayerController");
+                //Debug.Log("Riferimento tilemap aggiornato nel PlayerController");
             }
         }
 
         if (footprintManager != null)
         {
             footprintManager.UpdateTilemapReference(newTilemap);
-            Debug.Log("Riferimento tilemap aggiornato nel FootprintManager");
+            //Debug.Log("Riferimento tilemap aggiornato nel FootprintManager");
         }
 
         StartCoroutine(RegenerateMapAfterFrame());
@@ -359,7 +358,7 @@ public class MazeManager : MonoBehaviour
             // Chiamata diretta al metodo pubblico RecalculateMap()
             mapManager.RecalculateMap();
             HideAllWarnings();
-            Debug.Log($"MapManager aggiornato con successo per il labirinto {currentMazeNumber}");
+            //Debug.Log($"MapManager aggiornato con successo per il labirinto {currentMazeNumber}");
 
             if (player != null)
             {
@@ -368,27 +367,27 @@ public class MazeManager : MonoBehaviour
                 {
                     // Chiamata diretta al metodo pubblico per ricalcolare le distanze
                     playerController.RecalculateDistances();
-                    Debug.Log("Distanze BFS ricalcolate per la nuova tilemap");
+                    //Debug.Log("Distanze BFS ricalcolate per la nuova tilemap");
                 }
             }
 
             // Attendi un altro frame per assicurarti che BFS sia completato
             yield return null;
 
-            // NUOVO: Aggiorna SpawnPointGenerator dopo che MapManager e BFS sono stati ricalcolati
+            // Aggiorna SpawnPointGenerator dopo che MapManager e BFS sono stati ricalcolati
             if (spawnPointGenerator != null && mapManager.tilemap != null)
             {
-                Debug.Log($"Avviando aggiornamento spawn points per tilemap: {mapManager.tilemap.name}");
+                //Debug.Log($"Avviando aggiornamento spawn points per tilemap: {mapManager.tilemap.name}");
 
                 // Forza l'aggiornamento anche se la tilemap sembra uguale
                 spawnPointGenerator.ForceRegenerateSpawns(mapManager.tilemap);
 
-                Debug.Log("Spawn points aggiornati per la tilemap corrente");
+                //Debug.Log("Spawn points aggiornati per la tilemap corrente");
             }
             else
             {
-                Debug.LogWarning($"SpawnPointGenerator: {(spawnPointGenerator == null ? "NULL" : "OK")}, " +
-                            $"MapManager.tilemap: {(mapManager.tilemap == null ? "NULL" : "OK")}");
+                //Debug.LogWarning($"SpawnPointGenerator: {(spawnPointGenerator == null ? "NULL" : "OK")}, " +
+                            //$"MapManager.tilemap: {(mapManager.tilemap == null ? "NULL" : "OK")}");
             }
         }
     }
@@ -419,15 +418,15 @@ public class MazeManager : MonoBehaviour
 
         if (!wasInOuterHub && playerInOuterHub)
         {
-            Debug.Log("▶ Player è nell'Outer Hub");
+            //Debug.Log("▶ Player è nell'Outer Hub");
         }
         else if (!wasInInnerHub && playerInInnerHub)
         {
-            Debug.Log("▶ Player è nell'Inner Hub");
+            //Debug.Log("▶ Player è nell'Inner Hub");
         }
         else if ((wasInOuterHub || wasInInnerHub) && !playerInOuterHub && !playerInInnerHub)
         {
-            Debug.Log("▶ Player è entrato nel Labirinto");
+            //Debug.Log("▶ Player è entrato nel Labirinto");
         }
     }
 
@@ -438,7 +437,7 @@ public class MazeManager : MonoBehaviour
 
     void OnDayStart()
     {
-        Debug.Log("Inizia il GIORNO");
+        //Debug.Log("Inizia il GIORNO");
 
         // Aggiorna stato player - durante il giorno può aprire porte
         UpdatePlayerNightTimeState(false);
@@ -458,7 +457,7 @@ public class MazeManager : MonoBehaviour
 
     void OnSunsetStart()
     {
-        Debug.Log("Inizia il TRAMONTO");
+        //Debug.Log("Inizia il TRAMONTO");
 
         // Aggiorna stato player - durante il tramonto può ancora aprire porte
         UpdatePlayerNightTimeState(false);
@@ -470,7 +469,7 @@ public class MazeManager : MonoBehaviour
         if (playerInOuterHub || playerInInnerHub)
         {
             // Se il player è nell'hub, non mostrare warning e non disabilitare input
-            Debug.Log("Player nell'hub - nessun warning al tramonto");
+            //Debug.Log("Player nell'hub - nessun warning al tramonto");
             sunsetChoiceMade = true; // Il player è nell'hub, scelta "fatta"
             hasChosenToStay = false; // Non è rimasto nel labirinto
         }
@@ -502,7 +501,7 @@ public class MazeManager : MonoBehaviour
                 }
             }
         }
-        Debug.Log("Porte interne del labirinto chiuse");
+        //Debug.Log("Porte interne del labirinto chiuse");
     }
 
     void ShowSunsetWarning()
@@ -540,7 +539,7 @@ public class MazeManager : MonoBehaviour
             // Ferma movimento mobile se attivo
             playerController.StopMovimento();
 
-            Debug.Log("Input del player disabilitati durante il tramonto");
+            //Debug.Log("Input del player disabilitati durante il tramonto");
         }
 
         // Disabilita elementi UI specificati
@@ -552,7 +551,7 @@ public class MazeManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"Disabilitati {uiElementsToDisable.Length} elementi UI");
+        //Debug.Log($"Disabilitati {uiElementsToDisable.Length} elementi UI");
     }
 
     void EnablePlayerInputsAndUI()
@@ -568,7 +567,7 @@ public class MazeManager : MonoBehaviour
             playerController.canAttackWhileMoving = originalCanAttackWhileMoving;
             playerController.canAttack = true;
 
-            Debug.Log("Input del player riabilitati");
+            //Debug.Log("Input del player riabilitati");
         }
 
         // Riabilita elementi UI
@@ -580,12 +579,12 @@ public class MazeManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"Riabilitati {uiElementsToDisable.Length} elementi UI");
+        //Debug.Log($"Riabilitati {uiElementsToDisable.Length} elementi UI");
     }
 
     public void ReturnToHub()
     {
-        Debug.Log("Player ha scelto di tornare all'hub");
+        //Debug.Log("Player ha scelto di tornare all'hub");
         sunsetChoiceMade = true;
         hasChosenToStay = false;
 
@@ -612,7 +611,7 @@ public class MazeManager : MonoBehaviour
 
     public void StayInMaze()
     {
-        Debug.Log("Player ha scelto di affrontare la notte");
+        //Debug.Log("Player ha scelto di affrontare la notte");
         sunsetChoiceMade = true;
         hasChosenToStay = true;
 
@@ -639,7 +638,7 @@ public class MazeManager : MonoBehaviour
 
     void OnNightStart()
     {
-        Debug.Log("Inizia la NOTTE");
+        //Debug.Log("Inizia la NOTTE");
 
         // Aggiorna stato player - durante la notte può attaccare
         UpdatePlayerNightTimeState(true);
@@ -651,7 +650,7 @@ public class MazeManager : MonoBehaviour
 
         if (!playerInOuterHub && !playerInInnerHub && !sunsetChoiceMade)
             {
-                Debug.Log("Nessuna scelta fatta durante il tramonto - player rimane nel labirinto");
+                //Debug.Log("Nessuna scelta fatta durante il tramonto - player rimane nel labirinto");
                 hasChosenToStay = true;
                 sunsetChoiceMade = true;
 
@@ -664,7 +663,7 @@ public class MazeManager : MonoBehaviour
         // Spawn nemici disabilitato se player nell'hub
         if (playerInOuterHub || playerInInnerHub)
         {
-            Debug.Log("Player nell'hub - nessun spawn di nemici notturni");
+            //Debug.Log("Player nell'hub - nessun spawn di nemici notturni");
         }
         else
         {
@@ -686,19 +685,19 @@ public class MazeManager : MonoBehaviour
         if (mazeClosedWarningText != null)
         {
             mazeClosedWarningText.gameObject.SetActive(true);
-            Debug.Log("Mostro warning: labirinto chiuso");
+            //Debug.Log("Mostro warning: labirinto chiuso");
         }
 
         // Mostra good luck SOLO se il player è rimasto nel labirinto (hasChosenToStay = true)
         if (goodLuckText != null && hasChosenToStay)
         {
             goodLuckText.gameObject.SetActive(true);
-            Debug.Log("Mostro good luck text: player rimasto nel labirinto");
+            //Debug.Log("Mostro good luck text: player rimasto nel labirinto");
         }
         else if (goodLuckText != null)
         {
             goodLuckText.gameObject.SetActive(false);
-            Debug.Log("Nascondo good luck text: player tornato nell'hub");
+            //Debug.Log("Nascondo good luck text: player tornato nell'hub");
         }
 
         yield return new WaitForSeconds(2f);
@@ -707,13 +706,13 @@ public class MazeManager : MonoBehaviour
         if (mazeClosedWarningText != null)
         {
             mazeClosedWarningText.gameObject.SetActive(false);
-            Debug.Log("Warning labirinto chiuso nascosto");
+            //Debug.Log("Warning labirinto chiuso nascosto");
         }
 
         if (goodLuckText != null)
         {
             goodLuckText.gameObject.SetActive(false);
-            Debug.Log("Good luck text nascosto");
+            //Debug.Log("Good luck text nascosto");
         }
 
         if (mazeClosedPanel != null)
@@ -727,7 +726,7 @@ public class MazeManager : MonoBehaviour
 
     void OnDawnStart()
     {
-        Debug.Log("Inizia l'ALBA");
+        //Debug.Log("Inizia l'ALBA");
 
         // Aggiorna stato player - durante l'alba può attaccare
         UpdatePlayerNightTimeState(true);
@@ -744,7 +743,7 @@ public class MazeManager : MonoBehaviour
         if (footprintManager != null)
         {
             footprintManager.ResetFootprints();
-            Debug.Log("Impronte resettate all'alba");
+            //Debug.Log("Impronte resettate all'alba");
         }
 
         StartCoroutine(HandleMazeChange());
@@ -798,42 +797,43 @@ public class MazeManager : MonoBehaviour
                 toHubWarningText.gameObject.SetActive(showTransportWarning);
 
                 if (showTransportWarning)
-                    Debug.Log("Player nel labirinto e vivo: mostro warning di trasporto all'hub");
+                {
+                    //Debug.Log("Player nel labirinto e vivo: mostro warning di trasporto all'hub");
+                }
             }
         }
 
         yield return new WaitForSeconds(2f);
     }
 
-    // QUA INSERIRE LOGICA PER IMPOSTARE IL CAMBIO LABIRINTO A FALSE PER MODALITA' FACILE
     // Gestione specifica per il cambio maze quando il player è nell'hub esterno
     IEnumerator HandleMazeChange()
     {
         // Attende il delay normale per il cambio labirinto
         yield return new WaitForSeconds(mazeChangeDelay);
 
-        // NUOVO: Controlla se dobbiamo cambiare il labirinto in base alla difficoltà
+        // Controlla se dobbiamo cambiare il labirinto in base alla difficoltà
         if (ShouldChangeMaze())
         {
             // PRIMA: Cambia il labirinto e ATTENDI che sia completato
-            Debug.Log("Iniziando cambio labirinto per player nell'hub...");
+            //Debug.Log("Iniziando cambio labirinto per player nell'hub...");
             ChangeMazeTilemap();
 
             // Attendi che il cambio labirinto sia completamente processato
             yield return StartCoroutine(WaitForMazeChangeCompletion());
 
             // SECONDA: Ora apri le porte (SOLO dopo che il labirinto è cambiato)
-            Debug.Log("Cambio labirinto completato, aprendo le porte per player nell'hub...");
+            //Debug.Log("Cambio labirinto completato, aprendo le porte per player nell'hub...");
             OpenMazeDoors();
 
-            Debug.Log("Cambio labirinto completato per player nell'hub esterno");
+            //Debug.Log("Cambio labirinto completato per player nell'hub esterno");
 
             StartCoroutine(ShowMazeOpenWarningSequence());
         }
         else
         {
             // In difficoltà facile: solo apri le porte senza cambiare labirinto
-            Debug.Log("Modalità facile: solo apertura porte senza cambio labirinto");
+            //Debug.Log("Modalità facile: solo apertura porte senza cambio labirinto");
             OpenMazeDoors();
 
             // Non mostrare warning di cambio labirinto in modalità facile
@@ -847,18 +847,18 @@ public class MazeManager : MonoBehaviour
         if (nextMazeNumber > maxMazeCount)
             nextMazeNumber = 1;
 
-        Debug.Log($"Cambiando dal labirinto {currentMazeNumber} al labirinto {nextMazeNumber}");
+        //Debug.Log($"Cambiando dal labirinto {currentMazeNumber} al labirinto {nextMazeNumber}");
 
         currentMazeNumber = nextMazeNumber;
         LoadCurrentMaze();
         isChangingMaze = false;
 
-        Debug.Log($"Cambio labirinto completato. Ora attivo: Labirinto {currentMazeNumber}");
+        //Debug.Log($"Cambio labirinto completato. Ora attivo: Labirinto {currentMazeNumber}");
     }
 
     IEnumerator WaitForMazeChangeCompletion()
     {
-        Debug.Log("Attendendo completamento cambio labirinto...");
+        //Debug.Log("Attendendo completamento cambio labirinto...");
 
         // Attendi che il MapManager e BFS siano processati
         yield return StartCoroutine(RegenerateMapAfterFrame());
@@ -866,7 +866,7 @@ public class MazeManager : MonoBehaviour
         // Attendi un frame aggiuntivo per sicurezza
         yield return null;
 
-        Debug.Log("Cambio labirinto completamente processato");
+        //Debug.Log("Cambio labirinto completamente processato");
     }
 
 
@@ -884,7 +884,7 @@ public class MazeManager : MonoBehaviour
                 }
             }
         }
-        Debug.Log("Porte interne del labirinto aperte");
+        //Debug.Log("Porte interne del labirinto aperte");
 
         // Gestisci la telecamera quando le porte si aprono
         if (cameraController != null)
@@ -906,19 +906,19 @@ public class MazeManager : MonoBehaviour
         if (mazeChangedWarningText != null)
         {
             mazeChangedWarningText.gameObject.SetActive(true);
-            Debug.Log("Mostro warning: labirinto aperto dopo cambio maze");
+            //Debug.Log("Mostro warning: labirinto aperto dopo cambio maze");
 
             yield return new WaitForSeconds(3f);
 
             mazeChangedWarningText.gameObject.SetActive(false);
-            Debug.Log("Warning labirinto aperto nascosto");
+            //Debug.Log("Warning labirinto aperto nascosto");
         }
 
         // INFINE: Disattiva completamente il dawn warning panel
         if (mazeChangedPanel != null)
         {
             mazeChangedPanel.SetActive(false);
-            Debug.Log("MazeOpen panel completamente disattivato");
+            //Debug.Log("MazeOpen panel completamente disattivato");
         }
     }
 
@@ -935,13 +935,13 @@ public class MazeManager : MonoBehaviour
             // Se è in modalità facile, non cambiare il labirinto
             if (DifficultyManager.Instance.IsEasy())
             {
-                Debug.Log("Difficoltà facile: il labirinto non verrà cambiato");
+                //Debug.Log("Difficoltà facile: il labirinto non verrà cambiato");
                 return false;
             }
         }
         else
         {
-            Debug.LogWarning("DifficultyManager non disponibile, usando comportamento normale");
+            //Debug.LogWarning("DifficultyManager non disponibile, usando comportamento normale");
         }
 
         // Comportamento normale per difficoltà normale/difficile o quando DifficultyManager non è disponibile
@@ -950,7 +950,7 @@ public class MazeManager : MonoBehaviour
 
     IEnumerator ShowEasyModeOpenWarning()
     {
-        Debug.Log("Modalità facile: mostrando warning di apertura labirinto");
+        //Debug.Log("Modalità facile: mostrando warning di apertura labirinto");
 
         if (mazeOpenPanel != null)
             mazeOpenPanel.SetActive(true);
@@ -958,18 +958,18 @@ public class MazeManager : MonoBehaviour
         if (mazeOpenWarningText != null)
         {
             mazeOpenWarningText.gameObject.SetActive(true);
-            Debug.Log("Mostro warning: labirinto aperto (modalità facile)");
+            //Debug.Log("Mostro warning: labirinto aperto (modalità facile)");
 
             yield return new WaitForSeconds(3f);
 
             mazeOpenWarningText.gameObject.SetActive(false);
-            Debug.Log("Warning labirinto aperto nascosto (modalità facile)");
+            //Debug.Log("Warning labirinto aperto nascosto (modalità facile)");
         }
 
         if (mazeOpenPanel != null)
         {
             mazeOpenPanel.SetActive(false);
-            Debug.Log("MazeOpen panel disattivato (modalità facile)");
+            //Debug.Log("MazeOpen panel disattivato (modalità facile)");
         }
     }
 
@@ -979,13 +979,13 @@ public class MazeManager : MonoBehaviour
     #region LOGICA DEL LETTO
     public void SleepToNextDay()
     {
-        Debug.Log("Player ha dormito, saltando la notte e passando direttamente al giorno");
+        //Debug.Log("Player ha dormito, saltando la notte e passando direttamente al giorno");
         StartCoroutine(SleepSequence());
     }
 
     IEnumerator SleepSequence()
     {
-        Debug.Log("=== INIZIO SEQUENZA SONNO ===");
+        //Debug.Log("=== INIZIO SEQUENZA SONNO ===");
 
         playerSleeping = true;
         innerHub.StopAllCoroutines();
@@ -995,7 +995,7 @@ public class MazeManager : MonoBehaviour
         if (dayNightManager != null)
         {
             dayNightManager.PauseSystem();
-            Debug.Log("Sistema day/night messo in pausa per il sonno");
+            //Debug.Log("Sistema day/night messo in pausa per il sonno");
         }
 
         // 3. Disabilita input e sprite del player durante il sonno
@@ -1005,12 +1005,12 @@ public class MazeManager : MonoBehaviour
         sr.enabled = false;
         sleepingPlayer.SetActive(true);
 
-        Debug.Log("Player inizia a dormire - cambio labirinto in corso...");
+        //Debug.Log("Player inizia a dormire - cambio labirinto in corso...");
 
         // 4. PRIORITÀ: Cambia il labirinto il più velocemente possibile
         yield return StartCoroutine(FastMazeChangeForSleep());
 
-        Debug.Log("Cambio labirinto completato durante il sonno");
+        //Debug.Log("Cambio labirinto completato durante il sonno");
 
         // 5. Breve pausa per simulare il "sonno" (opzionale)
         yield return new WaitForSecondsRealtime(4f);
@@ -1022,21 +1022,21 @@ public class MazeManager : MonoBehaviour
         // 6. DOPO il cambio labirinto: Resetta al giorno
         if (dayNightManager != null)
         {
-            Debug.Log("Risveglio - resettando il ciclo al giorno");
+            //Debug.Log("Risveglio - resettando il ciclo al giorno");
             dayNightManager.ResetToDay();
         }
 
         // 7. Riabilita input del player dopo il sonno
         EnablePlayerInputsAndUI();
 
-        Debug.Log("=== SEQUENZA SONNO COMPLETATA ===");
+        //Debug.Log("=== SEQUENZA SONNO COMPLETATA ===");
     }
 
     IEnumerator FastMazeChangeForSleep()
     {
-        Debug.Log("=== CAMBIO LABIRINTO VELOCE PER SONNO ===");
+        //Debug.Log("=== CAMBIO LABIRINTO VELOCE PER SONNO ===");
 
-        // NUOVO: Controlla se dobbiamo cambiare il labirinto anche durante il sonno
+        // Controlla se dobbiamo cambiare il labirinto anche durante il sonno
         if (ShouldChangeMaze())
         {
             // Cambia il labirinto immediatamente
@@ -1045,11 +1045,11 @@ public class MazeManager : MonoBehaviour
             // Attendi SOLO che il cambio sia processato correttamente
             yield return StartCoroutine(WaitForMazeChangeCompletion());
 
-            Debug.Log("Cambio labirinto per sonno completato");
+            //Debug.Log("Cambio labirinto per sonno completato");
         }
         else
         {
-            Debug.Log("Modalità facile: nessun cambio labirinto durante il sonno");
+            //Debug.Log("Modalità facile: nessun cambio labirinto durante il sonno");
             // Attendi comunque un frame per mantenere la coerenza
             yield return null;
         }
@@ -1074,7 +1074,7 @@ public class MazeManager : MonoBehaviour
         if (playerController != null)
         {
             playerController.isNightTime = isNightTime;
-            Debug.Log($"Player isNightTime aggiornato a: {isNightTime}");
+            //Debug.Log($"Player isNightTime aggiornato a: {isNightTime}");
         }
     }
 
@@ -1089,7 +1089,7 @@ public class MazeManager : MonoBehaviour
             currentMazeNumber = nextMaze;
             LoadCurrentMaze();
 
-            Debug.Log($"Cambiato manualmente al labirinto {currentMazeNumber}");
+            //Debug.Log($"Cambiato manualmente al labirinto {currentMazeNumber}");
         }
     }
 }

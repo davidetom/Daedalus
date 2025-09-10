@@ -204,9 +204,7 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
         attackDirection = Vector2.zero;
     }
     
-    /// <summary>
-    /// Converte la direzione dello schermo in direzione di gioco (solo cardinali)
-    /// </summary>
+    // Converte la direzione dello schermo in direzione di gioco (solo cardinali)
     private Vector2 ConvertScreenToGameDirection(Vector2 screenDirection)
     {
         // Determina la direzione cardinale più vicina
@@ -220,7 +218,7 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
         }
         else
         {
-            // Movimento verticale (CORRETTO: Y positivo nel drag = su nel gioco)
+            // Movimento verticale
             return screenDirection.y > 0 ? Vector2.up : Vector2.down;
         }
     }
@@ -250,8 +248,6 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
     {
         if (playerController == null) return false;
         
-        // IMPORTANTE: Usa la stessa logica del PlayerController.PulsanteAzione()
-        // Non può attaccare se è nell'inner hub (dentro casa)
         if (playerController.InInnerHub) // Se è nell'inner hub
         {
             return false;
@@ -334,9 +330,7 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
         }
     }
     
-    /// <summary>
-    /// Setup dello stile del joystick con bordi arrotondati e ombre
-    /// </summary>
+    // Setup dello stile del joystick con bordi arrotondati e ombre
     private void SetupJoystickStyle()
     {
         // Setup background
@@ -349,7 +343,7 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
             }
             backgroundImage.type = Image.Type.Sliced;
         }
-        
+
         // Setup handle
         if (handleImage != null)
         {
@@ -362,9 +356,7 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
         }
     }
     
-    /// <summary>
-    /// Crea uno sprite circolare procedurale
-    /// </summary>
+    // Crea uno sprite circolare procedurale
     private Sprite CreateCircleSprite(int size, Color color)
     {
         Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
@@ -403,10 +395,8 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
         texture.Apply();
         return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
     }
-    
-    /// <summary>
+
     /// Animazione di scala fluida
-    /// </summary>
     private IEnumerator ScaleAnimation(RectTransform target, Vector3 targetScale, float speed)
     {
         Vector3 startScale = target.localScale;
@@ -422,9 +412,7 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
         target.localScale = targetScale;
     }
     
-    /// <summary>
-    /// Animazione di pulse continua quando il joystick è idle
-    /// </summary>
+    // Animazione di pulse continua quando il joystick è idle
     private IEnumerator PulseAnimation()
     {
         while (true)

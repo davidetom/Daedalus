@@ -32,7 +32,7 @@ public class SelectiveTilemapCollider : MonoBehaviour
     {
         if (tilemap == null)
         {
-            Debug.LogError("Tilemap non assegnata!");
+            //Debug.LogError("Tilemap non assegnata!");
             return;
         }
         
@@ -42,7 +42,7 @@ public class SelectiveTilemapCollider : MonoBehaviour
         // Approach 1: Usa TilemapCollider2D nativo con tile personalizzati
         SetupNativeTilemapCollider();
         
-        Debug.Log("Collider nativo configurato - solo i tile muro avranno collider");
+        //Debug.Log("Collider nativo configurato - solo i tile muro avranno collider");
     }
     
     private void SetupNativeTilemapCollider()
@@ -60,7 +60,7 @@ public class SelectiveTilemapCollider : MonoBehaviour
         // Configura il TilemapCollider2D per usare il composite
         tilemapCollider.compositeOperation = Collider2D.CompositeOperation.Merge;
         
-        // TRUCCO: Modifica i tile per avere collider solo sui muri
+        // Modifica i tile per avere collider solo sui muri
         ModifyTileColliders();
     }
     
@@ -68,7 +68,7 @@ public class SelectiveTilemapCollider : MonoBehaviour
     {
         if (muraTile == null || corridoioTile == null || pratoTile == null)
         {
-            Debug.LogWarning("Alcuni tile non sono assegnati - usando approccio alternativo");
+            //Debug.LogWarning("Alcuni tile non sono assegnati - usando approccio alternativo");
             return;
         }
         
@@ -149,6 +149,6 @@ public class SelectiveTilemapCollider : MonoBehaviour
             }
         }
         
-        Debug.Log("Collider types resettati per tutti i tile");
+        //Debug.Log("Collider types resettati per tutti i tile");
     }
 }

@@ -20,7 +20,7 @@ public class LabyrinthMusicManager : MonoBehaviour
 
         if (dayNightManager == null)
         {
-            Debug.LogError("LabyrinthMusicManager: DayNightCycleManager non trovato!");
+            //Debug.LogError("LabyrinthMusicManager: DayNightCycleManager non trovato!");
             return;
         }
 
@@ -48,7 +48,7 @@ public class LabyrinthMusicManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("LabyrinthMusicManager: Eventi del DayNightCycleManager non configurati!");
+            //Debug.LogError("LabyrinthMusicManager: Eventi del DayNightCycleManager non configurati!");
         }
     }
 
@@ -56,7 +56,7 @@ public class LabyrinthMusicManager : MonoBehaviour
     {
         if (AudioManager.Instance == null)
         {
-            Debug.LogError("LabyrinthMusicManager: AudioManager.Instance non trovato!");
+            //Debug.LogError("LabyrinthMusicManager: AudioManager.Instance non trovato!");
             return;
         }
 
@@ -70,7 +70,7 @@ public class LabyrinthMusicManager : MonoBehaviour
             PlayNightMusic();
         }
 
-        Debug.Log($"Musica labirinto avviata - Fase corrente: {dayNightManager.currentPhase}");
+        //Debug.Log($"Musica labirinto avviata - Fase corrente: {dayNightManager.currentPhase}");
     }
 
     // Chiamato quando inizia il giorno
@@ -78,7 +78,7 @@ public class LabyrinthMusicManager : MonoBehaviour
     {
         if (!isInitialized) return;
         
-        Debug.Log("LabyrinthMusicManager: Passaggio alla musica del giorno");
+        //Debug.Log("LabyrinthMusicManager: Passaggio alla musica del giorno");
         PlayDayMusic();
     }
 
@@ -87,7 +87,7 @@ public class LabyrinthMusicManager : MonoBehaviour
     {
         if (!isInitialized) return;
         
-        Debug.Log("LabyrinthMusicManager: Passaggio alla musica della notte");
+        //Debug.Log("LabyrinthMusicManager: Passaggio alla musica della notte");
         PlayNightMusic();
     }
 
@@ -96,7 +96,7 @@ public class LabyrinthMusicManager : MonoBehaviour
     {
         if (!isInitialized) return;
         
-        Debug.Log($"LabyrinthMusicManager: Nuovo giorno iniziato (Giorno {dayNightManager.GetDayCount()})");
+        //Debug.Log($"LabyrinthMusicManager: Nuovo giorno iniziato (Giorno {dayNightManager.GetDayCount()})");
         // La musica del giorno verrà gestita da OnDayStart
     }
 
@@ -105,7 +105,7 @@ public class LabyrinthMusicManager : MonoBehaviour
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayLabyrinthDayMusic();
-            Debug.Log("Riproduzione musica labirinto - GIORNO");
+            //Debug.Log("Riproduzione musica labirinto - GIORNO");
         }
     }
 
@@ -114,7 +114,7 @@ public class LabyrinthMusicManager : MonoBehaviour
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayLabyrinthNightMusic();
-            Debug.Log("Riproduzione musica labirinto - NOTTE");
+            //Debug.Log("Riproduzione musica labirinto - NOTTE");
         }
     }
 
@@ -134,7 +134,7 @@ public class LabyrinthMusicManager : MonoBehaviour
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.StopMusic();
-            Debug.Log("Musica labirinto fermata");
+            //Debug.Log("Musica labirinto fermata");
         }
     }
 
@@ -143,7 +143,7 @@ public class LabyrinthMusicManager : MonoBehaviour
     {
         musicPaused = true;
         StopLabyrinthMusic();
-        Debug.Log("Musica labirinto messa in pausa per morte");
+        //Debug.Log("Musica labirinto messa in pausa per morte");
     }
 
     public void ResumeMusicAfterRevive()
@@ -163,7 +163,7 @@ public class LabyrinthMusicManager : MonoBehaviour
             }
         }
         
-        Debug.Log("Musica labirinto ripresa dopo revive");
+        //Debug.Log("Musica labirinto ripresa dopo revive");
     }
 
     // Disconnetti gli eventi quando viene distrutto l'oggetto

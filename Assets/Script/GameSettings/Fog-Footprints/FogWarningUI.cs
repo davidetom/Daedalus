@@ -56,7 +56,7 @@ public class FogWarningUI : MonoBehaviour
             blinkCoroutine = StartCoroutine(BlinkText());
         }
         
-        Debug.Log("Player entered warning zone!");
+        //Debug.Log("Player entered warning zone!");
     }
     
     void HideWarning()
@@ -93,7 +93,7 @@ public class FogWarningUI : MonoBehaviour
             visorNeededText.color = textColor;
         }
         
-        Debug.Log("Player exited warning zone!");
+        //Debug.Log("Player exited warning zone!");
     }
     
     System.Collections.IEnumerator BlinkText()

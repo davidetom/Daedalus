@@ -7,12 +7,12 @@ using UnityEditor;
 
 public class EmergencyTileCreator : MonoBehaviour
 {
-    [Header("Assegna i tuoi sprite qui")]
+    [Header("Sprite")]
     public Sprite spriteMuro;
     public Sprite spriteCorridoio;
     public Sprite spriteMaschera;
     
-    [Header("Tiles generati (si riempiono automaticamente)")]
+    [Header("Tiles generati")]
     public Tile tileMuro;
     public Tile tileCorridoio;
     public Tile tileMaschera;
@@ -39,17 +39,17 @@ public class EmergencyTileCreator : MonoBehaviour
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         
-        Debug.Log("✅ TILES CREATI CON SUCCESSO!");
-        Debug.Log($"Muro: {tileMuro != null}");
-        Debug.Log($"Corridoio: {tileCorridoio != null}");
-        Debug.Log($"Maschera: {tileMaschera != null}");
+        //Debug.Log("✅ TILES CREATI CON SUCCESSO!");
+        //Debug.Log($"Muro: {tileMuro != null}");
+        //Debug.Log($"Corridoio: {tileCorridoio != null}");
+        //Debug.Log($"Maschera: {tileMaschera != null}");
     }
     
     private Tile CreaSingoloTile(Sprite sprite, string percorso, bool conCollider)
     {
         if (sprite == null)
         {
-            Debug.LogWarning($"Sprite nullo per: {percorso}");
+            //Debug.LogWarning($"Sprite nullo per: {percorso}");
             return null;
         }
         

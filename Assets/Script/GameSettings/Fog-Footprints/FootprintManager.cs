@@ -36,7 +36,7 @@ public class FootprintManager : MonoBehaviour
             playerController = FindFirstObjectByType<PlayerController>();
             if (playerController == null)
             {
-                Debug.LogError("FootprintManager: PlayerController non trovato!");
+                //Debug.LogError("FootprintManager: PlayerController non trovato!");
                 return;
             }
         }
@@ -59,20 +59,20 @@ public class FootprintManager : MonoBehaviour
             mazeManager = FindFirstObjectByType<MazeManager>();
             if (mazeManager == null)
             {
-                Debug.LogError("FootprintManager: MazeManager non trovato!");
+                //Debug.LogError("FootprintManager: MazeManager non trovato!");
                 return;
             }
         }
         
         if (footprintTilemap == null)
         {
-            Debug.LogError("FootprintManager: FootprintTilemap non trovata e non può essere creata!");
+            //Debug.LogError("FootprintManager: FootprintTilemap non trovata e non può essere creata!");
             return;
         }
         
         if (footprintTile == null)
         {
-            Debug.LogWarning("FootprintManager: FootprintTile non assegnata! Assegna una tile nell'Inspector.");
+            //Debug.LogWarning("FootprintManager: FootprintTile non assegnata! Assegna una tile nell'Inspector.");
             return;
         }
         
@@ -86,7 +86,7 @@ public class FootprintManager : MonoBehaviour
         
         if (enableDebug)
         {
-            Debug.Log("FootprintManager inizializzato correttamente");
+            //Debug.Log("FootprintManager inizializzato correttamente");
         }
     }
     
@@ -110,7 +110,7 @@ public class FootprintManager : MonoBehaviour
             footprintObj.transform.SetParent(labirinto.transform);
         }
         
-        Debug.Log("FootprintTilemap creata automaticamente");
+        //Debug.Log("FootprintTilemap creata automaticamente");
         return footprintObj;
     }
     
@@ -133,7 +133,7 @@ public class FootprintManager : MonoBehaviour
             hasInitialPosition = true;
             if (enableDebug)
             {
-                Debug.Log($"Posizione iniziale player: {currentCell}");
+                //Debug.Log($"Posizione iniziale player: {currentCell}");
             }
             return;
         }
@@ -158,7 +158,7 @@ public class FootprintManager : MonoBehaviour
             
             if (enableDebug)
             {
-                Debug.Log($"Player mosso a: {currentCell}, direzione: {moveDirection}");
+                //Debug.Log($"Player mosso a: {currentCell}, direzione: {moveDirection}");
             }
         }
     }
@@ -203,7 +203,7 @@ public class FootprintManager : MonoBehaviour
         
         if (enableDebug)
         {
-            Debug.Log($"Impronta piazzata in {position} con rotazione {rotationAngle}°");
+            //Debug.Log($"Impronta piazzata in {position} con rotazione {rotationAngle}°");
         }
     }
     
@@ -230,7 +230,7 @@ public class FootprintManager : MonoBehaviour
             // per evitare di bloccare completamente il sistema
             if (enableDebug)
             {
-                Debug.LogWarning("MazeManager non disponibile - assumendo player nel labirinto");
+                //Debug.LogWarning("MazeManager non disponibile - assumendo player nel labirinto");
             }
             return false;
         }
@@ -240,8 +240,8 @@ public class FootprintManager : MonoBehaviour
         
         if (enableDebug && inHub)
         {
-            string hubType = mazeManager.IsPlayerInInnerHub ? "Inner Hub" : "Outer Hub";
-            Debug.Log($"Player rilevato in {hubType} - impronte disabilitate");
+            //string hubType = mazeManager.IsPlayerInInnerHub ? "Inner Hub" : "Outer Hub";
+            //Debug.Log($"Player rilevato in {hubType} - impronte disabilitate");
         }
         
         return inHub;
@@ -252,14 +252,12 @@ public class FootprintManager : MonoBehaviour
         return footprintTilemap != null && footprintTilemap.HasTile(position);
     }
 
-    /// <summary>
-    /// Abilita il sistema di impronte (attivato dal power-up binocular)
-    /// </summary>
+    // Abilita il sistema di impronte (attivato dal power-up binocular)
     public void EnableFootprints()
     {
         if (!isInitialized)
         {
-            Debug.LogWarning("FootprintManager non inizializzato, impossibile abilitare le impronte");
+            //Debug.LogWarning("FootprintManager non inizializzato, impossibile abilitare le impronte");
             return;
         }
 
@@ -276,26 +274,22 @@ public class FootprintManager : MonoBehaviour
 
         if (enableDebug)
         {
-            Debug.Log("Sistema di impronte abilitato");
+            //Debug.Log("Sistema di impronte abilitato");
         }
     }
     
-    /// <summary>
-    /// Disabilita il sistema di impronte
-    /// </summary>
+    // Disabilita il sistema di impronte
     public void DisableFootprints()
     {
         footprintEnabled = false;
         
         if (enableDebug)
         {
-            Debug.Log("Sistema di impronte disabilitato");
+            //Debug.Log("Sistema di impronte disabilitato");
         }
     }
     
-    /// <summary>
-    /// Pulisce tutte le impronte dalla tilemap (da chiamare all'alba)
-    /// </summary>
+    // Pulisce tutte le impronte dalla tilemap (da chiamare all'alba)
     public void ResetFootprints()
     {
         if (footprintTilemap != null)
@@ -304,7 +298,7 @@ public class FootprintManager : MonoBehaviour
             
             if (enableDebug)
             {
-                Debug.Log("Tutte le impronte sono state rimosse");
+                //Debug.Log("Tutte le impronte sono state rimosse");
             }
         }
         
@@ -330,14 +324,12 @@ public class FootprintManager : MonoBehaviour
             
             if (enableDebug)
             {
-                Debug.Log($"Posizione player reinizializzata dopo reset: {lastPlayerCell}");
+                //Debug.Log($"Posizione player reinizializzata dopo reset: {lastPlayerCell}");
             }
         }
     }
     
-    /// <summary>
-    /// Aggiorna la tilemap di riferimento (utile quando cambia il labirinto)
-    /// </summary>
+    // Aggiorna la tilemap di riferimento (utile quando cambia il labirinto)
     public void UpdateTilemapReference(Tilemap newTilemap)
     {
         if (newTilemap == null) return;
@@ -355,13 +347,11 @@ public class FootprintManager : MonoBehaviour
         
         if (enableDebug)
         {
-            Debug.Log($"Riferimento tilemap aggiornato: {newTilemap.name}");
+            //Debug.Log($"Riferimento tilemap aggiornato: {newTilemap.name}");
         }
     }
     
-    /// <summary>
-    /// Metodo per testare il sistema (da usare nell'Editor)
-    /// </summary>
+    // Metodo per testare il sistema (da usare nell'Editor)
     [ContextMenu("Test - Abilita Impronte")]
     public void TestEnableFootprints()
     {

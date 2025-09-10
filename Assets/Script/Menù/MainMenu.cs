@@ -25,34 +25,37 @@ public class MainMenu : MonoBehaviour
     }
         SetUpButtons();
     }
-private void SetUpButtons()
-{
-    if (easyButton != null)
-        easyButton.onClick.AddListener(() => {
-            // Suono del pulsante
-            if (AudioManager.Instance != null)
-                AudioManager.Instance.PlayButtonClick();
 
-            StartGame(DifficultyLevel.Easy);
-        });
+    private void SetUpButtons()
+    {
+        if (easyButton != null)
+            easyButton.onClick.AddListener(() =>
+            {
+                // Suono del pulsante
+                if (AudioManager.Instance != null)
+                    AudioManager.Instance.PlayButtonClick();
 
-    if (normalButton != null)
-        normalButton.onClick.AddListener(() => {
-            if (AudioManager.Instance != null)
-                AudioManager.Instance.PlayButtonClick();
+                StartGame(DifficultyLevel.Easy);
+            });
 
-            StartGame(DifficultyLevel.Normal);
-        });
+        if (normalButton != null)
+            normalButton.onClick.AddListener(() =>
+            {
+                if (AudioManager.Instance != null)
+                    AudioManager.Instance.PlayButtonClick();
 
-    if (hardButton != null)
-        hardButton.onClick.AddListener(() => {
-            if (AudioManager.Instance != null)
-                AudioManager.Instance.PlayButtonClick();
+                StartGame(DifficultyLevel.Normal);
+            });
 
-            StartGame(DifficultyLevel.Hard);
-        });
-}
+        if (hardButton != null)
+            hardButton.onClick.AddListener(() =>
+            {
+                if (AudioManager.Instance != null)
+                    AudioManager.Instance.PlayButtonClick();
 
+                StartGame(DifficultyLevel.Hard);
+            });
+    }
 
     public void StartGame(DifficultyLevel difficulty)
     {
@@ -62,17 +65,17 @@ private void SetUpButtons()
         }
         else
         {
-            Debug.LogWarning("DifficultyManager non trovato! Creandone uno temporaneo...");
+            //Debug.LogWarning("DifficultyManager non trovato! Creandone uno temporaneo...");
             GameObject tempManager = new GameObject("TempDifficultyManager");
             DifficultyManager manager = tempManager.AddComponent<DifficultyManager>();
             manager.SetDifficulty(difficulty);
         }
 
-    // 🔊 Ferma la musica del menu
-    if (AudioManager.Instance != null)
-    {
-        AudioManager.Instance.StopMusic();
-    }
+        // Ferma la musica del menu
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.StopMusic();
+        }
         SaveSystem.NewGame();
     }
 

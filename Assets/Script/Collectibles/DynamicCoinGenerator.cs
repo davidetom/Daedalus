@@ -7,7 +7,7 @@ public class DynamicCoinGenerator : MonoBehaviour
     [Header("Coin Settings")]
     public GameObject coinPrefab;
     public int maxDistance = 10; // Distanza massima per generare monete
-    public float coinSpawnChance = 0.05f; // Probabilità di spawn (5%)
+    public float coinSpawnChance = 0.05f; // Probabilità di spawn
     public float updateInterval = 1f; // Intervallo di aggiornamento in secondi
     
     [Header("Visibility Settings")]
@@ -100,7 +100,7 @@ public class DynamicCoinGenerator : MonoBehaviour
         {
             if (activeCoins.TryGetValue(posToRemove, out GameObject coinToDestroy))
             {
-                // NUOVO: Libera la posizione prima di distruggere
+                // Libera la posizione prima di distruggere
                 GemSpawner.UnregisterOccupiedPosition(posToRemove);
                 
                 Destroy(coinToDestroy);
@@ -214,7 +214,7 @@ public class DynamicCoinGenerator : MonoBehaviour
         if (IsPositionVisibleToPlayer(arrayPos))
             return false;
         
-        // NUOVO: La posizione deve essere libera (no collision con gemme)
+        // La posizione deve essere libera (no collision con gemme)
         if (!GemSpawner.IsPositionFree(arrayPos))
             return false;
         
@@ -240,7 +240,7 @@ public class DynamicCoinGenerator : MonoBehaviour
         if (!IsNearVisibleArea(arrayPos))
             return false;
         
-        // NUOVO: La posizione deve essere libera (no collision con gemme)
+        // La posizione deve essere libera (no collision con gemme)
         if (!GemSpawner.IsPositionFree(arrayPos))
             return false;
         
@@ -355,14 +355,14 @@ public class DynamicCoinGenerator : MonoBehaviour
     {
         if (coinPrefab == null)
         {
-            Debug.LogWarning("Coin prefab non assegnato!");
+            //Debug.LogWarning("Coin prefab non assegnato!");
             return;
         }
         
-        // NUOVO: Controllo finale per essere sicuri che la posizione sia libera
+        // Controllo finale per essere sicuri che la posizione sia libera
         if (!GemSpawner.IsPositionFree(arrayPos))
         {
-            Debug.LogWarning($"Tentativo di spawnare moneta in posizione occupata: {arrayPos}");
+            //Debug.LogWarning($"Tentativo di spawnare moneta in posizione occupata: {arrayPos}");
             return;
         }
         
@@ -383,7 +383,7 @@ public class DynamicCoinGenerator : MonoBehaviour
         // Aggiungi alla dictionary
         activeCoins[arrayPos] = newCoin;
         
-        // NUOVO: Registra la posizione come occupata
+        // Registra la posizione come occupata
         GemSpawner.RegisterOccupiedPosition(arrayPos, newCoin);
     }
     
@@ -404,7 +404,7 @@ public class DynamicCoinGenerator : MonoBehaviour
         {
             if (coinPair.Value != null)
             {
-                // NUOVO: Libera la posizione prima di distruggere
+                // Libera la posizione prima di distruggere
                 GemSpawner.UnregisterOccupiedPosition(coinPair.Key);
                 
                 Destroy(coinPair.Value);
@@ -430,7 +430,7 @@ public class DynamicCoinGenerator : MonoBehaviour
         // Libera la posizione quando una moneta viene raccolta
         if (activeCoins.ContainsKey(position))
         {
-            // NUOVO: Se la moneta esiste fisicamente, distruggila
+            // Se la moneta esiste fisicamente, distruggila
             if (activeCoins[position] != null)
                 Destroy(activeCoins[position]);
             

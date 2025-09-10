@@ -10,11 +10,11 @@ public class FirebaseInit : MonoBehaviour
         {
             if (task.Result == DependencyStatus.Available)
             {
-                Debug.Log("✅ Firebase inizializzato correttamente!");
+                //Debug.Log("✅ Firebase inizializzato correttamente!");
             }
             else
             {
-                Debug.LogError("❌ Errore inizializzazione Firebase: " + task.Result.ToString());
+                //Debug.LogError("❌ Errore inizializzazione Firebase: " + task.Result.ToString());
             }
         });
     }
