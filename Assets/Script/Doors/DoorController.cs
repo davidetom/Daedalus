@@ -19,6 +19,9 @@ public class DoorController : MonoBehaviour
     [Header("Collider Check")]
     public bool isPlayerOnDoor = false;
 
+    // Eventi per wrong door warning
+    public static System.Action OnWrongDoorAttempt;
+
     void Awake()
     {
         animator = GetComponent<Animator>();
@@ -101,6 +104,9 @@ public class DoorController : MonoBehaviour
         }
         else if (!player.CheckForKey())
         {
+            // NUOVO: Trigger evento per warning UI (nessuna chiave)
+            OnWrongDoorAttempt?.Invoke();
+            
             //Debug.Log("Hai bisogno di una chiave per aprire questa porta!");
             if (AudioManager.Instance != null)
             {
@@ -109,6 +115,9 @@ public class DoorController : MonoBehaviour
         }
         else
         {
+            // NUOVO: Trigger evento per warning UI (porta sbagliata)
+            OnWrongDoorAttempt?.Invoke();
+            
             //Debug.Log("La porta " + doorID + " non è quella giusta per oggi! Oggi si apre la porta " + correctDoor);
             if (AudioManager.Instance != null)
             {

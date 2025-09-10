@@ -512,7 +512,7 @@ public class FogManager : MonoBehaviour
 
             return correctSizeBitArray;
         }
-        catch (System.Exception e)
+        catch //(System.Exception e)
         {
             //Debug.LogError($"Errore deserializzazione BitArray: {e.Message}");
             return null;

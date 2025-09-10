@@ -133,7 +133,7 @@ public class SaveSystem
             SceneManager.LoadScene("MainMenu");
             Time.timeScale = 1f;
         }
-        catch (System.Exception e)
+        catch //(System.Exception e)
         {
             //Debug.LogError("Errore durante il salvataggio: " + e.Message);
         }
@@ -177,7 +177,7 @@ public class SaveSystem
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.LoadScene(loadedData.sceneIndex);
         }
-        catch (System.Exception e)
+        catch //(System.Exception e)
         {
             //Debug.LogError("Errore durante il caricamento locale: " + e.Message);
         }
@@ -350,7 +350,7 @@ public class SaveSystem
                 File.Delete(SaveFileName());
                 //Debug.Log($"File locale rimosso per {userId}");
             }
-            catch (System.Exception e)
+            catch //(System.Exception e)
             {
                 //Debug.LogError($"Errore rimozione file locale: {e.Message}");
             }

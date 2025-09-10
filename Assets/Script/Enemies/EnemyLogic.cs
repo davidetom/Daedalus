@@ -117,7 +117,6 @@ public class EnemyLogic : MonoBehaviour
         // Monitora la posizione del player per rilevare respawn o teletrasporti
         CheckPlayerPositionChange();
 
-        HandleKnockback();
         HandleMovement();
         HandleAttack();
     }
@@ -148,7 +147,7 @@ public class EnemyLogic : MonoBehaviour
         
         // Condizioni per forzare ricalcolo BFS:
         bool shouldRecalculate = false;
-        string reason = "";
+        //string reason = "";
         
         // 1. Movimento drastico (teletrasporto/respawn)
         if (distanceMoved > 2f)

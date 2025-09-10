@@ -71,6 +71,7 @@ public class DayNightCycleManager : MonoBehaviour
 
     // Getter per il day count
     public int GetDayCount() => dayCount;
+    public int SetDayCount(int number) => dayCount = number;
 
     void Start()
     {
@@ -416,12 +417,6 @@ public class DayNightCycleManager : MonoBehaviour
     }
 
     // Metodi per il debug e testing
-    public void SetDayCount(int newDayCount)
-    {
-        dayCount = Mathf.Max(1, newDayCount);
-        Debug.Log($"Day count impostato a: {dayCount}");
-    }
-
     public void AddDays(int daysToAdd)
     {
         dayCount += daysToAdd;

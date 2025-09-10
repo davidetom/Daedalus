@@ -277,7 +277,7 @@ public class MazeSceneGenerator : MonoBehaviour
             
             return tilemapObj;
         }
-        catch (System.Exception e)
+        catch //(System.Exception e)
         {
             //Debug.LogError($"Errore nella generazione del labirinto {numeroLabirinto}: {e.Message}");
             //Debug.LogError($"Stack trace: {e.StackTrace}");

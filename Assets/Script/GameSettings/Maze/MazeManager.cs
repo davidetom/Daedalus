@@ -29,12 +29,16 @@ public class MazeManager : MonoBehaviour
     public TextMeshProUGUI toHubWarningText;
     public GameObject mazeChangedPanel;
     public TextMeshProUGUI mazeChangedWarningText;
+    public TextMeshProUGUI doorWarningText;
+    public string doorOpenPrefix = "The seal upon door ";
+    public string doorOpenSuffix = " weakens with the dawn...";
     public GameObject mazeOpenPanel;
     public TextMeshProUGUI mazeOpenWarningText;
     public GameObject mazeClosedPanel;
     public TextMeshProUGUI mazeClosedWarningText;
     public TextMeshProUGUI goodLuckText;
     public GameObject gemCollectedPanel;
+    public GameObject wrongDoorPanel;
 
 
     [Header("Zone")]
@@ -66,7 +70,7 @@ public class MazeManager : MonoBehaviour
     private bool originalCanAttackWhileMoving;
     private bool sunsetChoiceMade = false;
     private bool playerSleeping = false;
-    private Camera mainCamera;
+    
 
     // Riferimenti tilemap
     private GameObject[] tilemapPrefabs;
@@ -130,6 +134,8 @@ public class MazeManager : MonoBehaviour
         OpenMazeDoors();
         HideAllWarnings();
         InitializeCameraControl();
+
+        StartCoroutine(ShowOnlyDoorAndMazeOpenWarning());
     }
 
     void InitializeCameraControl()
@@ -175,9 +181,6 @@ public class MazeManager : MonoBehaviour
             {
                 cameraController.SetConstraintsActive(true);
             }
-
-            // Assegna la stessa telecamera anche a mainCamera per coerenza
-            mainCamera = cameraController.GetComponent<Camera>();
         }
     }
 
@@ -193,6 +196,10 @@ public class MazeManager : MonoBehaviour
             mazeClosedPanel.SetActive(false);
         if (mazeOpenPanel != null)
             mazeOpenPanel.SetActive(false);
+        if (wrongDoorPanel != null)
+            wrongDoorPanel.SetActive(false);
+        if (gemCollectedPanel != null)
+            gemCollectedPanel.SetActive(false);
     }
 
     void LoadTilemapPrefabs()
@@ -447,7 +454,38 @@ public class MazeManager : MonoBehaviour
             enemySpawner.ClearAllEnemies();
 
         hasChosenToStay = false;
-        isChangingMaze = false;
+        isChangingMaze = false;     
+    }
+
+    IEnumerator ShowOnlyDoorAndMazeOpenWarning()
+    {
+        yield return new WaitForSeconds(5f); // aspetto un pò dall'inizio partita
+
+        if (mazeChangedWarningText != null)
+            mazeChangedWarningText.gameObject.SetActive(false);
+
+        if (mazeChangedPanel != null)
+            mazeChangedPanel.SetActive(true);
+
+        if (mazeOpenPanel != null)
+            mazeOpenPanel.SetActive(true);
+
+        if (doorWarningText != null && mazeOpenWarningText != null)
+        {
+            int doorNumber = (dayNightManager.GetDayCount() - 1) % 8 + 1; //numero della porta aperta
+            doorWarningText.text = doorOpenPrefix + doorNumber + doorOpenSuffix;
+            doorWarningText.gameObject.SetActive(true);
+
+            mazeOpenWarningText.gameObject.SetActive(true);
+
+            yield return new WaitForSeconds(4f);
+
+            doorWarningText.gameObject.SetActive(false);
+            mazeOpenWarningText.gameObject.SetActive(false);
+        }
+
+        if (mazeChangedPanel != null)
+            mazeChangedPanel.SetActive(false);
     }
 
     #endregion
@@ -506,6 +544,8 @@ public class MazeManager : MonoBehaviour
 
     void ShowSunsetWarning()
     {
+        HideAllWarnings();
+        
         if (warningPanel != null)
         {
             warningPanel.SetActive(true);
@@ -902,16 +942,21 @@ public class MazeManager : MonoBehaviour
         // Mostra il maze open warning per 3 secondi
         if (mazeChangedPanel != null)
             mazeChangedPanel.SetActive(true);
-            
-        if (mazeChangedWarningText != null)
+
+        if (mazeChangedWarningText != null && doorWarningText != null)
         {
             mazeChangedWarningText.gameObject.SetActive(true);
             //Debug.Log("Mostro warning: labirinto aperto dopo cambio maze");
+            int doorNumber = (dayNightManager.GetDayCount() - 1) % 8 + 1; //numero della porta aperta
+            doorWarningText.text = doorOpenPrefix + doorNumber + doorOpenSuffix;
+            doorWarningText.gameObject.SetActive(true);
 
-            yield return new WaitForSeconds(3f);
+            yield return new WaitForSeconds(4f);
 
             mazeChangedWarningText.gameObject.SetActive(false);
             //Debug.Log("Warning labirinto aperto nascosto");
+
+            doorWarningText.gameObject.SetActive(false);
         }
 
         // INFINE: Disattiva completamente il dawn warning panel
@@ -951,18 +996,28 @@ public class MazeManager : MonoBehaviour
     IEnumerator ShowEasyModeOpenWarning()
     {
         //Debug.Log("Modalità facile: mostrando warning di apertura labirinto");
+        if (mazeChangedWarningText != null)
+            mazeChangedWarningText.gameObject.SetActive(false);
+
+        if (mazeChangedPanel != null)
+            mazeChangedPanel.SetActive(true);
 
         if (mazeOpenPanel != null)
             mazeOpenPanel.SetActive(true);
 
-        if (mazeOpenWarningText != null)
+        if (mazeOpenWarningText != null && doorWarningText != null)
         {
+            int doorNumber = (dayNightManager.GetDayCount() - 1) % 8 + 1; //numero della porta aperta
+            doorWarningText.text = doorOpenPrefix + doorNumber + doorOpenSuffix;
+            doorWarningText.gameObject.SetActive(true);
+
             mazeOpenWarningText.gameObject.SetActive(true);
             //Debug.Log("Mostro warning: labirinto aperto (modalità facile)");
 
-            yield return new WaitForSeconds(3f);
+            yield return new WaitForSeconds(4f);
 
             mazeOpenWarningText.gameObject.SetActive(false);
+            doorWarningText.gameObject.SetActive(false);
             //Debug.Log("Warning labirinto aperto nascosto (modalità facile)");
         }
 
@@ -971,6 +1026,9 @@ public class MazeManager : MonoBehaviour
             mazeOpenPanel.SetActive(false);
             //Debug.Log("MazeOpen panel disattivato (modalità facile)");
         }
+
+        if (mazeChangedPanel != null)
+            mazeChangedPanel.SetActive(true);
     }
 
     #endregion
@@ -1022,6 +1080,7 @@ public class MazeManager : MonoBehaviour
         // 6. DOPO il cambio labirinto: Resetta al giorno
         if (dayNightManager != null)
         {
+            dayNightManager.SetDayCount(dayNightManager.GetDayCount() - 1);
             //Debug.Log("Risveglio - resettando il ciclo al giorno");
             dayNightManager.ResetToDay();
         }
