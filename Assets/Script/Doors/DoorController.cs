@@ -22,7 +22,7 @@ public class DoorController : MonoBehaviour
     void Awake()
     {
         animator = GetComponent<Animator>();
-        dayNightManager = UnityEngine.Object.FindFirstObjectByType<DayNightCycleManager>();
+        dayNightManager = FindFirstObjectByType<DayNightCycleManager>();
 
         if(victoryCanvas != null)
         {
@@ -56,14 +56,19 @@ public class DoorController : MonoBehaviour
         }
 
         // Riproduci il suono di vittoria
-    if (AudioManager.Instance != null)
-    {
-        AudioManager.Instance.PlayVictory(); 
-    }
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayVictory(); 
+        }
 
         victoryCanvas.gameObject.SetActive(true);
 
         yield return new WaitForSeconds(durationMessage);
+
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.StopVictory(); 
+        }
 
         SceneManager.LoadScene(sceneToLoad);
     }

@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.EventSystems;
-using TMPro; // serve per i pulsanti mobile
+using TMPro;
+using Unity.VisualScripting; // serve per i pulsanti mobile
 
 public class PlayerController : MonoBehaviour
 {
@@ -1033,68 +1034,74 @@ public class PlayerController : MonoBehaviour
         Time.timeScale = 1f;
     }
 
-    public void InizializeSettings()
-{
-    Debug.Log("Reinizializzazione player...");
-
-    isDead = false;
-    currentHealthPoints = maxHealthPoints;
-    isMoving = false;
-    isAttacking = false;
-    canAttack = true;
-    takingDamage = false;
-    isInvincible = false; // NUOVO: Reset invincibilità
-
-    // Ripristina il colore originale
-    if (spriteRenderer != null)
+    public void InizializeSettings(bool isQuitting)
     {
-        spriteRenderer.color = originalColor;
+        Debug.Log("Reinizializzazione player...");
+
+        isDead = false;
+        currentHealthPoints = maxHealthPoints;
+        isMoving = false;
+        isAttacking = false;
+        canAttack = true;
+        takingDamage = false;
+        isInvincible = false; // NUOVO: Reset invincibilità
+
+        // Ripristina il colore originale
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = originalColor;
+        }
+
+        // Reset delle coroutine
+        if (currentDamageFeedbackCoroutine != null)
+        {
+            StopCoroutine(currentDamageFeedbackCoroutine);
+            currentDamageFeedbackCoroutine = null;
+        }
+
+        // NUOVO: Reset coroutine invincibilità
+        if (currentInvincibilityCoroutine != null)
+        {
+            StopCoroutine(currentInvincibilityCoroutine);
+            currentInvincibilityCoroutine = null;
+        }
+
+        animator.SetBool("isAttacking", false);
+        animator.SetBool("isMoving", false);
+        if (!isQuitting)
+        {
+            transform.position = startPos;
+            outerHubController.UpdateStatusWithPlayerInHub();
+        }
+
+        // Cambia labirinto prima di riavviare il giorno
+        if (mazeManager != null)
+        {
+            mazeManager.ChangeToNextMaze();
+        }
+
+        // Riavvia il ciclo giorno/notte dall'inizio del giorno
+        if (dayNightCycleManager != null)
+        {
+            dayNightCycleManager.ResetToDay();
+        }
+
+        // Riprendi la musica dopo il revive
+        LabyrinthMusicManager labyrinthMusic = FindFirstObjectByType<LabyrinthMusicManager>();
+        if (labyrinthMusic != null && !isQuitting)
+        {
+            labyrinthMusic.ResumeMusicAfterRevive();
+        }
+
+        ResetAllEnemiesState();
+
+        InvalidateDistances();
+        StartCoroutine(RecalculateDistancesNextFrame());
+
+        if (!isQuitting)
+            ShowRespawn();
     }
 
-    // Reset delle coroutine
-    if (currentDamageFeedbackCoroutine != null)
-    {
-        StopCoroutine(currentDamageFeedbackCoroutine);
-        currentDamageFeedbackCoroutine = null;
-    }
-
-    // NUOVO: Reset coroutine invincibilità
-    if (currentInvincibilityCoroutine != null)
-    {
-        StopCoroutine(currentInvincibilityCoroutine);
-        currentInvincibilityCoroutine = null;
-    }
-
-    animator.SetBool("isAttacking", false);
-    animator.SetBool("isMoving", false);
-    transform.position = startPos;
-    outerHubController.UpdateStatusWithPlayerInHub();
-
-    // NUOVO: Cambia labirinto prima di riavviare il giorno
-    if (mazeManager != null)
-    {
-        mazeManager.ChangeToNextMaze();
-    }
-
-    // NUOVO: Riavvia il ciclo giorno/notte dall'inizio del giorno
-    if (dayNightCycleManager != null)
-    {
-        dayNightCycleManager.ResetToDay();
-    }
-
-    // NUOVO: Riprendi la musica dopo il revive
-    LabyrinthMusicManager labyrinthMusic = FindFirstObjectByType<LabyrinthMusicManager>();
-    if (labyrinthMusic != null)
-    {
-        labyrinthMusic.ResumeMusicAfterRevive();
-    }
-
-    ResetAllEnemiesState();
-
-    InvalidateDistances();
-    StartCoroutine(RecalculateDistancesNextFrame());
-    ShowRespawn();
-}
     void ResetAllEnemiesState()
     {
         EnemyLogic[] allEnemies = GameObject.FindObjectsByType<EnemyLogic>(FindObjectsSortMode.None);
@@ -1496,6 +1503,7 @@ public class PlayerController : MonoBehaviour
         {
             Debug.Log("HEALTH BOOST APPLIED");
             maxHealthPoints = maxHealthPoints * 2;
+            currentHealthPoints = 200f;
             healthText1.healthSuffix = "/200";
             healthText1.healthText.text = "200/200";
             healthBarText.text = "200/200";

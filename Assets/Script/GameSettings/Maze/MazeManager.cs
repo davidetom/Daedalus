@@ -16,6 +16,7 @@ public class MazeManager : MonoBehaviour
     public SpawnPointGenerator spawnPointGenerator;
     public OuterHubController hubController;
     public InnerHubController innerHub;
+    public GameObject sleepingPlayer;
     public FootprintManager footprintManager;
 
     [Header("UI")]
@@ -997,8 +998,12 @@ public class MazeManager : MonoBehaviour
             Debug.Log("Sistema day/night messo in pausa per il sonno");
         }
 
-        // 3. Disabilita input del player durante il sonno
+        // 3. Disabilita input e sprite del player durante il sonno
         DisablePlayerInputsAndUI();
+        GameObject player = GameObject.FindWithTag("Player");
+        SpriteRenderer sr = player.GetComponent<SpriteRenderer>();
+        sr.enabled = false;
+        sleepingPlayer.SetActive(true);
 
         Debug.Log("Player inizia a dormire - cambio labirinto in corso...");
 
@@ -1010,6 +1015,8 @@ public class MazeManager : MonoBehaviour
         // 5. Breve pausa per simulare il "sonno" (opzionale)
         yield return new WaitForSecondsRealtime(4f);
 
+        sleepingPlayer.SetActive(false);
+        sr.enabled = true;
         playerSleeping = false;
 
         // 6. DOPO il cambio labirinto: Resetta al giorno

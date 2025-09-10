@@ -150,6 +150,15 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    public void StopSound()
+    {
+        if (sfxSource != null)
+        {
+            // Usa PlayOneShot per gli effetti, mantenendo il volume impostato
+            sfxSource.Stop();
+        }
+    }
+
     // Giocatore
     public void PlaySwordHit() => PlaySound(swordHit);
     public void PlayCoinPickup() => PlaySound(coinPickup);
@@ -170,6 +179,7 @@ public class AudioManager : MonoBehaviour
 
     // Altro
     public void PlayVictory() => PlaySound(victory);
+    public void StopVictory() => StopSound();
 
      public void PlayDamageTaken() => PlaySound(damageTaken);    // NUOVO
     public void PlayDeath() => PlaySound(death);                // NUOVO
