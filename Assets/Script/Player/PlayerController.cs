@@ -1570,10 +1570,9 @@ public class PlayerController : MonoBehaviour
             // Parametri per l'effetto "torcia":
             // - innerRadius: raggio completamente libero da nebbia
             // - outerRadius: raggio dove la nebbia si dirada gradualmente
-            float innerRadius = 1.5f;  // 1.5 tile completamente libere
-            float outerRadius = 3.5f;  // 3.5 tile di diradamento graduale
+            float radius = 3f;  // 3.5 tile di diradamento graduale
 
-            fogManager.RevealFogGradually(playerPos, innerRadius, outerRadius);
+            fogManager.RevealFogInRadius(playerPos, radius);
 
             if (enableDebug)
             {

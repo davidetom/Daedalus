@@ -32701,7 +32701,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 1005936295647735900, guid: 5bfd08542b39c4d93a7ae3ee673f3b12, type: 3}
   spawnPoints: []
-  maxEnemies: 15
+  maxEnemies: 5
   spawnInterval: 2
   spawnRandomly: 1
   useGeneratedSpawnPoints: 1
@@ -32710,15 +32710,15 @@ MonoBehaviour:
   enemyDetectionRadius: 8
   enemyDamage: 10
   playerTarget: {fileID: 203791076}
-  initialSpawnMinDistance: 20
+  initialSpawnMinDistance: 15
   initialSpawnMaxDistance: 100
-  continuousSpawnMinDistance: 10
-  continuousSpawnMaxDistance: 30
+  continuousSpawnMinDistance: 30
+  continuousSpawnMaxDistance: 50
   mapManager: {fileID: 2120444318}
   enableSpawnDebug: 0
   enableRespawn: 1
-  respawnDelay: 3
-  minActiveEnemies: 3
+  respawnDelay: 5
+  minActiveEnemies: 2
 --- !u!4 &1723160731
 Transform:
   m_ObjectHideFlags: 0
@@ -32879,6 +32879,30 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
+    - target: {fileID: 3070210538843571623, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3070210538843571623, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3070210538843571623, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3070210538843571623, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3070210538843571623, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 236.00024
+      objectReference: {fileID: 0}
+    - target: {fileID: 3070210538843571623, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 25.288208
+      objectReference: {fileID: 0}
     - target: {fileID: 5690646975081233815, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -33030,6 +33054,30 @@ PrefabInstance:
     - target: {fileID: 8885816375080760707, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 9213382079017765609, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 9213382079017765609, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 9213382079017765609, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 9213382079017765609, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 9213382079017765609, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 231.00024
+      objectReference: {fileID: 0}
+    - target: {fileID: 9213382079017765609, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 18.484375
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -34852,7 +34900,7 @@ TilemapRenderer:
   m_MaxChunkCount: 16
   m_MaxFrameAge: 16
   m_SortOrder: 0
-  m_Mode: 0
+  m_Mode: 1
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
 --- !u!4 &2053021196
