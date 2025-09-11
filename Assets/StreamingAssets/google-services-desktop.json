@@ -7,22 +7,29 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:290104546201:android:7314538031559f74863908",
+        "mobilesdk_app_id": "1:290104546201:ios:2ec290fbd049b456863908",
         "android_client_info": {
-          "package_name": "com.DefaultCompany.com.unity.template.mobile2D"
+          "package_name": "com.Sasbura.Daedalus"
         }
       },
-      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCNi2nZBUXs6XaA-oQoFD4Sc6YF09zQ2lA"
+          "current_key": "AIzaSyA6z1X1wp4pdXG4HNlg9Saf6rl8eO2TYGo"
         }
       ],
       "services": {
+        "analytics_service": {
+          "status": 0
+        },
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "status": 1
         }
-      }
+      },
+      "oauth_client": [
+        {
+          "client_id": "290104546201-rk64sk6k6ghl5s146hmdvb11d2f509t6.apps.googleusercontent.com"
+        }
+      ]
     }
   ],
   "configuration_version": "1"
