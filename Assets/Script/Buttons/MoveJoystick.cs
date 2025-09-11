@@ -12,17 +12,24 @@ public class MovementJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHa
     public Image backgroundImage;
     
     [Header("Settings")]
-    public float maxDistance = 80f;
+    [Tooltip("Distanza massima come percentuale della larghezza dello schermo (0.1 = 10% della larghezza)")]
+    public float maxDistancePercentage = 0.08f; // 8% della larghezza schermo
     public float deadZone = 0.2f; // Soglia per iniziare il movimento
     
+    [Header("Alternative Settings")]
+    [Tooltip("Se true, usa la percentuale. Se false, usa i pixel scalati per DPI")]
+    public bool usePercentageMode = true;
+    [Tooltip("Distanza in pixel per risoluzione di riferimento 1920x1080")]
+    public float referenceMaxDistance = 80f;
+    
     [Header("Visual Feedback")]
-    public Color normalColor = new Color(0.8f, 0.8f, 0.9f, 0.7f); // Grigio-blu traslucido
-    public Color dragColor = new Color(0.2f, 0.8f, 0.2f, 0.9f); // Verde per movimento
-    public Color disabledColor = new Color(0.4f, 0.4f, 0.4f, 0.5f); // Grigio scuro
+    public Color normalColor = new Color(0.8f, 0.8f, 0.9f, 0.7f);
+    public Color dragColor = new Color(0.2f, 0.8f, 0.2f, 0.9f);
+    public Color disabledColor = new Color(0.4f, 0.4f, 0.4f, 0.5f);
     
     [Header("Background Visual")]
-    public Color backgroundNormalColor = new Color(0.2f, 0.2f, 0.3f, 0.6f); // Scuro traslucido
-    public Color backgroundActiveColor = new Color(0.1f, 0.3f, 0.1f, 0.8f); // Verde scuro per movimento
+    public Color backgroundNormalColor = new Color(0.2f, 0.2f, 0.3f, 0.6f);
+    public Color backgroundActiveColor = new Color(0.1f, 0.3f, 0.1f, 0.8f);
     
     [Header("Animation Settings")]
     public float scaleOnPress = 0.9f;
@@ -44,8 +51,14 @@ public class MovementJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHa
     private Coroutine pulseCoroutine;
     private Coroutine movementCoroutine;
     
+    // Variabile calcolata per la distanza massima effettiva
+    private float calculatedMaxDistance;
+    
     void Start()
     {
+        // Calcola la distanza massima in base al tipo di scaling scelto
+        CalculateMaxDistance();
+        
         joystickCenter = joystickBackground.position;
         
         // Salva le scale originali per le animazioni
@@ -76,6 +89,30 @@ public class MovementJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         if (enablePulseAnimation)
         {
             pulseCoroutine = StartCoroutine(PulseAnimation());
+        }
+        
+        // Debug info
+        Debug.Log($"Joystick Max Distance: {calculatedMaxDistance}px (Screen: {Screen.width}x{Screen.height}, DPI: {Screen.dpi})");
+    }
+    
+    private void CalculateMaxDistance()
+    {
+        if (usePercentageMode)
+        {
+            // Modalità percentuale: usa una percentuale della larghezza dello schermo
+            calculatedMaxDistance = Screen.width * maxDistancePercentage;
+        }
+        else
+        {
+            // Modalità DPI scaling: scala la distanza di riferimento in base ai DPI
+            float referenceDPI = 96f; // DPI standard per 1920x1080
+            float currentDPI = Screen.dpi > 0 ? Screen.dpi : referenceDPI;
+            float dpiScale = currentDPI / referenceDPI;
+            
+            calculatedMaxDistance = referenceMaxDistance * dpiScale;
+            
+            // Clamp per evitare valori troppo estremi
+            calculatedMaxDistance = Mathf.Clamp(calculatedMaxDistance, 40f, Screen.width * 0.15f);
         }
     }
     
@@ -120,12 +157,12 @@ public class MovementJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         Vector2 direction = currentPosition - startPosition;
         float distance = direction.magnitude;
         
-        // Aggiorna la posizione del joystick handle
-        Vector2 clampedDirection = Vector2.ClampMagnitude(direction, maxDistance);
+        // Aggiorna la posizione del joystick handle usando la distanza calcolata
+        Vector2 clampedDirection = Vector2.ClampMagnitude(direction, calculatedMaxDistance);
         joystickHandle.position = joystickCenter + clampedDirection;
         
         // Se superiamo la dead zone, iniziamo il movimento
-        if (distance > deadZone * maxDistance)
+        if (distance > deadZone * calculatedMaxDistance)
         {
             Vector2 normalizedDirection = clampedDirection.normalized;
             Vector2 cardinalDirection = ConvertToCardinalDirection(normalizedDirection);
@@ -421,5 +458,19 @@ public class MovementJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         {
             backgroundImage.color = backgroundNormalColor;
         }
+    }
+    
+    // Metodi pubblici per debug e regolazione runtime
+    [ContextMenu("Recalculate Max Distance")]
+    public void RecalculateMaxDistance()
+    {
+        CalculateMaxDistance();
+        Debug.Log($"New Max Distance: {calculatedMaxDistance}px");
+    }
+    
+    // Proprietà per accedere alla distanza calcolata
+    public float GetCalculatedMaxDistance()
+    {
+        return calculatedMaxDistance;
     }
 }

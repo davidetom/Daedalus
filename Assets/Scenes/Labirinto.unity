@@ -7845,9 +7845,9 @@ RectTransform:
   - {fileID: 872772755}
   m_Father: {fileID: 1988953591}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0}
-  m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -1565, y: 259}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 330, y: 240}
   m_SizeDelta: {x: 130, y: 130}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &351504922
@@ -7866,8 +7866,10 @@ MonoBehaviour:
   joystickHandle: {fileID: 2014532931}
   handleImage: {fileID: 2014532932}
   backgroundImage: {fileID: 631901802}
-  maxDistance: 100
+  maxDistancePercentage: 0.07
   deadZone: 0.2
+  usePercentageMode: 1
+  referenceMaxDistance: 100
   normalColor: {r: 0.8, g: 0.8, b: 0.9, a: 0.7}
   dragColor: {r: 0, g: 0.4258305, b: 0.7924528, a: 0.9}
   disabledColor: {r: 0.4, g: 0.4, b: 0.4, a: 0.5}
@@ -12463,7 +12465,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 20.308197}
+  m_AnchoredPosition: {x: 0, y: 20.308228}
   m_SizeDelta: {x: 0, y: -267.8578}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1057762323
@@ -13695,7 +13697,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -378, y: 259}
+  m_AnchoredPosition: {x: -380, y: 240}
   m_SizeDelta: {x: 130, y: 130}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1390000479
@@ -13714,9 +13716,11 @@ MonoBehaviour:
   joystickHandle: {fileID: 1979566}
   handleImage: {fileID: 1979567}
   backgroundImage: {fileID: 1734748856}
-  maxDistance: 100
+  maxDistancePercentage: 0.07
   deadZone: 0.4
   tapTime: 0.3
+  usePercentageMode: 1
+  referenceMaxDistance: 100
   normalColor: {r: 0.8, g: 0.8, b: 0.9, a: 0.7}
   dragColor: {r: 0.7735849, g: 0, b: 0.08809007, a: 0.9}
   attackColor: {r: 1, g: 0.3, b: 0.3, a: 1}
@@ -14021,7 +14025,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4778209262109692673, guid: 2c5ec65f4a03a4e2399e36a3fb51ef20, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 36.028
+      value: 36.027954
       objectReference: {fileID: 0}
     - target: {fileID: 6851273872112709921, guid: 2c5ec65f4a03a4e2399e36a3fb51ef20, type: 3}
       propertyPath: m_AnchorMax.x
@@ -14205,7 +14209,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8867034473477729017, guid: 2c5ec65f4a03a4e2399e36a3fb51ef20, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 36.028
+      value: 36.027954
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
@@ -32138,7 +32142,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8790719740762300425, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 31.14558
+      value: 31.14563
       objectReference: {fileID: 0}
     - target: {fileID: 8885816375080760707, guid: e1878633d730c48c7b70c7210faaa667, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
@@ -35138,11 +35142,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6635228876859108172, guid: 79403b1b837aeb84a9e8ba40b4c6655c, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -158
+      value: -116
       objectReference: {fileID: 0}
     - target: {fileID: 6635228876859108172, guid: 79403b1b837aeb84a9e8ba40b4c6655c, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 442
+      value: 410
       objectReference: {fileID: 0}
     - target: {fileID: 6635228876859108172, guid: 79403b1b837aeb84a9e8ba40b4c6655c, type: 3}
       propertyPath: m_ConstrainProportionsScale
@@ -35577,7 +35581,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 23.109283}
+  m_AnchoredPosition: {x: 0, y: 23.109253}
   m_SizeDelta: {x: 0, y: -249.1913}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2144389305
