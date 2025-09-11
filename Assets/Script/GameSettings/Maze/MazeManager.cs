@@ -487,6 +487,9 @@ public class MazeManager : MonoBehaviour
 
         if (mazeChangedPanel != null)
             mazeChangedPanel.SetActive(false);
+        
+        if (mazeOpenPanel != null)
+            mazeOpenPanel.SetActive(false);
     }
 
     #endregion

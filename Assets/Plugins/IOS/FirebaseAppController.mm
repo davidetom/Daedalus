@@ -1,29 +1,38 @@
 #import "UnityAppController.h"
+#import <objc/runtime.h>
 
-// Forward declaration
+// Forward declaration per Firebase
 @interface FIRApp : NSObject
 + (void)configure;
-@end
-
-@interface UnityAppController (Firebase)
 @end
 
 @implementation UnityAppController (Firebase)
 
 + (void)load {
-    // Questo metodo viene chiamato automaticamente quando la classe viene caricata
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        // Swizzling del metodo didFinishLaunchingWithOptions
-        Class class = [self class];
-        
-        SEL originalSelector = @selector(application:didFinishLaunchingWithOptions:);
-        SEL swizzledSelector = @selector(firebase_application:didFinishLaunchingWithOptions:);
-        
-        Method originalMethod = class_getInstanceMethod(class, originalSelector);
-        Method swizzledMethod = class_getInstanceMethod(class, swizzledSelector);
-        
-        method_exchangeImplementations(originalMethod, swizzledMethod);
+        Class cls = NSClassFromString(@"UnityAppController");
+        if (cls) {
+            SEL originalSelector = @selector(application:didFinishLaunchingWithOptions:);
+            SEL swizzledSelector = @selector(firebase_application:didFinishLaunchingWithOptions:);
+            
+            Method originalMethod = class_getInstanceMethod(cls, originalSelector);
+            Method swizzledMethod = class_getInstanceMethod(cls, swizzledSelector);
+            
+            if (originalMethod && swizzledMethod) {
+                BOOL didAddMethod = class_addMethod(cls, originalSelector,
+                                                  method_getImplementation(swizzledMethod),
+                                                  method_getTypeEncoding(swizzledMethod));
+                
+                if (didAddMethod) {
+                    class_replaceMethod(cls, swizzledSelector,
+                                      method_getImplementation(originalMethod),
+                                      method_getTypeEncoding(originalMethod));
+                } else {
+                    method_exchangeImplementations(originalMethod, swizzledMethod);
+                }
+            }
+        }
     });
 }
 
@@ -31,7 +40,7 @@
     // Configura Firebase
     [FIRApp configure];
     
-    // Chiama il metodo originale
+    // Chiama il metodo originale (ora swizzled)
     return [self firebase_application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
