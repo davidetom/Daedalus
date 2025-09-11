@@ -3,53 +3,46 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections;
 
-public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler
+public class MovementJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler
 {
     [Header("UI Components")]
     public RectTransform joystickBackground;
     public RectTransform joystickHandle;
-    public Image handleImage; // Per cambiare il colore durante drag
-    public Image backgroundImage; // Riferimento al background
+    public Image handleImage;
+    public Image backgroundImage;
     
     [Header("Settings")]
     public float maxDistance = 80f;
-    public float deadZone = 0.4f; // Soglia per distinguere tap da drag
-    public float tapTime = 0.3f; // Tempo massimo per considerarlo un tap
+    public float deadZone = 0.2f; // Soglia per iniziare il movimento
     
     [Header("Visual Feedback")]
     public Color normalColor = new Color(0.8f, 0.8f, 0.9f, 0.7f); // Grigio-blu traslucido
-    public Color dragColor = new Color(1f, 0.2f, 0.2f, 0.9f); // Rosso acceso
-    public Color attackColor = new Color(1f, 0.3f, 0.3f, 1f); // Rosso intenso
+    public Color dragColor = new Color(0.2f, 0.8f, 0.2f, 0.9f); // Verde per movimento
     public Color disabledColor = new Color(0.4f, 0.4f, 0.4f, 0.5f); // Grigio scuro
     
     [Header("Background Visual")]
     public Color backgroundNormalColor = new Color(0.2f, 0.2f, 0.3f, 0.6f); // Scuro traslucido
-    public Color backgroundActiveColor = new Color(0.5f, 0.1f, 0.1f, 0.8f); // Rosso più vivace
+    public Color backgroundActiveColor = new Color(0.1f, 0.3f, 0.1f, 0.8f); // Verde scuro per movimento
     
     [Header("Animation Settings")]
     public float scaleOnPress = 0.9f;
     public float scaleAnimationSpeed = 10f;
     public bool enablePulseAnimation = true;
-    public float pulseSpeed = 2f;
-    public float pulseIntensity = 0.1f;
+    public float pulseSpeed = 1.5f;
+    public float pulseIntensity = 0.05f;
     
     [Header("Player Reference")]
     public PlayerController playerController;
     
-    [Header("Preview Settings")]
-    public LineRenderer attackPreview;
-    public bool showPreview = true;
-    
     private Vector2 startPosition;
     private Vector2 currentPosition;
     private bool isDragging = false;
-    private float pressTime;
-    private bool isPressed = false;
     private Vector2 joystickCenter;
-    private Vector2 attackDirection = Vector2.zero;
+    private Vector2 movementDirection = Vector2.zero;
     private Vector3 originalHandleScale;
     private Vector3 originalBackgroundScale;
     private Coroutine pulseCoroutine;
+    private Coroutine movementCoroutine;
     
     void Start()
     {
@@ -63,16 +56,6 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
         if (joystickBackground != null)
         {
             originalBackgroundScale = joystickBackground.localScale;
-        }
-        
-        // Setup iniziale del preview
-        if (attackPreview != null)
-        {
-            attackPreview.enabled = false;
-            attackPreview.positionCount = 2;
-            attackPreview.startWidth = 0.1f;
-            attackPreview.endWidth = 0.05f;
-            attackPreview.material = new Material(Shader.Find("Sprites/Default"));
         }
         
         // Setup colori iniziali
@@ -95,258 +78,216 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
             pulseCoroutine = StartCoroutine(PulseAnimation());
         }
     }
-
+    
     public void OnPointerDown(PointerEventData eventData)
     {
-        isDragging = false;
-        isPressed = true; // Nuovo: traccia che stiamo premendo
-        pressTime = Time.time;
+        isDragging = true;
         startPosition = eventData.position;
         currentPosition = eventData.position;
-        attackDirection = Vector2.zero;
-
+        movementDirection = Vector2.zero;
+        
         // Animazione di press
         if (joystickHandle != null)
         {
             StartCoroutine(ScaleAnimation(joystickHandle, originalHandleScale * scaleOnPress, scaleAnimationSpeed));
         }
-
+        
         // Ferma animazione di pulse
         if (pulseCoroutine != null)
         {
             StopCoroutine(pulseCoroutine);
             pulseCoroutine = null;
         }
-
+        
         // Feedback visivo immediato
         if (handleImage != null)
         {
             handleImage.color = dragColor;
         }
-
+        
         if (backgroundImage != null)
         {
             backgroundImage.color = backgroundActiveColor;
         }
     }
-
+    
     public void OnDrag(PointerEventData eventData)
     {
+        if (!isDragging) return;
+        
         currentPosition = eventData.position;
-
+        
         Vector2 direction = currentPosition - startPosition;
         float distance = direction.magnitude;
-
-        // Se superiamo la dead zone, iniziamo il dragging
+        
+        // Aggiorna la posizione del joystick handle
+        Vector2 clampedDirection = Vector2.ClampMagnitude(direction, maxDistance);
+        joystickHandle.position = joystickCenter + clampedDirection;
+        
+        // Se superiamo la dead zone, iniziamo il movimento
         if (distance > deadZone * maxDistance)
         {
-            isDragging = true;
-
-            // Aggiorna la posizione del joystick handle
-            Vector2 clampedDirection = Vector2.ClampMagnitude(direction, maxDistance);
-            joystickHandle.position = joystickCenter + clampedDirection;
-
-            // Calcola la direzione dell'attacco (convertita per il gioco)
             Vector2 normalizedDirection = clampedDirection.normalized;
-            attackDirection = ConvertScreenToGameDirection(normalizedDirection);
-
-            // Mostra preview dell'attacco se il player può attaccare
-            if (showPreview && CanPlayerAttack())
+            Vector2 cardinalDirection = ConvertToCardinalDirection(normalizedDirection);
+            
+            // Solo se la direzione è cambiata, aggiorna il movimento
+            if (cardinalDirection != movementDirection)
             {
-                ShowAttackPreview(attackDirection);
+                movementDirection = cardinalDirection;
+                UpdatePlayerMovement(cardinalDirection);
+            }
+        }
+        else
+        {
+            // Dentro la dead zone - ferma il movimento
+            if (movementDirection != Vector2.zero)
+            {
+                movementDirection = Vector2.zero;
+                StopPlayerMovement();
             }
         }
     }
-
+    
     public void OnPointerUp(PointerEventData eventData)
     {
-        float releaseTime = Time.time - pressTime;
-        Vector2 direction = currentPosition - startPosition;
-
-        // Salva lo stato prima di resettarlo
-        bool wasPressed = isPressed;
-        bool wasDragging = isDragging;
-
+        isDragging = false;
+        
         // Ripristina la scala originale del handle
         if (joystickHandle != null)
         {
             StartCoroutine(ScaleAnimation(joystickHandle, originalHandleScale, scaleAnimationSpeed));
         }
-
-        // Feedback visivo di attacco
-        if (handleImage != null)
-        {
-            StartCoroutine(AttackFeedback());
-        }
-
+        
         // Reset visual del joystick
         joystickHandle.position = joystickCenter;
-        HideAttackPreview();
-
-        // Logica di attacco basata sui valori salvati
-        if (wasDragging && direction.magnitude > deadZone * maxDistance)
+        
+        // Ferma il movimento del player
+        StopPlayerMovement();
+        movementDirection = Vector2.zero;
+        
+        // Reset colori
+        if (handleImage != null)
         {
-            // È stato un drag - esegui attacco direzionale
-            ExecuteDirectionalAttack(attackDirection);
+            handleImage.color = CanPlayerMove() ? normalColor : disabledColor;
         }
-        else if (releaseTime < tapTime)
-        {
-            // È stato un tap - esegui la logica del PulsanteAzione esistente
-            ExecuteAction();
-        }
-
-        // Reset background
+        
         if (backgroundImage != null)
         {
             backgroundImage.color = backgroundNormalColor;
         }
-
+        
         // Riavvia animazione di pulse
         if (enablePulseAnimation && pulseCoroutine == null)
         {
             pulseCoroutine = StartCoroutine(PulseAnimation());
         }
-
-        // Reset flags DOPO aver eseguito la logica
-        isPressed = false;
-        isDragging = false;
-        attackDirection = Vector2.zero;
     }
-
-    // Converte la direzione dello schermo in direzione di gioco (solo cardinali)
-    private Vector2 ConvertScreenToGameDirection(Vector2 screenDirection)
+    
+    // Converte la direzione del joystick in direzione cardinale
+    private Vector2 ConvertToCardinalDirection(Vector2 direction)
     {
-        // Determina la direzione cardinale più vicina
-        float absX = Mathf.Abs(screenDirection.x);
-        float absY = Mathf.Abs(screenDirection.y);
-
+        float absX = Mathf.Abs(direction.x);
+        float absY = Mathf.Abs(direction.y);
+        
         if (absX > absY)
         {
             // Movimento orizzontale
-            return screenDirection.x > 0 ? Vector2.right : Vector2.left;
+            return direction.x > 0 ? Vector2.right : Vector2.left;
         }
         else
         {
             // Movimento verticale
-            return screenDirection.y > 0 ? Vector2.up : Vector2.down;
+            return direction.y > 0 ? Vector2.up : Vector2.down;
         }
     }
     
-    private void ExecuteDirectionalAttack(Vector2 direction)
+    private void UpdatePlayerMovement(Vector2 direction)
     {
-        if (playerController != null && CanPlayerAttack())
+        if (playerController != null && CanPlayerMove())
         {
-            // Crea un metodo pubblico nel PlayerController per impostare la direzione
-            playerController.SetAttackDirection(direction);
+            // Ferma la coroutine precedente se esiste
+            if (movementCoroutine != null)
+            {
+                StopCoroutine(movementCoroutine);
+            }
             
-            // Esegue l'attacco usando il metodo esistente
-            playerController.HandleAttack();
+            // Avvia il nuovo movimento
+            movementCoroutine = StartCoroutine(ContinuousMovement(direction));
         }
     }
     
-    private void ExecuteAction()
+    private void StopPlayerMovement()
     {
         if (playerController != null)
         {
-            // Usa il metodo esistente del PlayerController per le interazioni
-            playerController.PulsanteAzione();
+            playerController.StopMovimento();
+            
+            // Ferma la coroutine di movimento continuo
+            if (movementCoroutine != null)
+            {
+                StopCoroutine(movementCoroutine);
+                movementCoroutine = null;
+            }
         }
     }
     
-    private bool CanPlayerAttack()
+    private IEnumerator ContinuousMovement(Vector2 direction)
+    {
+        while (isDragging && movementDirection == direction && CanPlayerMove())
+        {
+            // Invia il comando di movimento al player
+            if (direction == Vector2.up)
+                playerController.MuoviSu();
+            else if (direction == Vector2.down)
+                playerController.MuoviGiu();
+            else if (direction == Vector2.right)
+                playerController.MuoviDestra();
+            else if (direction == Vector2.left)
+                playerController.MuoviSinistra();
+            
+            yield return null; // Aspetta un frame
+        }
+        
+        // Ferma il movimento quando esce dal loop
+        playerController.StopMovimento();
+        movementCoroutine = null;
+    }
+    
+    private bool CanPlayerMove()
     {
         if (playerController == null) return false;
         
-        if (playerController.InInnerHub) // Se è nell'inner hub
-        {
-            return false;
-        }
-        
-        // Non può attaccare se è nell'outer hub
-        if (playerController.mazeManager != null && playerController.mazeManager.IsPlayerInOuterHub)
-        {
-            return false;
-        }
-        
-        // Può attaccare solo nel labirinto, di notte, con le altre condizioni
-        return playerController.isNightTime && 
-               playerController.canAttack && 
-               !playerController.isDead &&
-               (!playerController.isMoving || playerController.canAttackWhileMoving) &&
-               !playerController.isAttacking;
+        // Il player può muoversi se:
+        // - Non è morto
+        // - Non sta attaccando (a meno che non possa attaccare mentre si muove)
+        // - Non è già in movimento (per evitare conflitti) o può attaccare mentre si muove
+        return !playerController.isDead && 
+               (!playerController.isAttacking || playerController.canAttackWhileMoving) &&
+               (!playerController.isMoving || playerController.canAttackWhileMoving);
     }
     
-    private void ShowAttackPreview(Vector2 direction)
-    {
-        if (attackPreview == null || playerController == null) return;
-        
-        // Calcola posizione di inizio e fine dell'attacco
-        Vector3 startPos = playerController.transform.position;
-        Vector3 endPos = startPos + new Vector3(direction.x, direction.y, 0) * playerController.attackRange;
-        
-        // Imposta le posizioni del LineRenderer
-        attackPreview.SetPosition(0, startPos);
-        attackPreview.SetPosition(1, endPos);
-        attackPreview.enabled = true;
-        
-        // Cambia colore in base al fatto che possa attaccare o meno
-        Color previewColor = CanPlayerAttack() ? Color.red : Color.gray;
-        previewColor.a = 0.7f;
-        attackPreview.startColor = previewColor;
-        attackPreview.endColor = previewColor;
-    }
-    
-    private void HideAttackPreview()
-    {
-        if (attackPreview != null)
-        {
-            attackPreview.enabled = false;
-        }
-    }
-    
-    private IEnumerator AttackFeedback()
-    {
-        if (handleImage == null) yield break;
-        
-        // Flash rosso per feedback dell'attacco
-        handleImage.color = attackColor;
-        yield return new WaitForSeconds(0.1f);
-        
-        // Torna al colore normale
-        handleImage.color = normalColor;
-    }
-
     void Update()
     {
         // Aggiorna il colore del handle in base allo stato del player
-        // Non aggiornare se stiamo premendo o trascinando
-        if (handleImage != null && !isPressed && !isDragging)
+        if (handleImage != null && !isDragging)
         {
-            if (CanPlayerAttack())
+            if (CanPlayerMove())
             {
                 handleImage.color = normalColor;
             }
             else
             {
-                // Grigio se non può attaccare
                 handleImage.color = disabledColor;
             }
         }
-
-        // Aggiorna il preview durante il drag
-        if (isDragging && showPreview && attackDirection != Vector2.zero)
-        {
-            ShowAttackPreview(attackDirection);
-        }
     }
-
-    // Setup dello stile del joystick con bordi arrotondati e ombre
+    
+    // Setup dello stile del joystick con sprite circolari
     private void SetupJoystickStyle()
     {
         // Setup background
         if (backgroundImage != null)
         {
-            // Crea uno sprite circolare se non esiste
             if (backgroundImage.sprite == null)
             {
                 backgroundImage.sprite = CreateCircleSprite(128, new Color(1, 1, 1, 1));
@@ -357,7 +298,6 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
         // Setup handle
         if (handleImage != null)
         {
-            // Crea uno sprite circolare se non esiste
             if (handleImage.sprite == null)
             {
                 handleImage.sprite = CreateCircleSprite(64, new Color(1, 1, 1, 1));
@@ -406,7 +346,7 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
         return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
     }
 
-    /// Animazione di scala fluida
+    // Animazione di scala fluida
     private IEnumerator ScaleAnimation(RectTransform target, Vector3 targetScale, float speed)
     {
         Vector3 startScale = target.localScale;
@@ -427,7 +367,7 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
     {
         while (true)
         {
-            if (!isDragging && CanPlayerAttack())
+            if (!isDragging && CanPlayerMove())
             {
                 float pulse = Mathf.Sin(Time.time * pulseSpeed) * pulseIntensity;
                 Vector3 pulseScale = originalBackgroundScale * (1f + pulse);
@@ -441,12 +381,45 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
                 if (backgroundImage != null)
                 {
                     Color pulseColor = backgroundActiveColor;
-                    pulseColor.a = backgroundNormalColor.a + (pulse * 0.2f);
+                    pulseColor.a = backgroundNormalColor.a + (pulse * 0.1f);
                     backgroundImage.color = Color.Lerp(backgroundNormalColor, pulseColor, Mathf.Abs(pulse));
+                }
+            }
+            else
+            {
+                // Ripristina la scala normale quando è in uso
+                if (joystickBackground != null)
+                {
+                    joystickBackground.localScale = originalBackgroundScale;
                 }
             }
             
             yield return null;
+        }
+    }
+    
+    // Metodo pubblico per forzare lo stop del movimento (utile per altri sistemi)
+    public void ForceStopMovement()
+    {
+        isDragging = false;
+        movementDirection = Vector2.zero;
+        
+        if (joystickHandle != null)
+        {
+            joystickHandle.position = joystickCenter;
+        }
+        
+        StopPlayerMovement();
+        
+        // Reset colori
+        if (handleImage != null)
+        {
+            handleImage.color = CanPlayerMove() ? normalColor : disabledColor;
+        }
+        
+        if (backgroundImage != null)
+        {
+            backgroundImage.color = backgroundNormalColor;
         }
     }
 }

@@ -1,0 +1,507 @@
+fileFormatVersion: 2
+guid: b85f493f3405e4671ba6849ec0471a47
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -3434144139142180028
+    second: Mobile - Brawl Stars - In-game - In-Game Controls_0
+  - first:
+      213: 6001646030359472457
+    second: Mobile - Brawl Stars - In-game - In-Game Controls_1
+  - first:
+      213: -8339402512327532214
+    second: Mobile - Brawl Stars - In-game - In-Game Controls_2
+  - first:
+      213: -2321117335220784196
+    second: Mobile - Brawl Stars - In-game - In-Game Controls_3
+  - first:
+      213: -3642563792909148352
+    second: Mobile - Brawl Stars - In-game - In-Game Controls_4
+  - first:
+      213: 5594784540080017685
+    second: Mobile - Brawl Stars - In-game - In-Game Controls_5
+  - first:
+      213: 8737131094838670820
+    second: Mobile - Brawl Stars - In-game - In-Game Controls_6
+  - first:
+      213: 7762991319994546881
+    second: Mobile - Brawl Stars - In-game - In-Game Controls_7
+  - first:
+      213: 8577190979982891967
+    second: Mobile - Brawl Stars - In-game - In-Game Controls_8
+  - first:
+      213: 5922030990803240014
+    second: Mobile - Brawl Stars - In-game - In-Game Controls_9
+  - first:
+      213: -1050279598916196679
+    second: Mobile - Brawl Stars - In-game - In-Game Controls_10
+  - first:
+      213: -7302956366830595550
+    second: Mobile - Brawl Stars - In-game - In-Game Controls_11
+  - first:
+      213: -5987685587376313959
+    second: Mobile - Brawl Stars - In-game - In-Game Controls_12
+  - first:
+      213: -8748311881474511328
+    second: Mobile - Brawl Stars - In-game - In-Game Controls_13
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Mobile - Brawl Stars - In-game - In-Game Controls_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 544
+        width: 205
+        height: 206
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 443d0fea9187750d0800000000000000
+      internalID: -3434144139142180028
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mobile - Brawl Stars - In-game - In-Game Controls_1
+      rect:
+        serializedVersion: 2
+        x: 563
+        y: 541
+        width: 207
+        height: 207
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 949a53b34412a4350800000000000000
+      internalID: 6001646030359472457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mobile - Brawl Stars - In-game - In-Game Controls_2
+      rect:
+        serializedVersion: 2
+        x: 204
+        y: 544
+        width: 205
+        height: 206
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a41a7bd599d744c80800000000000000
+      internalID: -8339402512327532214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mobile - Brawl Stars - In-game - In-Game Controls_3
+      rect:
+        serializedVersion: 2
+        x: 455
+        y: 533
+        width: 69
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb3f928d41cb9cfd0800000000000000
+      internalID: -2321117335220784196
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mobile - Brawl Stars - In-game - In-Game Controls_4
+      rect:
+        serializedVersion: 2
+        x: 834
+        y: 557
+        width: 91
+        height: 34
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04f53fb8783037dc0800000000000000
+      internalID: -3642563792909148352
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mobile - Brawl Stars - In-game - In-Game Controls_5
+      rect:
+        serializedVersion: 2
+        x: 21
+        y: 512
+        width: 157
+        height: 34
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 511115295eaa4ad40800000000000000
+      internalID: 5594784540080017685
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mobile - Brawl Stars - In-game - In-Game Controls_6
+      rect:
+        serializedVersion: 2
+        x: 255
+        y: 511
+        width: 101
+        height: 34
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e5f0ef7076804970800000000000000
+      internalID: 8737131094838670820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mobile - Brawl Stars - In-game - In-Game Controls_7
+      rect:
+        serializedVersion: 2
+        x: 619
+        y: 500
+        width: 89
+        height: 39
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ca37b6b97fabbb60800000000000000
+      internalID: 7762991319994546881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mobile - Brawl Stars - In-game - In-Game Controls_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 99
+        width: 365
+        height: 366
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fbb909c90cd480770800000000000000
+      internalID: 8577190979982891967
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mobile - Brawl Stars - In-game - In-Game Controls_9
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 317
+        width: 168
+        height: 148
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e448ea35fc74f2250800000000000000
+      internalID: 5922030990803240014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mobile - Brawl Stars - In-game - In-Game Controls_10
+      rect:
+        serializedVersion: 2
+        x: 583
+        y: 387
+        width: 144
+        height: 30
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b6a2c7f448ac61f0800000000000000
+      internalID: -1050279598916196679
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mobile - Brawl Stars - In-game - In-Game Controls_11
+      rect:
+        serializedVersion: 2
+        x: 396
+        y: 251
+        width: 516
+        height: 34
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 22292e880efa6aa90800000000000000
+      internalID: -7302956366830595550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mobile - Brawl Stars - In-game - In-Game Controls_12
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 36
+        width: 213
+        height: 34
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99965b1bea777eca0800000000000000
+      internalID: -5987685587376313959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mobile - Brawl Stars - In-game - In-Game Controls_13
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 6
+        width: 265
+        height: 34
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02ee160c1b0c79680800000000000000
+      internalID: -8748311881474511328
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: d93a1382e0d5f49bf8d4161dd429633e
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Mobile - Brawl Stars - In-game - In-Game Controls_0: -3434144139142180028
+      Mobile - Brawl Stars - In-game - In-Game Controls_1: 6001646030359472457
+      Mobile - Brawl Stars - In-game - In-Game Controls_10: -1050279598916196679
+      Mobile - Brawl Stars - In-game - In-Game Controls_11: -7302956366830595550
+      Mobile - Brawl Stars - In-game - In-Game Controls_12: -5987685587376313959
+      Mobile - Brawl Stars - In-game - In-Game Controls_13: -8748311881474511328
+      Mobile - Brawl Stars - In-game - In-Game Controls_2: -8339402512327532214
+      Mobile - Brawl Stars - In-game - In-Game Controls_3: -2321117335220784196
+      Mobile - Brawl Stars - In-game - In-Game Controls_4: -3642563792909148352
+      Mobile - Brawl Stars - In-game - In-Game Controls_5: 5594784540080017685
+      Mobile - Brawl Stars - In-game - In-Game Controls_6: 8737131094838670820
+      Mobile - Brawl Stars - In-game - In-Game Controls_7: 7762991319994546881
+      Mobile - Brawl Stars - In-game - In-Game Controls_8: 8577190979982891967
+      Mobile - Brawl Stars - In-game - In-Game Controls_9: 5922030990803240014
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

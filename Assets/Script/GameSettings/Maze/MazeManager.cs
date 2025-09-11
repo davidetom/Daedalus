@@ -135,7 +135,8 @@ public class MazeManager : MonoBehaviour
         HideAllWarnings();
         InitializeCameraControl();
 
-        StartCoroutine(ShowOnlyDoorAndMazeOpenWarning());
+        if (SaveSystem.isNewGame)
+            StartCoroutine(ShowOnlyDoorAndMazeOpenWarning());
     }
 
     void InitializeCameraControl()
