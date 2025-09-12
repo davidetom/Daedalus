@@ -92,7 +92,7 @@ public class MovementJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         }
         
         // Debug info
-        Debug.Log($"Joystick Max Distance: {calculatedMaxDistance}px (Screen: {Screen.width}x{Screen.height}, DPI: {Screen.dpi})");
+        //Debug.Log($"Joystick Max Distance: {calculatedMaxDistance}px (Screen: {Screen.width}x{Screen.height}, DPI: {Screen.dpi})");
     }
     
     private void CalculateMaxDistance()

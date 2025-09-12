@@ -46,12 +46,14 @@ public class ShopManager : MonoBehaviour
     public void PurchaseItem(int itemIndex)
     {
         ShopItem item = shopItems[itemIndex];
+        bool gemAdquired = false;
 
         if (CanPurchase(item))
         {
             if (item.requiresGems)
             {
                 ConsumeRequiredGems(item);
+                gemAdquired = true;
                 //Debug.Log($"Purchased: {item.itemData.name} with gems");
             }
             else
@@ -69,7 +71,8 @@ public class ShopManager : MonoBehaviour
             if (inventoryManager != null)
             {
                 inventoryManager.AddItem(item.itemData);
-                playerController.PowerUpEnabled();
+                if (!gemAdquired)
+                    playerController.PowerUpEnabled();
             }
 
             //Aggiorna UI monete

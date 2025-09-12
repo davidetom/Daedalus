@@ -109,7 +109,7 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
         }
 
         // Debug info
-        Debug.Log($"Attack Joystick Max Distance: {calculatedMaxDistance}px (Screen: {Screen.width}x{Screen.height}, DPI: {Screen.dpi})");
+        //Debug.Log($"Attack Joystick Max Distance: {calculatedMaxDistance}px (Screen: {Screen.width}x{Screen.height}, DPI: {Screen.dpi})");
     }
 
     private void CalculateMaxDistance()
@@ -136,7 +136,7 @@ public class AttackJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHand
     public void OnPointerDown(PointerEventData eventData)
     {
         isDragging = false;
-        isPressed = true; // Nuovo: traccia che stiamo premendo
+        isPressed = true; // traccia che stiamo premendo
         pressTime = Time.time;
         startPosition = eventData.position;
         currentPosition = eventData.position;

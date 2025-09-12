@@ -213,7 +213,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5284423423607995459, guid: 2c5ec65f4a03a4e2399e36a3fb51ef20, type: 3}
       propertyPath: m_Name
-      value: StartMessage
+      value: EndMessage
       objectReference: {fileID: 0}
     - target: {fileID: 6719825407461272425, guid: 2c5ec65f4a03a4e2399e36a3fb51ef20, type: 3}
       propertyPath: m_Color.a
@@ -9651,7 +9651,7 @@ GameObject:
   - component: {fileID: 599407362}
   - component: {fileID: 599407361}
   m_Layer: 5
-  m_Name: StartMessage (1)
+  m_Name: EndMessage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15667,7 +15667,7 @@ GameObject:
   - component: {fileID: 898877272}
   - component: {fileID: 898877271}
   m_Layer: 5
-  m_Name: Header
+  m_Name: VictoryHeader
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

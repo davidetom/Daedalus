@@ -128,7 +128,7 @@ public class SaveSystem
 
             // Salvataggio locale
             File.WriteAllText(SaveFileName(), json);
-            Debug.Log($"Salvataggio locale completato per utente {GetCurrentUserId()}: {SaveFileName()}");
+            //Debug.Log($"Salvataggio locale completato per utente {GetCurrentUserId()}: {SaveFileName()}");
 
             // Salvataggio su Firebase
             SaveToFirebase(json);
@@ -295,11 +295,11 @@ public class SaveSystem
         {
             if (task.IsCompleted && !task.IsFaulted)
             {
-                Debug.Log($"Salvataggio su Firebase completato per {user.UserId}");
+                //Debug.Log($"Salvataggio su Firebase completato per {user.UserId}");
             }
             else
             {
-                Debug.LogError($"Errore salvataggio su Firebase per {user.UserId}: " + task.Exception);
+                //Debug.LogError($"Errore salvataggio su Firebase per {user.UserId}: " + task.Exception);
             }
         });
     }
@@ -331,20 +331,20 @@ public class SaveSystem
                     // Memorizza i dati per l'utente corrente
                     SetCurrentUserSaveData(loadedData);
 
-                    Debug.Log($"Dati caricati da Firebase per {user.UserId}");
+                    //Debug.Log($"Dati caricati da Firebase per {user.UserId}");
                     SceneManager.sceneLoaded += OnSceneLoaded;
                     SceneManager.LoadScene(loadedData.sceneIndex);
                     onComplete(true);
                 }
                 else
                 {
-                    Debug.Log($"Nessun salvataggio cloud trovato per {user.UserId}");
+                    //Debug.Log($"Nessun salvataggio cloud trovato per {user.UserId}");
                     onComplete(false);
                 }
             }
             else
             {
-                Debug.LogError($"Errore caricamento da Firebase per {user.UserId}: " + task.Exception);
+                //Debug.LogError($"Errore caricamento da Firebase per {user.UserId}: " + task.Exception);
                 onComplete(false);
             }
         });
