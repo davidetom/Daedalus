@@ -439,6 +439,7 @@ public class DayNightCycleManager : MonoBehaviour
         data.currentPhaseIndex = (int)currentPhase;
         data.phaseTimer = phaseTimer;
         data.wasRunning = isRunning;
+        data.currentDay = dayCount;
 
         //Debug.Log("DayNight salvato - Tempo: " + dayTime + " Fase: " + currentPhase);
     }
@@ -452,6 +453,7 @@ public class DayNightCycleManager : MonoBehaviour
         currentPhase = (DayPhase)data.currentPhaseIndex;
         phaseTimer = data.phaseTimer;
         isRunning = data.wasRunning;
+        dayCount = data.currentDay;
 
         // Aggiorna immediatamente le luci
         UpdateLighting();
@@ -485,4 +487,5 @@ public struct DayNightSaveData
     public int currentPhaseIndex;
     public float phaseTimer;
     public bool wasRunning;
+    public int currentDay;
 }

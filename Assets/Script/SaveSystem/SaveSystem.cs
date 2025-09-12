@@ -8,7 +8,6 @@ using Firebase.Firestore;
 using Firebase.Extensions;
 using System;
 using System.Collections.Generic;
-using NUnit.Framework;
 public class SaveSystem
 {
     //Iniziata nuova partita o caricamento salvataggio?
@@ -29,6 +28,7 @@ public class SaveSystem
         public GemData gemData;
         public FogData fogData;
         public int sceneIndex;
+        public MazeData mazeData;
     }
 
     private static string GetCurrentUserId()
@@ -79,20 +79,26 @@ public class SaveSystem
             dayNight.Save(ref currentSaveData.dayNightSaveData);
             hub.Save(ref currentSaveData.hubData);
 
+            MazeManager mazeManager = GameObject.FindFirstObjectByType<MazeManager>();
+            if (mazeManager != null)
+            {
+                mazeManager.Save(ref currentSaveData.mazeData);
+            }
+
             if (shop != null)
-            {
-                shop.Save(ref currentSaveData.shopData);
-                //Debug.Log("Dati shop salvati");
-            }
-            else
-            {
-                ShopManager foundShop = GameObject.FindFirstObjectByType<ShopManager>();
-                if (foundShop != null)
                 {
-                    foundShop.Save(ref currentSaveData.shopData);
-                    //Debug.Log("ShopManager trovato automaticamente e salvato");
+                    shop.Save(ref currentSaveData.shopData);
+                    //Debug.Log("Dati shop salvati");
                 }
-            }
+                else
+                {
+                    ShopManager foundShop = GameObject.FindFirstObjectByType<ShopManager>();
+                    if (foundShop != null)
+                    {
+                        foundShop.Save(ref currentSaveData.shopData);
+                        //Debug.Log("ShopManager trovato automaticamente e salvato");
+                    }
+                }
 
             DifficultyManager difficultyManager = GameObject.FindFirstObjectByType<DifficultyManager>();
             if(difficultyManager != null)
@@ -211,7 +217,8 @@ public class SaveSystem
         DifficultyManager difficultyManager = GameObject.FindFirstObjectByType<DifficultyManager>();
         GameElementsManager gameElementsManager = GameObject.FindFirstObjectByType<GameElementsManager>();
         GemSpawner gemSpawner = GameObject.FindFirstObjectByType<GemSpawner>();
-        FogManager fogManager = GameObject.FindFirstObjectByType<FogManager>(); // NUOVO
+        FogManager fogManager = GameObject.FindFirstObjectByType<FogManager>();
+        MazeManager mazeManager = GameObject.FindFirstObjectByType<MazeManager>();
 
         //Debug.Log($"=== CARICAMENTO COMPONENTI PER {GetCurrentUserId()} ===");
         //Debug.Log("CoinUIManager trovato: " + (coin != null));
@@ -228,18 +235,23 @@ public class SaveSystem
             shop.Load(currentUserData.shopData);
             hub.Load(currentUserData.hubData);
 
-            if(difficultyManager != null)
+            if (difficultyManager != null)
             {
                 difficultyManager.Load(currentUserData.difficultyData);
                 //Debug.Log("Difficolt� caricata!");
 
                 yield return new WaitForEndOfFrame();
             }
-            
-            if(fogManager != null)
+
+            if (fogManager != null)
             {
                 fogManager.Load(currentUserData.fogData);
                 //Debug.Log("Dati nebbia caricati!");
+            }
+
+            if (mazeManager != null)
+            {
+                mazeManager.Load(currentUserData.mazeData);
             }
 
 

@@ -95,6 +95,7 @@ public class PlayerController : MonoBehaviour
     [Header("Collectibles")]
     public int maxCoinNumber = 9999;
     public int coinsPicked = 0;
+    public bool CoinsRefilled = false;
     public GemSpawner gemSpawner;
     public bool hasLightGem;
     public bool hasNightGem;
@@ -1585,11 +1586,13 @@ public class PlayerController : MonoBehaviour
     public void Save(ref PlayerSaveData data)
     {
         data.HealthPoints = currentHealthPoints;
+        data.HasRefilledCoins = CoinsRefilled;
     }
 
     public void Load(PlayerSaveData data)
     {
         this.currentHealthPoints = data.HealthPoints;
+        CoinsRefilled = data.HasRefilledCoins;
     }
 
     #endregion
@@ -1600,4 +1603,5 @@ public class PlayerController : MonoBehaviour
 public struct PlayerSaveData
 {
     public float HealthPoints;
+    public bool HasRefilledCoins;
 }

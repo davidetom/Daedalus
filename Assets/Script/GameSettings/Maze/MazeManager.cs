@@ -70,7 +70,8 @@ public class MazeManager : MonoBehaviour
     private bool originalCanAttackWhileMoving;
     private bool sunsetChoiceMade = false;
     private bool playerSleeping = false;
-    
+    private bool loadedData = false;
+
 
     // Riferimenti tilemap
     private GameObject[] tilemapPrefabs;
@@ -128,8 +129,10 @@ public class MazeManager : MonoBehaviour
             returnToHubButton.onClick.AddListener(ReturnToHub);
         if (stayInMazeButton != null)
             stayInMazeButton.onClick.AddListener(StayInMaze);
+        
+        if (SaveSystem.isNewGame)
+            LoadCurrentMaze();
 
-        LoadCurrentMaze();
         UpdatePlayerPosition();
         OpenMazeDoors();
         HideAllWarnings();
@@ -395,7 +398,7 @@ public class MazeManager : MonoBehaviour
             else
             {
                 //Debug.LogWarning($"SpawnPointGenerator: {(spawnPointGenerator == null ? "NULL" : "OK")}, " +
-                            //$"MapManager.tilemap: {(mapManager.tilemap == null ? "NULL" : "OK")}");
+                //$"MapManager.tilemap: {(mapManager.tilemap == null ? "NULL" : "OK")}");
             }
         }
     }
@@ -407,6 +410,12 @@ public class MazeManager : MonoBehaviour
 
     void Update()
     {
+        if (loadedData)
+        {
+            LoadCurrentMaze();
+            loadedData = false;
+        }
+        
         UpdatePlayerPosition();
     }
 
@@ -455,7 +464,7 @@ public class MazeManager : MonoBehaviour
             enemySpawner.ClearAllEnemies();
 
         hasChosenToStay = false;
-        isChangingMaze = false;     
+        isChangingMaze = false;
     }
 
     IEnumerator ShowOnlyDoorAndMazeOpenWarning()
@@ -487,7 +496,7 @@ public class MazeManager : MonoBehaviour
 
         if (mazeChangedPanel != null)
             mazeChangedPanel.SetActive(false);
-        
+
         if (mazeOpenPanel != null)
             mazeOpenPanel.SetActive(false);
     }
@@ -523,12 +532,12 @@ public class MazeManager : MonoBehaviour
 
             if (gemCollectedPanel != null)
                 gemCollectedPanel.SetActive(false);
-            
+
             ShowSunsetWarning();
             DisablePlayerInputsAndUI();
         }
     }
-    
+
     void CloseMazeDoorsImmediately()
     {
         mazeDoorsOpen = false;
@@ -549,7 +558,7 @@ public class MazeManager : MonoBehaviour
     void ShowSunsetWarning()
     {
         HideAllWarnings();
-        
+
         if (warningPanel != null)
         {
             warningPanel.SetActive(true);
@@ -693,14 +702,14 @@ public class MazeManager : MonoBehaviour
             cameraController.OnNightStart();
 
         if (!playerInOuterHub && !playerInInnerHub && !sunsetChoiceMade)
-            {
-                //Debug.Log("Nessuna scelta fatta durante il tramonto - player rimane nel labirinto");
-                hasChosenToStay = true;
-                sunsetChoiceMade = true;
+        {
+            //Debug.Log("Nessuna scelta fatta durante il tramonto - player rimane nel labirinto");
+            hasChosenToStay = true;
+            sunsetChoiceMade = true;
 
-                HideSunsetWarnings();
-                EnablePlayerInputsAndUI();
-            }
+            HideSunsetWarnings();
+            EnablePlayerInputsAndUI();
+        }
 
         StartCoroutine(ShowMazeClosedWarnings());
 
@@ -887,13 +896,9 @@ public class MazeManager : MonoBehaviour
 
     void ChangeMazeTilemap()
     {
-        int nextMazeNumber = currentMazeNumber + 1;
-        if (nextMazeNumber > maxMazeCount)
-            nextMazeNumber = 1;
+        currentMazeNumber = (dayNightManager.GetDayCount() - 1) % 8 + 1;
 
         //Debug.Log($"Cambiando dal labirinto {currentMazeNumber} al labirinto {nextMazeNumber}");
-
-        currentMazeNumber = nextMazeNumber;
         LoadCurrentMaze();
         isChangingMaze = false;
 
@@ -1155,4 +1160,26 @@ public class MazeManager : MonoBehaviour
             //Debug.Log($"Cambiato manualmente al labirinto {currentMazeNumber}");
         }
     }
+
+    #region SAVE AND LOAD
+
+    public void Save(ref MazeData data)
+    {
+        data.mazeNumber = currentMazeNumber;
+    }
+
+    public void Load(MazeData data)
+    {
+        currentMazeNumber = data.mazeNumber;
+
+        loadedData = true;
+    }
+
+    #endregion
+}
+
+[System.Serializable]
+public struct MazeData
+{
+    public int mazeNumber;
 }
