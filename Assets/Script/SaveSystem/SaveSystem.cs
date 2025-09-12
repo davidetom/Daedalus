@@ -226,8 +226,9 @@ public class SaveSystem
         if (player != null && dayNight != null && shop != null)
         {
             player.Load(currentUserData.playerData);
-            player.UpdateHealth();
             inventory.LoadInventory(currentUserData.inventoryData);
+            if (player.HasPotion())
+                player.UpdateHealth();
             dayNight.Load(currentUserData.dayNightSaveData);
             shop.Load(currentUserData.shopData);
             hub.Load(currentUserData.hubData);

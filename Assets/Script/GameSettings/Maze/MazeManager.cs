@@ -1154,9 +1154,24 @@ public class MazeManager : MonoBehaviour
     {
         if (!isChangingMaze)
         {
-            int nextMaze = currentMazeNumber + 1;
-            if (nextMaze > maxMazeCount) nextMaze = 1;
-
+            int nextMaze;
+            DifficultyManager diffmanager = FindFirstObjectByType<DifficultyManager>();
+            if (diffmanager != null)
+            {
+                if (diffmanager.IsEasy())
+                {
+                    nextMaze = 1;
+                }
+                else
+                {
+                    nextMaze = (dayNightManager.GetDayCount() - 1) % 8 + 1;
+                }
+            }
+            else
+            {
+                nextMaze = (dayNightManager.GetDayCount() - 1) % 8 + 1;
+            }
+            
             currentMazeNumber = nextMaze;
             LoadCurrentMaze();
 

@@ -1083,6 +1083,7 @@ public class PlayerController : MonoBehaviour
         // Riavvia il ciclo giorno/notte dall'inizio del giorno
         if (dayNightCycleManager != null)
         {
+            dayNightCycleManager.SetDayCount(dayNightCycleManager.GetDayCount() - 1);
             dayNightCycleManager.ResetToDay();
         }
 
@@ -1577,6 +1578,11 @@ public class PlayerController : MonoBehaviour
                 //Debug.Log($"Nebbia diradata attorno al player in posizione: {playerPos}");
             }
         }
+    }
+
+    public bool HasPotion()
+    {
+        return inventory.HasItem(potion);
     }
 
     public void UpdateHealth()
