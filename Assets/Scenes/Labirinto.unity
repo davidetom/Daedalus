@@ -9095,10 +9095,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 837bfaae6ccf7416d817e977ec95d867, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dawnDuration: 3
-  dayDuration: 18
-  sunsetDuration: 3
-  nightDuration: 12
+  dawnDuration: 30
+  dayDuration: 180
+  sunsetDuration: 30
+  nightDuration: 120
   lightController: {fileID: 506153019}
   dayCount: 1
   dayTime: 0.25
