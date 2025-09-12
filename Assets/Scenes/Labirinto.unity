@@ -34772,7 +34772,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 203791074}
-  coin: {fileID: 2140587133}
   inventory: {fileID: 1235402639}
   dayNight: {fileID: 482417671}
   shop: {fileID: 536234039}

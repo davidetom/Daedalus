@@ -19,7 +19,6 @@ public class SaveSystem
     public struct SaveData
     {
         public PlayerSaveData playerData;
-        public CurrencyData currencyData;
         public InventoryData inventoryData;
         public DayNightSaveData dayNightSaveData;
         public ShopData shopData;
@@ -66,7 +65,7 @@ public class SaveSystem
         return File.Exists(SaveFileName());
     }
 
-    public static void Save(PlayerController player, CoinUIManager coin, InventoryManager inventory,
+    public static void Save(PlayerController player, InventoryManager inventory,
                        DayNightCycleManager dayNight, ShopManager shop, OuterHubController hub, GemSpawner gem)
     {
         try
@@ -74,7 +73,6 @@ public class SaveSystem
             SaveData currentSaveData = GetCurrentUserSaveData();
 
             player.Save(ref currentSaveData.playerData);
-            coin.Save(ref currentSaveData.currencyData);
             currentSaveData.inventoryData = inventory.SaveInventory();
             dayNight.Save(ref currentSaveData.dayNightSaveData);
             hub.Save(ref currentSaveData.hubData);
@@ -130,7 +128,7 @@ public class SaveSystem
 
             // Salvataggio locale
             File.WriteAllText(SaveFileName(), json);
-            //Debug.Log($"Salvataggio locale completato per utente {GetCurrentUserId()}: {SaveFileName()}");
+            Debug.Log($"Salvataggio locale completato per utente {GetCurrentUserId()}: {SaveFileName()}");
 
             // Salvataggio su Firebase
             SaveToFirebase(json);
@@ -207,8 +205,7 @@ public class SaveSystem
 
         // Ottieni i dati per l'utente corrente
         SaveData currentUserData = GetCurrentUserSaveData();
-
-        CoinUIManager coin = GameObject.FindFirstObjectByType<CoinUIManager>();
+    
         PlayerController player = GameObject.FindFirstObjectByType<PlayerController>();
         InventoryManager inventory = GameObject.FindFirstObjectByType<InventoryManager>();
         DayNightCycleManager dayNight = GameObject.FindFirstObjectByType<DayNightCycleManager>();
@@ -226,10 +223,10 @@ public class SaveSystem
         //Debug.Log("DayNightCycleManager trovato: " + (dayNight != null));
         //Debug.Log("FogManager trovato: " + (fogManager != null));
 
-        if (player != null && coin != null && dayNight != null && shop != null)
+        if (player != null && dayNight != null && shop != null)
         {
             player.Load(currentUserData.playerData);
-            coin.Load(currentUserData.currencyData);
+            player.UpdateHealth();
             inventory.LoadInventory(currentUserData.inventoryData);
             dayNight.Load(currentUserData.dayNightSaveData);
             shop.Load(currentUserData.shopData);
@@ -289,11 +286,11 @@ public class SaveSystem
         {
             if (task.IsCompleted && !task.IsFaulted)
             {
-                //Debug.Log($"Salvataggio su Firebase completato per {user.UserId}");
+                Debug.Log($"Salvataggio su Firebase completato per {user.UserId}");
             }
             else
             {
-                //Debug.LogError($"Errore salvataggio su Firebase per {user.UserId}: " + task.Exception);
+                Debug.LogError($"Errore salvataggio su Firebase per {user.UserId}: " + task.Exception);
             }
         });
     }
@@ -325,20 +322,20 @@ public class SaveSystem
                     // Memorizza i dati per l'utente corrente
                     SetCurrentUserSaveData(loadedData);
 
-                    //Debug.Log($"Dati caricati da Firebase per {user.UserId}");
+                    Debug.Log($"Dati caricati da Firebase per {user.UserId}");
                     SceneManager.sceneLoaded += OnSceneLoaded;
                     SceneManager.LoadScene(loadedData.sceneIndex);
                     onComplete(true);
                 }
                 else
                 {
-                    //Debug.Log($"Nessun salvataggio cloud trovato per {user.UserId}");
+                    Debug.Log($"Nessun salvataggio cloud trovato per {user.UserId}");
                     onComplete(false);
                 }
             }
             else
             {
-                //Debug.LogError($"Errore caricamento da Firebase per {user.UserId}: " + task.Exception);
+                Debug.LogError($"Errore caricamento da Firebase per {user.UserId}: " + task.Exception);
                 onComplete(false);
             }
         });

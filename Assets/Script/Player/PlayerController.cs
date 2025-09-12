@@ -53,7 +53,6 @@ public class PlayerController : MonoBehaviour
     [Header("Door Interaction")]
     public float interactRange = 1f; // distanza massima per interagire con la porta
     public KeyCode interactKey = KeyCode.E;
-    public bool hasKey = false; //all'inizio non ha la chiave
     public Item keyItem;
 
     [Header("Attack Settings")]
@@ -1580,19 +1579,31 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void UpdateHealth()
+    {
+        maxHealthPoints = maxHealthPoints * 2;
+        healthText1.healthSuffix = "/200";
+        healthText1.healthText.text = "200/200";
+        healthBarText.text = "200/200";
+    }
+
     //FOR SAVE AND LOAD DATA
     #region Save and Load
 
     public void Save(ref PlayerSaveData data)
     {
         data.HealthPoints = currentHealthPoints;
+        data.coins = coinsPicked;
         data.HasRefilledCoins = CoinsRefilled;
     }
 
     public void Load(PlayerSaveData data)
     {
-        this.currentHealthPoints = data.HealthPoints;
+        currentHealthPoints = data.HealthPoints;
+        coinsPicked = data.coins;
         CoinsRefilled = data.HasRefilledCoins;
+
+        PowerUpEnabled();
     }
 
     #endregion
@@ -1603,5 +1614,6 @@ public class PlayerController : MonoBehaviour
 public struct PlayerSaveData
 {
     public float HealthPoints;
+    public int coins; 
     public bool HasRefilledCoins;
 }

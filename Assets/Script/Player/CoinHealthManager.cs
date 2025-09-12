@@ -40,25 +40,4 @@ public class CoinUIManager : MonoBehaviour
             healthText.text = player.GetCurrentHealth().ToString() + healthSuffix;
         }
     }
-
-    //SAVE AND LOAD
-    #region Save and Load
-    public void Save(ref CurrencyData data)
-    {
-        data.CurrencyAmount = player.coinsPicked;
-    }
-
-    public void Load(CurrencyData data)
-    {
-        player.coinsPicked = data.CurrencyAmount;
-        UpdateCoinDisplay();
-    }
-
-    #endregion
-}
-
-[System.Serializable]
-public struct CurrencyData
-{
-    public int CurrencyAmount;
 }

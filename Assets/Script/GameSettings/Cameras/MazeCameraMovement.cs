@@ -190,7 +190,7 @@ public class CameraMovement : MonoBehaviour
     {
         Camera cam = GetComponent<Camera>();
         float halfHeight = cam.orthographicSize;
-        float halfWidth = halfHeight * cam.aspect;
+        float halfWidth = 4.5f;
 
         if (topLeftBound == null || topRightBound == null || bottomLeftBound == null || bottomRightBound == null)
         {

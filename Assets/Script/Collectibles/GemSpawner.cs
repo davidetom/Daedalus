@@ -1310,6 +1310,7 @@ public class GemSpawner : MonoBehaviour
         data.hasGreenGem = greenGemCollected;
         data.hasGrayGem = grayGemCollected;
         data.hasRedGem = redGemCollected;
+        data.playerDeaths = currentPlayerDeaths;
     }
 
     public void Load(GemData data)
@@ -1324,6 +1325,7 @@ public class GemSpawner : MonoBehaviour
         playerController.hasZombieGem = data.hasGreenGem;
         playerController.hasFogGem = data.hasGrayGem;
         playerController.hasBloodGem = data.hasRedGem;
+        currentPlayerDeaths = data.playerDeaths;
     }
 
     #endregion
@@ -1339,4 +1341,5 @@ public struct GemData
     public bool hasGreenGem;
     public bool hasGrayGem;
     public bool hasRedGem;
+    public int playerDeaths;
 }

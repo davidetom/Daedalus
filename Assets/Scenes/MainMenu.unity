@@ -720,7 +720,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.0008544922, y: -64.51599}
+  m_AnchoredPosition: {x: 0.0009765625, y: -64.51599}
   m_SizeDelta: {x: -48.63501, y: -213.06543}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &161061060
@@ -1812,7 +1812,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 0}
-  coin: {fileID: 0}
   inventory: {fileID: 0}
   dayNight: {fileID: 0}
   shop: {fileID: 0}
@@ -2713,7 +2712,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.0008544922, y: -64.51599}
+  m_AnchoredPosition: {x: 0.0009765625, y: -64.51599}
   m_SizeDelta: {x: -48.63501, y: -213.06543}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &502286424

@@ -412,8 +412,11 @@ public class MazeManager : MonoBehaviour
     {
         if (loadedData)
         {
-            LoadCurrentMaze();
-            loadedData = false;
+            if (ShouldChangeMaze())
+            {
+                LoadCurrentMaze();
+                loadedData = false;
+            }
         }
         
         UpdatePlayerPosition();
