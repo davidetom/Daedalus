@@ -16,7 +16,7 @@ public class SpawnPoint
 public class SpawnPointGenerator : MonoBehaviour
 {
     [Header("Configurazione")]
-    [SerializeField] private int numeroSpawnPoints = 10;
+    [SerializeField] private int numeroSpawnPoints;
     [SerializeField] private Tilemap labirintoTilemap;
     [SerializeField] private TileBase corridoioTile; // Opzionale - se null, accetta qualsiasi tile
 

@@ -1489,7 +1489,7 @@ public class PlayerController : MonoBehaviour
         if (inventory.HasItem(boots) && !hasBoots)
         {
             //Debug.Log("SPEED BOOST APPLIED");
-            moveSpeed = moveSpeed * 1.3f;
+            moveSpeed = moveSpeed * 1.5f;
             hasBoots = true;
         }
 
@@ -1585,12 +1585,80 @@ public class PlayerController : MonoBehaviour
         return inventory.HasItem(potion);
     }
 
+    public bool HasSword()
+    {
+        return inventory.HasItem(sword);
+    }
+
+    public bool HasBoots()
+    {
+        return inventory.HasItem(boots);
+    }
+
+    public bool HasVisor()
+    {
+        return inventory.HasItem(goggles);
+    }
+
+    public bool HasBinocular()
+    {
+        return inventory.HasItem(binocular);
+    }
+
     public void UpdateHealth()
     {
         maxHealthPoints = maxHealthPoints * 2;
         healthText1.healthSuffix = "/200";
         healthText1.healthText.text = "200/200";
         healthBarText.text = "200/200";
+    }
+
+    public void UpdateSword()
+    {
+        attackDamage = attackDamage * 2f;
+    }
+
+    public void UpdateBoots()
+    {
+        moveSpeed = moveSpeed * 1.5f;
+    }
+
+    public void UpdateVisor()
+    {
+        canPassFog = true;
+
+        if (fogManager != null)
+        {
+            fogManager.SetPlayerCanPassFog(true);
+            //Debug.Log("FogManager aggiornato: player può ora attraversare la nebbia");
+        }
+        else
+        {
+            //Debug.LogError("FogManager non trovato! Il visore non funzionerà correttamente.");
+        }
+
+        if (gemSpawner != null)
+        {
+            gemSpawner.UnlockFogVisibility();
+        }
+        else
+        {
+            //Debug.LogWarning("GemSpawner non trovato per UnlockFogVisibility");
+        }
+
+        if (fogManager != null)
+        {
+            fogManager.CheckPlayerWarningZone(transform.position);
+        }
+    }
+
+    public void UpdateBinocular()
+    {
+        if (footprintManager != null)
+        {
+            footprintManager.EnableFootprints();
+            //Debug.Log("Sistema di impronte abilitato dal binocolo");
+        }
     }
 
     //FOR SAVE AND LOAD DATA

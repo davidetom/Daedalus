@@ -229,6 +229,14 @@ public class SaveSystem
             inventory.LoadInventory(currentUserData.inventoryData);
             if (player.HasPotion())
                 player.UpdateHealth();
+            if (player.HasBinocular())
+                player.UpdateBinocular();
+            if (player.HasVisor())
+                player.UpdateVisor();
+            if (player.HasBoots())
+                player.UpdateBoots();
+            if (player.HasSword())
+                player.UpdateSword();
             dayNight.Load(currentUserData.dayNightSaveData);
             shop.Load(currentUserData.shopData);
             hub.Load(currentUserData.hubData);
